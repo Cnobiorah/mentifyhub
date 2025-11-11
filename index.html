@@ -44,11 +44,14 @@
     top: 0;
     transform: none;
   }
+  .row { display:flex; gap:8px; align-items:center; }
+  .right { text-align:right }
 </style>
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script>
-  window.SUPABASE_URL = window.SUPABASE_URL || "https://bjzcgcndgrypgeegjkol.supabase.co";
-  window.SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJqemNnY25kZ3J5cGdlZWdqa29sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI4NzUxMTcsImV4cCI6MjA3ODQ1MTExN30.O_mLV7qSLs01Ja4TSckLIDRxErQIzmSu3VTyN2KsxmQ";
+  // Replace these with your Vercel env-injected vars or hard-code for testing
+  window.SUPABASE_URL = window.SUPABASE_URL || "https://YOUR-PROJECT.supabase.co";
+  window.SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || "YOUR-ANON-KEY";
   window.supabase = window.supabase || supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
 </script>
 </head>
@@ -87,14 +90,14 @@ document.addEventListener("DOMContentLoaded", function(){
 });
 </script>
 
-<div id="authBar" style="display:flex; gap:8px; align-items:center; justify-content:center; padding:8px 0;">
+<div id="authBar" class="row" style="justify-content:center; padding:8px 0;">
   <span id="authStatus" class="muted">Not signed in</span>
   <button id="btnOpenLogin">Log in / Sign up</button>
 </div>
 
 <div class="card" style="max-width:900px;margin:0 auto;">
   <h2 style="margin-top:0;">Welcome</h2>
-  <p class="muted">Sign in to continue. New users will be created automatically based on the role you select.</p>
+  <p class="muted">Use your email and password. New users will be created automatically based on the role you select when you sign up.</p>
   <ul>
     <li>Mentees: find mentors and send requests</li>
     <li>Mentors: manage mentorship requests</li>
@@ -105,9 +108,24 @@ document.addEventListener("DOMContentLoaded", function(){
 <div id="loginModal" class="modal" style="display:none;">
   <div class="modal-body">
     <h3 id="authTitle" style="margin-top:0;">Sign in or Sign up</h3>
-    <p class="muted">Use your email to receive a one-time magic link.</p>
+    <div class="muted" style="margin-bottom:8px;">Use email + password. (Password must be at least 6 characters.)</div>
+
     <label>Email</label>
     <input id="authEmail" type="email" placeholder="you@example.com" style="width:100%;" />
+
+    <div style="margin-top:8px;">
+      <div class="row" style="justify-content:space-between;">
+        <label for="authPassword">Password</label>
+        <label class="muted"><input type="checkbox" id="togglePass"> Show</label>
+      </div>
+      <input id="authPassword" type="password" placeholder="••••••••" style="width:100%;" />
+    </div>
+
+    <div id="confirmWrap" style="margin-top:8px; display:none;">
+      <label for="authPassword2">Confirm password (sign up)</label>
+      <input id="authPassword2" type="password" placeholder="••••••••" style="width:100%;" />
+    </div>
+
     <div style="margin-top:8px;">
       <label for="authRole">Role</label>
       <select id="authRole" style="width:100%;">
@@ -116,6 +134,7 @@ document.addEventListener("DOMContentLoaded", function(){
         <option value="admin">Admin</option>
       </select>
     </div>
+
     <div style="margin-top:8px;">
       <label for="authMode">Action</label>
       <select id="authMode" style="width:100%;">
@@ -123,12 +142,12 @@ document.addEventListener("DOMContentLoaded", function(){
         <option value="signup">Sign Up</option>
       </select>
     </div>
+
     <div style="margin-top:12px; display:flex; gap:8px; justify-content:flex-end;">
-      <button id="btnSendLink">Continue</button>
+      <button id="btnDoAuth">Continue</button>
       <button id="btnCloseLogin" class="secondary">Cancel</button>
     </div>
-    <div id="authHint" class="muted" style="margin-top:8px;"></div>
-    <p class="muted" style="margin-top:6px;">New users will automatically be signed up.</p>
+    <div id="authHint" class="muted" style="margin-top:8px; min-height:18px;"></div>
   </div>
 </div>
 
@@ -142,33 +161,63 @@ document.addEventListener("DOMContentLoaded", function(){
   function showLogin(open){
     const modal = document.getElementById("loginModal");
     modal.style.display = open ? "flex" : "none";
-    if(open){ document.getElementById("authHint").textContent=""; document.getElementById("authEmail").focus(); }
+    if(open){ 
+      document.getElementById("authHint").textContent="";
+      document.getElementById("authEmail").focus(); 
+    }
   }
   function refreshAuthUI(){
     const statusEl=document.getElementById("authStatus");
     statusEl.textContent = (sessionUser && sessionProfile) ? `${sessionProfile.email} (${sessionProfile.role})` : "Not signed in";
   }
+
+  // UI bindings
   document.getElementById("btnOpenLogin").addEventListener("click", ()=>showLogin(true));
   document.getElementById("btnCloseLogin").addEventListener("click", ()=>showLogin(false));
-  document.getElementById("btnSendLink").addEventListener("click", sendMagicLink);
+  document.getElementById("togglePass").addEventListener("change", (e)=>{
+    const types = e.target.checked ? ["text","text"] : ["password","password"];
+    document.getElementById("authPassword").type = types[0];
+    const c = document.getElementById("authPassword2");
+    if(c) c.type = types[1];
+  });
+  document.getElementById("authMode").addEventListener("change", (e)=>{
+    const isSignup = e.target.value === "signup";
+    document.getElementById("confirmWrap").style.display = isSignup ? "" : "none";
+  });
+  document.getElementById("btnDoAuth").addEventListener("click", doAuth);
 
-  async function sendMagicLink(){
+  async function doAuth(){
     const hint=document.getElementById("authHint");
     const email=(document.getElementById("authEmail").value||"").trim().toLowerCase();
+    const pwd  =(document.getElementById("authPassword").value||"").trim();
+    const pwd2 =(document.getElementById("authPassword2").value||"").trim();
     const role =(document.getElementById("authRole").value||"mentee");
     const mode =(document.getElementById("authMode").value||"signin");
-    const btn=document.getElementById("btnSendLink");
+    const btn=document.getElementById("btnDoAuth");
     if(!email){ hint.textContent="Enter your email."; return; }
+    if(!pwd){ hint.textContent="Enter your password."; return; }
+    if(pwd.length < 6){ hint.textContent="Password must be at least 6 characters."; return; }
+    if(mode==="signup" && pwd !== pwd2){ hint.textContent="Passwords do not match."; return; }
     btn.classList.add("btn-busy"); btn.insertAdjacentHTML("beforeend","<span class='spinner'></span>");
     try{
-      const { error } = await sb.auth.signInWithOtp({
-        email,
-        options: { emailRedirectTo: window.location.origin, data: { role, mode } }
-      });
-      if(error) throw error;
-      hint.textContent = mode==="signup" ? "Check your email to complete sign up." : "Check your email to sign in.";
-    }catch(e){ hint.textContent = "Error: " + (e.message||e); }
-    finally{ btn.classList.remove("btn-busy"); btn.querySelector(".spinner")?.remove(); }
+      if(mode==="signup"){
+        const { error } = await sb.auth.signUp({
+          email,
+          password: pwd,
+          options: { data: { role } }
+        });
+        if(error) throw error;
+        hint.textContent = "Sign up successful. Check your email to confirm, then sign in.";
+      }else{
+        const { error } = await sb.auth.signInWithPassword({ email, password: pwd });
+        if(error) throw error;
+        hint.textContent = "Signed in! Redirecting…";
+      }
+    }catch(e){ 
+      hint.textContent = "Error: " + (e.message||e); 
+    }finally{ 
+      btn.classList.remove("btn-busy"); btn.querySelector(".spinner")?.remove(); 
+    }
   }
 
   async function fetchOrCreateProfile(){

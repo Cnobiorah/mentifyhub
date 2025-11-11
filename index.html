@@ -1,0 +1,190 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Mentorship.AI</title>
+<style>
+  :root { --accent:#0af; --text:#fff; --bg:#0b0b0d; --panel:#131317; --border:#2a2a33; }
+  body { margin:0; font-family:system-ui, Arial, sans-serif; background:var(--bg); color:var(--text); }
+  a { color:var(--accent); text-decoration:none; }
+  .muted { opacity:.75 }
+  .card { background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:16px; margin:12px 0; }
+  input, select, button { font:inherit }
+  input, select { background:#0f0f14; color:#fff; border:1px solid var(--border); border-radius:8px; padding:8px; }
+  button { padding:8px 12px; border-radius:8px; border:1px solid var(--border); background:#1b1b22; color:#fff; cursor:pointer; }
+  button:hover { background:#222230; }
+  #siteTitle { text-align:center; padding:16px 0; }
+  #topNav { text-align:center; margin-bottom:12px; }
+  .btn-busy{opacity:.65;pointer-events:none}
+  .spinner{display:inline-block;width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--accent);
+    border-radius:50%;animation:spin .7s linear infinite;vertical-align:-2px;margin-left:6px}
+  @keyframes spin{to{transform:rotate(360deg))}
+  /* Modal */
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:9999}
+  .modal-body{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px;max-width:420px;width:92%}
+</style>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script>
+  window.SUPABASE_URL = window.SUPABASE_URL || "https://YOUR-PROJECT.supabase.co";
+  window.SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || "YOUR-ANON-KEY";
+  window.supabase = window.supabase || supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+</script>
+</head>
+<body>
+<div id="siteTitle">
+  <h1 style="margin:0; font-size:1.6em; color:var(--accent);">
+    <a href="index.html" style="color:inherit;">Mentorship.AI — Empowering Mentorship Connections</a>
+  </h1>
+</div>
+<nav id="topNav">
+  <a href="index.html" style="margin:0 10px;">Home</a>
+  <a id="navDashboard" href="#" style="margin:0 10px;">Dashboard</a>
+  <a id="navSignOut" href="#" style="margin:0 10px;">Sign out</a>
+</nav>
+<script>
+document.addEventListener("DOMContentLoaded", function(){
+  const dashLink = document.getElementById("navDashboard");
+  const signOutLink = document.getElementById("navSignOut");
+  function role(){ return window.__getCurrentUserRole?.(); }
+  function updateDash(){
+    const r = role();
+    if(r==='admin')      dashLink.href='admin_dashboard.html';
+    else if(r==='mentor')dashLink.href='mentor_dashboard.html';
+    else if(r==='mentee')dashLink.href='mentee_dashboard.html';
+    else dashLink.href='#';
+  }
+  updateDash();
+  signOutLink.addEventListener('click', async (e)=>{
+    e.preventDefault();
+    try{ await window.supabase.auth.signOut(); }catch(_){}
+    location.href='index.html';
+  });
+  if(window.supabase && window.supabase.auth){
+    window.supabase.auth.onAuthStateChange(()=>setTimeout(updateDash,300));
+  }
+});
+</script>
+
+<div id="authBar" style="display:flex; gap:8px; align-items:center; justify-content:center; padding:8px 0;">
+  <span id="authStatus" class="muted">Not signed in</span>
+  <button id="btnOpenLogin">Log in / Sign up</button>
+</div>
+
+<div class="card" style="max-width:900px;margin:0 auto;">
+  <h2 style="margin-top:0;">Welcome</h2>
+  <p class="muted">Sign in to continue. New users will be created automatically based on the role you select.</p>
+  <ul>
+    <li>Mentees: find mentors and send requests</li>
+    <li>Mentors: manage mentorship requests</li>
+    <li>Admin: view all requests, mentors, and mentees</li>
+  </ul>
+</div>
+
+<div id="loginModal" class="modal" style="display:none;">
+  <div class="modal-body">
+    <h3 id="authTitle" style="margin-top:0;">Sign in or Sign up</h3>
+    <p class="muted">Use your email to receive a one-time magic link.</p>
+    <label>Email</label>
+    <input id="authEmail" type="email" placeholder="you@example.com" style="width:100%;" />
+    <div style="margin-top:8px;">
+      <label for="authRole">Role</label>
+      <select id="authRole" style="width:100%;">
+        <option value="mentee" selected>Mentee</option>
+        <option value="mentor">Mentor</option>
+        <option value="admin">Admin</option>
+      </select>
+    </div>
+    <div style="margin-top:8px;">
+      <label for="authMode">Action</label>
+      <select id="authMode" style="width:100%;">
+        <option value="signin" selected>Sign In</option>
+        <option value="signup">Sign Up</option>
+      </select>
+    </div>
+    <div style="margin-top:12px; display:flex; gap:8px; justify-content:flex-end;">
+      <button id="btnSendLink">Continue</button>
+      <button id="btnCloseLogin" class="secondary">Cancel</button>
+    </div>
+    <div id="authHint" class="muted" style="margin-top:8px;"></div>
+    <p class="muted" style="margin-top:6px;">New users will automatically be signed up.</p>
+  </div>
+</div>
+
+<script>
+(function(){
+  const sb = window.supabase;
+  let sessionUser=null, sessionProfile=null;
+  window.__getCurrentUserEmail = () => sessionProfile?.email || sessionUser?.email || null;
+  window.__getCurrentUserRole  = () => sessionProfile?.role || null;
+
+  function showLogin(open){
+    const modal = document.getElementById("loginModal");
+    modal.style.display = open ? "flex" : "none";
+    if(open){ document.getElementById("authHint").textContent=""; document.getElementById("authEmail").focus(); }
+  }
+  function refreshAuthUI(){
+    const statusEl=document.getElementById("authStatus");
+    statusEl.textContent = (sessionUser && sessionProfile) ? `${sessionProfile.email} (${sessionProfile.role})` : "Not signed in";
+  }
+  document.getElementById("btnOpenLogin").addEventListener("click", ()=>showLogin(true));
+  document.getElementById("btnCloseLogin").addEventListener("click", ()=>showLogin(false));
+  document.getElementById("btnSendLink").addEventListener("click", sendMagicLink);
+
+  async function sendMagicLink(){
+    const hint=document.getElementById("authHint");
+    const email=(document.getElementById("authEmail").value||"").trim().toLowerCase();
+    const role =(document.getElementById("authRole").value||"mentee");
+    const mode =(document.getElementById("authMode").value||"signin");
+    const btn=document.getElementById("btnSendLink");
+    if(!email){ hint.textContent="Enter your email."; return; }
+    btn.classList.add("btn-busy"); btn.insertAdjacentHTML("beforeend","<span class='spinner'></span>");
+    try{
+      const { error } = await sb.auth.signInWithOtp({
+        email,
+        options: { emailRedirectTo: window.location.origin, data: { role, mode } }
+      });
+      if(error) throw error;
+      hint.textContent = mode==="signup" ? "Check your email to complete sign up." : "Check your email to sign in.";
+    }catch(e){ hint.textContent = "Error: " + (e.message||e); }
+    finally{ btn.classList.remove("btn-busy"); btn.querySelector(".spinner")?.remove(); }
+  }
+
+  async function fetchOrCreateProfile(){
+    if(!sb || !sessionUser) return;
+    let preferredRole=null; try{ preferredRole=sessionUser?.user_metadata?.role||null; }catch(_){}
+    let existing=null;
+    try{ const { data } = await sb.from("profiles").select("*").eq("user_id", sessionUser.id).single(); existing=data; }catch(_){}
+    if(existing){ sessionProfile=existing; return; }
+    const email=sessionUser.email; const role=preferredRole || "mentee";
+    try{
+      const { data } = await sb.from("profiles").insert([{ user_id: sessionUser.id, email, role }]).select().single();
+      sessionProfile = data || { email, role };
+    }catch(_){ sessionProfile = { email, role }; }
+  }
+
+  function redirectByRole(){
+    const r = window.__getCurrentUserRole();
+    if(r==='admin')   location.href='admin_dashboard.html';
+    else if(r==='mentor') location.href='mentor_dashboard.html';
+    else if(r==='mentee') location.href='mentee_dashboard.html';
+  }
+
+  (async function boot(){
+    const { data:{ session } } = await sb.auth.getSession();
+    sessionUser = session?.user || null;
+    if(sessionUser) await fetchOrCreateProfile();
+    refreshAuthUI();
+    if(sessionProfile?.role) redirectByRole();
+    sb.auth.onAuthStateChange(async (_evt, s)=>{
+      sessionUser = s?.user || null;
+      if(sessionUser) await fetchOrCreateProfile(); else sessionProfile=null;
+      refreshAuthUI();
+      if(sessionProfile?.role) redirectByRole();
+    });
+  })();
+})();
+</script>
+</body>
+</html>

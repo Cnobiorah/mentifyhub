@@ -1,0 +1,92 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Mentorship.AI — Mentor</title>
+<style>
+  :root { --accent:#0af; --text:#fff; --bg:#0b0b0d; --panel:#131317; --border:#2a2a33; }
+  body { margin:0; font-family:system-ui, Arial, sans-serif; background:var(--bg); color:var(--text); }
+  a { color:var(--accent); text-decoration:none; }
+  .muted { opacity:.75 }
+  .card { background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:16px; margin:12px 0; }
+  input, select, button { font:inherit }
+  input, select { background:#0f0f14; color:#fff; border:1px solid var(--border); border-radius:8px; padding:8px; }
+  button { padding:8px 12px; border-radius:8px; border:1px solid var(--border); background:#1b1b22; color:#fff; cursor:pointer; }
+  button:hover { background:#222230; }
+  #siteTitle { text-align:center; padding:16px 0; }
+  #topNav { text-align:center; margin-bottom:12px; }
+  .btn-busy{opacity:.65;pointer-events:none}
+  .spinner{display:inline-block;width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--accent);
+    border-radius:50%;animation:spin .7s linear infinite;vertical-align:-2px;margin-left:6px}
+  @keyframes spin{to{transform:rotate(360deg))}
+  /* Modal */
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:9999}
+  .modal-body{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px;max-width:420px;width:92%}
+</style>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script>
+  window.SUPABASE_URL = window.SUPABASE_URL || "https://YOUR-PROJECT.supabase.co";
+  window.SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || "YOUR-ANON-KEY";
+  window.supabase = window.supabase || supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+</script>
+</head>
+<body>
+<div id="siteTitle">
+  <h1 style="margin:0; font-size:1.6em; color:var(--accent);">
+    <a href="index.html" style="color:inherit;">Mentorship.AI — Mentor — Empowering Mentorship Connections</a>
+  </h1>
+</div>
+<nav id="topNav">
+  <a href="index.html" style="margin:0 10px;">Home</a>
+  <a id="navDashboard" href="#" style="margin:0 10px;">Dashboard</a>
+  <a id="navSignOut" href="#" style="margin:0 10px;">Sign out</a>
+</nav>
+<script>
+document.addEventListener("DOMContentLoaded", function(){
+  const dashLink = document.getElementById("navDashboard");
+  const signOutLink = document.getElementById("navSignOut");
+  function role(){ return window.__getCurrentUserRole?.(); }
+  function updateDash(){
+    const r = role();
+    if(r==='admin')      dashLink.href='admin_dashboard.html';
+    else if(r==='mentor')dashLink.href='mentor_dashboard.html';
+    else if(r==='mentee')dashLink.href='mentee_dashboard.html';
+    else dashLink.href='#';
+  }
+  updateDash();
+  signOutLink.addEventListener('click', async (e)=>{
+    e.preventDefault();
+    try{ await window.supabase.auth.signOut(); }catch(_){}
+    location.href='index.html';
+  });
+  if(window.supabase && window.supabase.auth){
+    window.supabase.auth.onAuthStateChange(()=>setTimeout(updateDash,300));
+  }
+});
+</script>
+
+<style>:root{--accent:#3a8ef6}.for-mentee{display:none!important}</style>
+<div style="text-align:center;margin:8px 0 12px;"><h2>Mentor Dashboard</h2></div>
+<div class="card for-mentor">
+  <h3 style="margin-top:0;">Mentor Inbox</h3>
+  <p class="muted">Your mentor inbox UI goes here.</p>
+</div>
+<script>
+(function(){
+  function guard(){
+    const r = window.__getCurrentUserRole?.();
+    if(!r) return;
+    if(r==='mentor') return;
+    if(r==='admin') location.replace('admin_dashboard.html');
+    else location.replace('mentee_dashboard.html');
+  }
+  document.addEventListener('DOMContentLoaded', guard);
+  if(window.supabase && window.supabase.auth){
+    window.supabase.auth.onAuthStateChange(()=>setTimeout(guard,300));
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,30 +1,14 @@
 -- =============================================
--- Mentorship.AI — Supabase MVP Schema (Corrected)
+-- Mentorship.AI — Supabase Demo Schema (Updated)
 -- =============================================
--- Notes:
--- * Uses 'profiles' table (expected by the frontend).
--- * Keeps demo-open RLS policies so the anon key works.
--- * Idempotent: safe to run multiple times.
+-- This schema is suitable for an MVP / demo.
+-- It keeps permissive RLS so the browser Anon key works.
+-- Replace policies with stricter ones before production.
 -- =============================================
 
--- Extensions
 create extension if not exists "uuid-ossp";
 
--- =======================
--- Core Auth/Profile model
--- =======================
-create table if not exists public.profiles (
-  id uuid primary key default uuid_generate_v4(),
-  user_id uuid unique not null,                    -- Supabase Auth user id
-  email text unique not null,
-  role text not null check (role in ('mentee','mentor','admin')),
-  created_at timestamptz default now()
-);
-
-create index if not exists profiles_email_idx on public.profiles(email);
-create index if not exists profiles_role_idx on public.profiles(role);
-
--- Optional: separate 'users' table for richer directory (not required by frontend)
+-- ---------- users ----------
 create table if not exists public.users (
   id uuid primary key default uuid_generate_v4(),
   email text unique not null,
@@ -32,10 +16,11 @@ create table if not exists public.users (
   role text check (role in ('mentee','mentor','admin')),
   created_at timestamptz default now()
 );
+
 create index if not exists users_email_idx on public.users(email);
 create index if not exists users_role_idx on public.users(role);
 
--- Mentors directory
+-- ---------- mentors ----------
 create table if not exists public.mentors (
   id uuid primary key default uuid_generate_v4(),
   user_email text not null references public.users(email) on delete cascade,
@@ -49,9 +34,10 @@ create table if not exists public.mentors (
   linkedin text,
   created_at timestamptz default now()
 );
+
 create index if not exists mentors_email_idx on public.mentors(user_email);
 
--- Mentorship requests
+-- ---------- requests ----------
 create table if not exists public.requests (
   id uuid primary key default uuid_generate_v4(),
   mentee_email text not null references public.users(email) on delete cascade,
@@ -62,16 +48,17 @@ create table if not exists public.requests (
   created_at timestamptz default now(),
   decided_at timestamptz
 );
+
 create index if not exists requests_mentor_status_idx on public.requests (mentor_email, status);
 create index if not exists requests_mentee_idx on public.requests (mentee_email);
 
--- Prevent duplicate active pairs (pending/accepted)
+-- Prevent duplicate active pairs (optional)
 drop index if exists uniq_active_pair;
 create unique index uniq_active_pair
   on public.requests (mentor_email, mentee_email)
   where status in ('pending','accepted');
 
--- Mentee goals tracking
+-- ---------- goals ----------
 create table if not exists public.goals (
   id uuid primary key default uuid_generate_v4(),
   mentee_email text not null references public.users(email) on delete cascade,
@@ -85,34 +72,42 @@ create table if not exists public.goals (
   created_at timestamptz default now()
 );
 
--- ===================
--- Row Level Security
--- ===================
-alter table public.profiles enable row level security;
-alter table public.users    enable row level security;
-alter table public.mentors  enable row level security;
+-- =============================================
+-- Row Level Security (demo: permissive) 
+-- =============================================
+alter table public.users enable row level security;
+alter table public.mentors enable row level security;
 alter table public.requests enable row level security;
-alter table public.goals    enable row level security;
+alter table public.goals enable row level security;
 
--- DEMO policies (permissive). Replace before production.
-drop policy if exists profiles_demo_all on public.profiles;
-create policy profiles_demo_all on public.profiles for all to public using (true) with check (true);
+-- In a real app, lock these down. For MVP/demo we allow all.
+do $$ begin
+  if not exists (select 1 from pg_policies where polname = 'users_demo_all') then
+    create policy users_demo_all on public.users for all using (true) with check (true);
+  end if;
+end $$;
 
-drop policy if exists users_demo_all on public.users;
-create policy users_demo_all on public.users for all to public using (true) with check (true);
+do $$ begin
+  if not exists (select 1 from pg_policies where polname = 'mentors_demo_all') then
+    create policy mentors_demo_all on public.mentors for all using (true) with check (true);
+  end if;
+end $$;
 
-drop policy if exists mentors_demo_all on public.mentors;
-create policy mentors_demo_all on public.mentors for all to public using (true) with check (true);
+do $$ begin
+  if not exists (select 1 from pg_policies where polname = 'requests_demo_all') then
+    create policy requests_demo_all on public.requests for all using (true) with check (true);
+  end if;
+end $$;
 
-drop policy if exists requests_demo_all on public.requests;
-create policy requests_demo_all on public.requests for all to public using (true) with check (true);
+do $$ begin
+  if not exists (select 1 from pg_policies where polname = 'goals_demo_all') then
+    create policy goals_demo_all on public.goals for all using (true) with check (true);
+  end if;
+end $$;
 
-drop policy if exists goals_demo_all on public.goals;
-create policy goals_demo_all on public.goals for all to public using (true) with check (true);
-
--- ============
--- Helpful view
--- ============
+-- =============================================
+-- Helpful Views
+-- =============================================
 create or replace view public.v_requests_with_names as
 select
   r.*,

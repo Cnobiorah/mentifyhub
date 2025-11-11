@@ -3,256 +3,556 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Mentorship.AI</title>
+<title>Mentorship.AI — Empowering Mentorship Connections</title>
 <style>
-  :root { --accent:#0af; --text:#fff; --bg:#0b0b0d; --panel:#131317; --border:#2a2a33; }
-  body { margin:0; font-family:system-ui, Arial, sans-serif; background:var(--bg); color:var(--text); }
-  a { color:var(--accent); text-decoration:none; }
-  .muted { opacity:.75 }
-  .card { background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:16px; margin:12px 0; }
-  input, select, button { font:inherit }
-  input, select { background:#0f0f14; color:#fff; border:1px solid var(--border); border-radius:8px; padding:8px; }
-  button { padding:8px 12px; border-radius:8px; border:1px solid var(--border); background:#1b1b22; color:#fff; cursor:pointer; }
-  button:hover { background:#222230; }
-  #siteTitle { text-align:center; padding:16px 0; }
-  #topNav { text-align:center; margin-bottom:12px; }
-  .btn-busy{opacity:.65;pointer-events:none}
-  .spinner{display:inline-block;width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--accent);
-    border-radius:50%;animation:spin .7s linear infinite;vertical-align:-2px;margin-left:6px}
-  @keyframes spin{to{transform:rotate(360deg)}}
+:root{--bg:#0b0d12;--card:#121621;--text:#eaf0ff;--muted:#9aa3b2;--accent:#39d98a;--border:#262c3a;}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;color:var(--text);
+  background:linear-gradient(160deg,#0b0d12 0%,#0e1220 60%,#0b0d12 100%);}
+header{padding:24px 20px 8px;border-bottom:1px solid var(--border);
+  position:sticky;top:0;backdrop-filter:blur(8px);background:#0b0d12cc;}
+h1{margin:0;font-size:20px;letter-spacing:.2px}
+main{padding:16px 20px 80px;max-width:1200px;margin:0 auto;}
+.grid{display:grid;gap:16px;grid-template-columns:repeat(12,1fr);}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;
+  box-shadow:0 10px 24px rgba(0,0,0,.25);}
+.row{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;}
+input,select,button{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border);
+  background:#0e1320;color:var(--text)}
+button{background:linear-gradient(180deg,#1e2740,#171d33);cursor:pointer}
+.muted{color:var(--muted);font-size:12px}
+.status{margin-top:8px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;}
+.mcard{position:relative;overflow:hidden}
+.mcard h3{margin:8px 0 4px;font-size:18px}
+.meta{font-size:12px;color:var(--muted);margin-bottom:8px}
+.pill{display:inline-block;font-size:12px;padding:4px 8px;border:1px solid var(--border);
+  border-radius:999px;margin:2px 4px 0 0;background:#0e1320}
+.rowblock{margin:8px 0}
+.avatar{width:100%;height:160px;object-fit:cover;border-radius:10px;background:#0b0f1a}
+.badge{position:absolute;top:10px;right:10px;padding:6px 10px;border-radius:999px;border:1px solid var(--border);
+  background:#0e1320;font-weight:600}
+a{color:var(--accent);text-decoration:none}
+.error{color:#ff8686}
+.tabs{display:flex;gap:8px;margin-top:8px}
+.tab{padding:8px 12px;border-radius:999px;border:1px solid var(--border);background:#0e1320;cursor:pointer}
+.tab.active{outline:1px solid var(--accent)}
+@media(max-width:860px){.row{grid-template-columns:1fr 1fr}}
+.hr{height:1px;background:var(--border);margin:8px 0 4px}
+table{border-collapse:collapse;width:100%}
+th,td{padding:8px;border-bottom:1px solid var(--border);text-align:left;font-size:12px}
+thead tr{background:#0e1320}
 
-  /* Modal - centered */
-  .modal {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.45);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
-  }
-
-  .modal-body {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 16px;
-    max-width: 420px;
-    width: 92%;
-    margin: auto;
-    position: relative;
-    top: 0;
-    transform: none;
-  }
-  .row { display:flex; gap:8px; align-items:center; }
-  .right { text-align:right }
+/* Toasts */
+#toastWrap{position:fixed;right:16px;bottom:16px;z-index:9999;display:flex;flex-direction:column;gap:8px;}
+.toast{background:#121621;color:#eaf0ff;border:1px solid #262c3a;border-left:3px solid #39d98a;
+  padding:10px 12px;border-radius:10px;min-width:220px;max-width:360px;box-shadow:0 10px 24px rgba(0,0,0,.35);
+  opacity:0;transform:translateY(8px);transition:opacity .25s ease,transform .25s ease,border-color .2s ease;font-size:14px;}
+.toast.show{opacity:1;transform:translateY(0);}
+.toast.error{border-left-color:#ff6b6b;}
 </style>
-<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-<script>
-  // Replace these with your Vercel env-injected vars or hard-code for testing
-  window.SUPABASE_URL = window.SUPABASE_URL || "https://bjzcgcndgrypgeegjkol.supabase.co";
-  window.SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJqemNnY25kZ3J5cGdlZWdqa29sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI4NzUxMTcsImV4cCI6MjA3ODQ1MTExN30.O_mLV7qSLs01Ja4TSckLIDRxErQIzmSu3VTyN2KsxmQ";
-  window.supabase = window.supabase || supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
-</script>
 </head>
 <body>
-<div id="siteTitle">
-  <h1 style="margin:0; font-size:1.6em; color:var(--accent);">
-    <a href="index.html" style="color:inherit;">Mentorship.AI — Empowering Mentorship Connections</a>
-  </h1>
-</div>
-<nav id="topNav">
-  <a href="index.html" style="margin:0 10px;">Home</a>
-  <a id="navDashboard" href="#" style="margin:0 10px;">Dashboard</a>
-  <a id="navSignOut" href="#" style="margin:0 10px;">Sign out</a>
-</nav>
+<header>
+  <h1>Mentorship.AI — Empowering Mentorship Connections</h1>
+  <div class="tabs">
+    <div class="tab active" data-view="mentee">Mentee</div>
+    <div class="tab" data-view="mentor">Mentor Inbox</div>
+    <div class="tab" data-view="admin">Admin</div>
+  </div>
+</header>
+
+<main class="grid">
+  <!-- Mentee -->
+  <section id="view-mentee" class="card" style="grid-column:span 12;">
+    <h2>Find a Mentor (Suggestions appear automatically)</h2>
+
+    <div class="row">
+      <input id="menteeName" placeholder="Your full name" />
+      <input id="menteeEmail" placeholder="Your email (for mentor reply)" />
+      <input id="menteeRegion" placeholder="Your region/timezone (e.g., UK, Europe, WAT)" />
+      <button id="btnSaveMentee">Save Profile</button>
+    </div>
+
+    <div class="muted">
+      Enter your interests & type, then click <em>Suggest Mentors</em> — or just start typing and the system will automatically recommend top matches.
+    </div>
+    <div class="hr"></div>
+
+    <div class="row">
+      <input id="menteeInterests" placeholder="Your interests (e.g., solar; retrofit, BIM)" />
+      <select id="menteeType">
+        <option value="">Any mentorship type</option>
+        <option>Career Mentoring</option>
+        <option>Technical Mentoring</option>
+        <option>Project Support</option>
+        <option>Interview Prep</option>
+      </select>
+      <div></div>
+      <button id="applyMentee">Suggest Mentors</button>
+    </div>
+
+    <div class="row" style="margin-top:8px;">
+      <input id="search" placeholder="(Optional) Search across names/skills/bio…"/>
+      <select id="typeFilter"><option value="">All mentorship types</option></select>
+      <div>
+        <select id="topicFilter"><option value="">All topics / skills</option></select>
+        <input id="topicOther" placeholder="Type a skill/topic" style="display:none;margin-top:8px;">
+      </div>
+      <select id="availabilityFilter">
+        <option value="">Any time</option>
+        <option>Morning</option>
+        <option>Afternoon</option>
+        <option>Evening</option>
+        <option>Weekends</option>
+        <option>Any other time</option>
+      </select>
+    </div>
+
+    <div id="mentors" class="cards" style="margin-top:10px;"></div>
+
+    <!-- Mentee: My Requests -->
+    <div class="hr"></div>
+    <h3 style="margin-top:10px;">My Requests</h3>
+    <div id="myRequests" class="rowblock muted">No requests yet.</div>
+    <div class="rowblock">
+      <button id="btnRefreshMyRequests">Refresh My Requests</button>
+    </div>
+  </section>
+
+  <!-- Mentor Inbox -->
+  <section id="view-mentor" class="card" style="grid-column:span 12;display:none;">
+    <h2>Mentor Inbox</h2>
+    <div class="row">
+      <input id="inboxEmail" placeholder="Mentor email to load inbox" />
+      <button id="btnLoadInbox">Load Inbox</button>
+      <button id="btnRefreshInbox">Refresh</button>
+    </div>
+    <div id="inbox" class="rowblock"></div>
+  </section>
+
+  <!-- Admin -->
+  <section id="view-admin" class="card" style="grid-column:span 12;display:none;">
+    <h2>Admin Panel</h2>
+    <div class="row">
+      <input id="csvUrl" placeholder="CSV export link"
+        value="https://docs.google.com/spreadsheets/d/e/2PACX-1vSCpUVIL4QBXyTVCKN_z-8dQYlmFpSYES3spDxw8RODDYwhypCCLbwemTEoFEZT7ZyKoCeswC3sQgc_/pub?output=csv" />
+      <button id="btnLoadCsv">Reload CSV</button>
+      <input value="https://dayxbdhzuiwkmnkehueb.supabase.co" readonly />
+    </div>
+    <div class="muted">CSV and Supabase are already configured. Replace link to test different sheet.</div>
+    <div id="status" class="muted status"></div>
+    <div id="error" class="error" style="display:none"></div>
+    <div class="hr"></div>
+    <div class="rowblock">
+      <h3>Mentor Database (Admin only)</h3>
+      <div id="adminMentorTable" class="muted">No mentors loaded yet.</div>
+    </div>
+  </section>
+</main>
+
+<div id="toastWrap" aria-live="polite" aria-atomic="true"></div>
+
+<!-- ===== CONFIG (including Supabase constants) ===== -->
 <script>
-document.addEventListener("DOMContentLoaded", function(){
-  const dashLink = document.getElementById("navDashboard");
-  const signOutLink = document.getElementById("navSignOut");
-  function role(){ return window.__getCurrentUserRole?.(); }
-  function updateDash(){
-    const r = role();
-    if(r==='admin')      dashLink.href='admin_dashboard.html';
-    else if(r==='mentor')dashLink.href='mentor_dashboard.html';
-    else if(r==='mentee')dashLink.href='mentee_dashboard.html';
-    else dashLink.href='#';
-  }
-  updateDash();
-  signOutLink.addEventListener('click', async (e)=>{
-    e.preventDefault();
-    try{ await window.supabase.auth.signOut(); }catch(_){}
-    location.href='index.html';
-  });
-  if(window.supabase && window.supabase.auth){
-    window.supabase.auth.onAuthStateChange(()=>setTimeout(updateDash,300));
-  }
-});
+const CSV_URL_DEFAULT="https://docs.google.com/spreadsheets/d/e/2PACX-1vSCpUVIL4QBXyTVCKN_z-8dQYlmFpSYES3spDxw8RODDYwhypCCLbwemTEoFEZT7ZyKoCeswC3sQgc_/pub?output=csv";
+const SUPABASE_URL="https://dayxbdhzuiwkmnkehueb.supabase.co";
+const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRheXhiZGh6dWl3a21ua2VodWViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxOTgyMzAsImV4cCI6MjA3Nzc3NDIzMH0.OU8cUFOUrV0zE0AtJH3BPzhqR70UJu6aNw8eavSf4xc";
+window.SUPABASE_URL=SUPABASE_URL;window.SUPABASE_ANON_KEY=SUPABASE_ANON_KEY;
+
+/* behavior flags */
+const REQUIRE_INTERESTS_FIRST=true;
+const SUGGESTION_COUNT=5;
 </script>
 
-<div id="authBar" class="row" style="justify-content:center; padding:8px 0;">
-  <span id="authStatus" class="muted">Not signed in</span>
-  <button id="btnOpenLogin">Log in / Sign up</button>
-</div>
-
-<div class="card" style="max-width:900px;margin:0 auto;">
-  <h2 style="margin-top:0;">Welcome</h2>
-  <p class="muted">Use your email and password. New users will be created automatically based on the role you select when you sign up.</p>
-  <ul>
-    <li>Mentees: find mentors and send requests</li>
-    <li>Mentors: manage mentorship requests</li>
-    <li>Admin: view all requests, mentors, and mentees</li>
-  </ul>
-</div>
-
-<div id="loginModal" class="modal" style="display:none;">
-  <div class="modal-body">
-    <h3 id="authTitle" style="margin-top:0;">Sign in or Sign up</h3>
-    <div class="muted" style="margin-bottom:8px;">Use email + password. (Password must be at least 6 characters.)</div>
-
-    <label>Email</label>
-    <input id="authEmail" type="email" placeholder="you@example.com" style="width:100%;" />
-
-    <div style="margin-top:8px;">
-      <div class="row" style="justify-content:space-between;">
-        <label for="authPassword">Password</label>
-        <label class="muted"><input type="checkbox" id="togglePass"> Show</label>
-      </div>
-      <input id="authPassword" type="password" placeholder="••••••••" style="width:100%;" />
-    </div>
-
-    <div id="confirmWrap" style="margin-top:8px; display:none;">
-      <label for="authPassword2">Confirm password (sign up)</label>
-      <input id="authPassword2" type="password" placeholder="••••••••" style="width:100%;" />
-    </div>
-
-    <div style="margin-top:8px;">
-      <label for="authRole">Role</label>
-      <select id="authRole" style="width:100%;">
-        <option value="mentee" selected>Mentee</option>
-        <option value="mentor">Mentor</option>
-        <option value="admin">Admin</option>
-      </select>
-    </div>
-
-    <div style="margin-top:8px;">
-      <label for="authMode">Action</label>
-      <select id="authMode" style="width:100%;">
-        <option value="signin" selected>Sign In</option>
-        <option value="signup">Sign Up</option>
-      </select>
-    </div>
-
-    <div style="margin-top:12px; display:flex; gap:8px; justify-content:flex-end;">
-      <button id="btnDoAuth">Continue</button>
-      <button id="btnCloseLogin" class="secondary">Cancel</button>
-    </div>
-    <div id="authHint" class="muted" style="margin-top:8px; min-height:18px;"></div>
-  </div>
-</div>
+<!-- ✅ Supabase ESM loader -->
+<script type="module">
+  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+  const url = window.SUPABASE_URL;
+  const key = window.SUPABASE_ANON_KEY;
+  window.supabase = createClient(url, key);
+  window._sbReady = true;
+  console.log("✅ Supabase initialized (ESM)");
+  // enable buttons rendered before ready
+  document.querySelectorAll("button[data-email][disabled]").forEach(b=>b.disabled=false);
+  if(typeof showToast==="function") showToast("Connected to database");
+</script>
 
 <script>
-(function(){
-  const sb = window.supabase;
-  let sessionUser=null, sessionProfile=null;
-  window.__getCurrentUserEmail = () => sessionProfile?.email || sessionUser?.email || null;
-  window.__getCurrentUserRole  = () => sessionProfile?.role || null;
+/* shim so any code awaiting this resolves */
+async function initSupabase(){ return !!window._sbReady; }
 
-  function showLogin(open){
-    const modal = document.getElementById("loginModal");
-    modal.style.display = open ? "flex" : "none";
-    if(open){ 
-      document.getElementById("authHint").textContent="";
-      document.getElementById("authEmail").focus(); 
-    }
+/* ---------- Toasts ---------- */
+function showToast(msg,{type="success",timeout=2800}={}) {
+  const w=document.getElementById("toastWrap"); if(!w) return;
+  const e=document.createElement("div");
+  e.className="toast"+(type==="error"?" error":"");
+  e.textContent=msg;
+  w.appendChild(e);
+  requestAnimationFrame(()=>e.classList.add("show"));
+  setTimeout(()=>{ e.classList.remove("show"); setTimeout(()=>e.remove(),250); }, timeout);
+}
+
+/* ---------- Utilities ---------- */
+function debounce(fn, ms = 350){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a),ms);} }
+function hasProfileReady(me=mentee){ return (me.interests&&me.interests.trim().length>=2)||me.type||me.region; }
+function toArray(s){ return String(s||"").split(/[;,/]/).map(v=>v.trim()).filter(Boolean); }
+
+/* CSV parser (robust) */
+function parseCSV(t){
+  const first=t.split(/\r?\n/)[0]||""; const delim=[",",";","\t"].sort((a,b)=>(first.split(a).length)<(first.split(b).length)?1:-1)[0];
+  const rows=[]; let cell="", row=[], q=false;
+  for(let i=0;i<t.length;i++){
+    const ch=t[i], n=t[i+1];
+    if(ch=='"'){ if(q&&n=='"'){cell+='"'; i++;} else q=!q; }
+    else if(!q&&ch==delim){ row.push(cell); cell=""; }
+    else if(!q&&(ch=="\n"||ch=="\r")){ if(cell!=''||row.length){ row.push(cell); rows.push(row); row=[]; cell=""; } if(ch=="\r"&&n=="\n") i++; }
+    else cell+=ch;
   }
-  function refreshAuthUI(){
-    const statusEl=document.getElementById("authStatus");
-    statusEl.textContent = (sessionUser && sessionProfile) ? `${sessionProfile.email} (${sessionProfile.role})` : "Not signed in";
+  if(cell!=''||row.length){ row.push(cell); rows.push(row); }
+  return rows.filter(r=>r.some(x=>String(x).trim()!==''));
+}
+function headerIndexMap(h){ const i={}; h.forEach((x,n)=>i[String(x||"").trim().toLowerCase()]=n); return i; }
+function getCell(row,idx,names){ for(const n of names){ const k=n.trim().toLowerCase(); if(idx[k]!=null) return row[idx[k]]||''; } return ''; }
+
+function toMentor(row,idx){return{
+  name:getCell(row,idx,['name','Name']),
+  email:getCell(row,idx,['email','Email','email address']),
+  timezone:getCell(row,idx,['timezone','Timezone','timezone/location']),
+  availability:getCell(row,idx,['availability','Availability']),
+  types:toArray(getCell(row,idx,['mentorship type','types','Types'])),
+  skills:toArray(getCell(row,idx,['skills you can mentor on','skills','Skills'])),
+  topics:toArray(getCell(row,idx,['topics/area of interest','topics','Topics'])),
+  bio:getCell(row,idx,['biography','bio','Bio']),
+  linkedin:getCell(row,idx,['linkedin','LinkedIn']),
+  photo:getCell(row,idx,['add your picture','photo','Photo'])
+};}
+
+const norm=s=>String(s||"").toLowerCase().replace(/[^a-z0-9\s]/g,' ').trim();
+function jaccard(a,b){ const A=new Set(a.map(norm)),B=new Set(b.map(norm)); let inter=0; A.forEach(v=>B.has(v)&&inter++); return inter/(A.size+B.size-inter||1); }
+function score(m,me){
+  const mt=[...(m.skills||[]),...(m.topics||[])], it=toArray(me.interests||'');
+  return Math.round(
+    (0.60*jaccard(mt,it))
+    + (me.type&&m.types?.some(t=>norm(t)==norm(me.type))?0.15:0)
+    + (/morning|available|open|yes|accept/i.test(m.availability||"")?0.10:0)
+    + (me.region&&m.timezone?.toLowerCase().includes(me.region?.toLowerCase())?0.10:0)
+    + ((m.bio||"").toLowerCase().includes((me.interests||"").toLowerCase())?0.05:0)
+  *100);
+}
+function matchesAvailability(mentorAvail, filterVal){
+  if(!filterVal) return true;
+  const src=String(mentorAvail||"").toLowerCase(), want=filterVal.toLowerCase();
+  if(want==="morning")   return /morning|am|8am|9am|10am|11am/.test(src);
+  if(want==="afternoon") return /afternoon|pm|12pm|1pm|2pm|3pm|4pm/.test(src);
+  if(want==="evening")   return /evening|pm|5pm|6pm|7pm|8pm|night/.test(src);
+  if(want==="weekends")  return /weekend|saturday|sunday/.test(src);
+  if(want==="any other time") return true;
+  return src.includes(want);
+}
+
+/* ---------- State ---------- */
+let MENTORS=[], VIEW=[];
+let mentee={name:"",email:"",region:"",interests:"",type:""};
+let F={q:"",type:"",topic:"",avail:""};
+
+/* ---------- Admin table ---------- */
+function renderAdminTable(){
+  const box=document.getElementById("adminMentorTable");
+  if(!box) return;
+  if(!MENTORS.length){ box.textContent="No mentors loaded yet."; return; }
+  const rows = MENTORS.map(m=>`
+    <tr>
+      <td>${m.name||""}</td>
+      <td>${m.email||""}</td>
+      <td>${(m.types||[]).join(", ")}</td>
+      <td>${[...(m.skills||[]),...(m.topics||[])].join(", ")}</td>
+      <td>${m.availability||""}</td>
+      <td>${m.timezone||""}</td>
+    </tr>`).join("");
+  box.innerHTML = `
+    <div class="muted" style="margin-bottom:6px;">Total mentors: ${MENTORS.length}</div>
+    <div style="overflow:auto;max-height:360px;border:1px solid var(--border);border-radius:12px;">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th><th>Email</th><th>Types</th><th>Skills/Topics</th><th>Availability</th><th>Timezone</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+
+/* ---------- Mentee suggestions ---------- */
+function render(){
+  const host=document.getElementById("mentors"); host.innerHTML="";
+  if(REQUIRE_INTERESTS_FIRST && !hasProfileReady()){
+    host.innerHTML=`<div class="card" style="border-style:dashed">
+      Start typing your interests (e.g., "solar; retrofit, BIM"), or choose a Mentorship Type/Region — suggestions will appear automatically.</div>`;
+    return;
   }
+  if(!VIEW.length){ host.innerHTML="<div class='muted'>No mentors match yet. Try adjusting your interests or filters.</div>"; return; }
 
-  // UI bindings
-  document.getElementById("btnOpenLogin").addEventListener("click", ()=>showLogin(true));
-  document.getElementById("btnCloseLogin").addEventListener("click", ()=>showLogin(false));
-  document.getElementById("togglePass").addEventListener("change", (e)=>{
-    const types = e.target.checked ? ["text","text"] : ["password","password"];
-    document.getElementById("authPassword").type = types[0];
-    const c = document.getElementById("authPassword2");
-    if(c) c.type = types[1];
-  });
-  document.getElementById("authMode").addEventListener("change", (e)=>{
-    const isSignup = e.target.value === "signup";
-    document.getElementById("confirmWrap").style.display = isSignup ? "" : "none";
-  });
-  document.getElementById("btnDoAuth").addEventListener("click", doAuth);
+  const banner=document.createElement("div");
+  banner.className="card"; banner.style.margin="0 0 8px";
+  banner.innerHTML=`<strong>Suggested mentors</strong> — top ${VIEW.length} by match score.`;
+  host.appendChild(banner);
 
-  async function doAuth(){
-    const hint=document.getElementById("authHint");
-    const email=(document.getElementById("authEmail").value||"").trim().toLowerCase();
-    const pwd  =(document.getElementById("authPassword").value||"").trim();
-    const pwd2 =(document.getElementById("authPassword2").value||"").trim();
-    const role =(document.getElementById("authRole").value||"mentee");
-    const mode =(document.getElementById("authMode").value||"signin");
-    const btn=document.getElementById("btnDoAuth");
-    if(!email){ hint.textContent="Enter your email."; return; }
-    if(!pwd){ hint.textContent="Enter your password."; return; }
-    if(pwd.length < 6){ hint.textContent="Password must be at least 6 characters."; return; }
-    if(mode==="signup" && pwd !== pwd2){ hint.textContent="Passwords do not match."; return; }
-    btn.classList.add("btn-busy"); btn.insertAdjacentHTML("beforeend","<span class='spinner'></span>");
-    try{
-      if(mode==="signup"){
-        const { error } = await sb.auth.signUp({
-          email,
-          password: pwd,
-          options: { data: { role } }
-        });
-        if(error) throw error;
-        hint.textContent = "Sign up successful. Check your email to confirm, then sign in.";
-      }else{
-        const { error } = await sb.auth.signInWithPassword({ email, password: pwd });
-        if(error) throw error;
-        hint.textContent = "Signed in! Redirecting…";
+  VIEW.forEach(m=>{
+    const c=document.createElement("div"); c.className="card mcard";
+    c.innerHTML=`
+      <div class="badge">${m._score||0}% match</div>
+      ${m.photo?`<img class='avatar' src='${m.photo}' alt='${m.name}'>`:""}
+      <h3>${m.name}</h3>
+      <div class='meta'>${(m.types||[]).join(', ')}</div>
+      ${m.bio?`<div class='rowblock'>${m.bio}</div>`:""}
+      <div>${(m.skills||[]).map(x=>`<span class='pill'>${x}</span>`).join('')}</div>
+      <div class="rowblock">
+        <button data-email='${m.email}' ${window._sbReady ? "" : "disabled"}>Request Mentorship</button>
+        ${m.linkedin?`<a class="pill" target="_blank" rel="noopener" href="${m.linkedin}">LinkedIn</a>`:""}
+      </div>`;
+    host.appendChild(c);
+  });
+  host.querySelectorAll("button[data-email]").forEach(b=>b.onclick=()=>sendRequest(b.dataset.email));
+
+  if(!window._sbReady){
+    (async()=>{ const ok=await initSupabase(); if(ok){ host.querySelectorAll("button[data-email][disabled]").forEach(btn=>btn.disabled=false);} })();
+  }
+}
+
+function apply(){
+  if(REQUIRE_INTERESTS_FIRST && !hasProfileReady()){
+    const host=document.getElementById("mentors");
+    host.innerHTML=`<div class="card" style="border-style:dashed">
+      Add interests / type / region — suggestions will appear automatically.</div>`;
+    return;
+  }
+  const q=(F.q||"").toLowerCase();
+  const ranked = MENTORS
+    .map(m=>({...m,_score:score(m,mentee)}))
+    .filter(m=>(!q||JSON.stringify(m).toLowerCase().includes(q)))
+    .filter(m=>(!F.type||m.types?.includes(F.type)))
+    .filter(m=>{
+      if(!F.topic) return true;
+      if(F.topic.startsWith("__other:")){
+        const t=F.topic.slice("__other:".length).toLowerCase();
+        const hay=[...(m.skills||[]),...(m.topics||[])].join(" ").toLowerCase();
+        return t ? hay.includes(t) : true;
       }
-    }catch(e){ 
-      hint.textContent = "Error: " + (e.message||e); 
-    }finally{ 
-      btn.classList.remove("btn-busy"); btn.querySelector(".spinner")?.remove(); 
-    }
-  }
+      return (m.skills?.includes(F.topic) || m.topics?.includes(F.topic));
+    })
+    .filter(m=>matchesAvailability(m.availability, F.avail))
+    .sort((a,b)=>b._score-a._score);
 
-  async function fetchOrCreateProfile(){
-    if(!sb || !sessionUser) return;
-    let preferredRole=null; try{ preferredRole=sessionUser?.user_metadata?.role||null; }catch(_){}
-    let existing=null;
-    try{ const { data } = await sb.from("profiles").select("*").eq("user_id", sessionUser.id).single(); existing=data; }catch(_){}
-    if(existing){ sessionProfile=existing; return; }
-    const email=sessionUser.email; const role=preferredRole || "mentee";
-    try{
-      const { data } = await sb.from("profiles").insert([{ user_id: sessionUser.id, email, role }]).select().single();
-      sessionProfile = data || { email, role };
-    }catch(_){ sessionProfile = { email, role }; }
-  }
+  VIEW = ranked.slice(0,SUGGESTION_COUNT);
+  render();
+}
 
-  function redirectByRole(){
-    const r = window.__getCurrentUserRole();
-    if(r==='admin')   location.href='admin_dashboard.html';
-    else if(r==='mentor') location.href='mentor_dashboard.html';
-    else if(r==='mentee') location.href='mentee_dashboard.html';
+/* ---------- CSV (with CORS fallback) ---------- */
+async function fetchCsvWithFallback(url){
+  try{
+    const r=await fetch(url,{mode:"cors",cache:"no-store"});
+    if(!r.ok) throw new Error("HTTP "+r.status);
+    const t=await r.text(); if(t && t.trim().length) return t;
+    throw new Error("Empty CSV");
+  }catch(e){
+    const prox="https://api.allorigins.win/raw?url="+encodeURIComponent(url);
+    const r2=await fetch(prox,{cache:"no-store"}); if(!r2.ok) throw new Error("Proxy HTTP "+r2.status);
+    return await r2.text();
   }
+}
+async function loadCSV(u){
+  const s=document.getElementById("status"), e=document.getElementById("error");
+  if(s) s.textContent="Loading mentors…"; if(e){ e.style.display="none"; e.textContent=""; }
+  try{
+    const text=await fetchCsvWithFallback(u);
+    const rows=parseCSV(text); if(!rows.length) throw new Error("CSV empty");
+    const idx=headerIndexMap(rows[0]); MENTORS=rows.slice(1).map(r=>toMentor(r,idx)).filter(m=>m.name);
+    renderOptions(); apply(); renderAdminTable();
+    if(s) s.textContent=`Loaded ${MENTORS.length} mentor${MENTORS.length!==1?'s':''}.`;
+    showToast(`CSV loaded: ${MENTORS.length} mentor${MENTORS.length!==1?'s':''}`);
+  }catch(err){
+    if(e){ e.style.display="block"; e.textContent="Failed to fetch"; } if(s) s.textContent="";
+    console.error(err); showToast("CSV load failed",{type:"error"});
+  }
+}
+function renderOptions(){
+  const uniq=a=>[...new Set((a||[]).filter(Boolean))];
+  const types=uniq(MENTORS.flatMap(m=>m.types||[])).sort((a,b)=>a.localeCompare(b));
+  const topics=uniq(MENTORS.flatMap(m=>[...(m.skills||[]),...(m.topics||[])])).sort((a,b)=>a.localeCompare(b));
+  document.getElementById("typeFilter").innerHTML =
+    '<option value="">All mentorship types</option>'+types.map(t=>`<option>${t}</option>`).join("");
+  const topicSel=document.getElementById("topicFilter");
+  topicSel.innerHTML =
+    '<option value="">All topics / skills</option>'+
+    topics.map(t=>`<option>${t}</option>`).join("")+
+    '<option value="__other">Others…</option>';
+}
 
-  (async function boot(){
-    const { data:{ session } } = await sb.auth.getSession();
-    sessionUser = session?.user || null;
-    if(sessionUser) await fetchOrCreateProfile();
-    refreshAuthUI();
-    if(sessionProfile?.role) redirectByRole();
-    sb.auth.onAuthStateChange(async (_evt, s)=>{
-      sessionUser = s?.user || null;
-      if(sessionUser) await fetchOrCreateProfile(); else sessionProfile=null;
-      refreshAuthUI();
-      if(sessionProfile?.role) redirectByRole();
+/* ---------- Requests + Inbox ---------- */
+async function sendRequest(email){
+  if(!window._sbReady || !window.supabase){
+    showToast("Connecting to database… please try again in a moment.",{type:"error"}); return;
+  }
+  if(!mentee.email){ showToast("Please save your profile first.",{type:"error"}); return; }
+  const payload={mentor_email:email,mentee_email:mentee.email,mentee_name:mentee.name,status:"pending",note:mentee.interests,created_at:new Date().toISOString()};
+  try{
+    const {error}=await supabase.from("requests").insert([payload]);
+    if(error) throw error;
+    showToast("Request sent ✅");
+    loadMyRequests(); // reflect immediately in My Requests
+  }catch(e){
+    showToast("Error sending request: "+(e.message||e),{type:"error"});
+  }
+}
+async function loadInbox(){
+  const email=document.getElementById("inboxEmail").value.trim();
+  const box=document.getElementById("inbox"); box.innerHTML="";
+  if(!email){ box.innerHTML="<div class='muted'>Enter email.</div>"; return; }
+  try{
+    const {data,error}=await supabase.from("requests").select("*").eq("mentor_email",email).order("created_at",{ascending:false});
+    if(error) throw error;
+    if(!data.length){ box.innerHTML="<div class='muted'>No requests yet.</div>"; showToast("Inbox refreshed"); return; }
+    data.forEach(r=>{
+      const c=document.createElement("div"); c.className="card"; c.style.margin="8px 0";
+      c.innerHTML=`<strong>${r.mentee_name||r.mentee_email}</strong> <span class="pill">${r.status}</span>
+        <div class="muted">${r.mentee_email}</div>
+        <div class="rowblock">${r.note||""}</div>
+        <div class="rowblock">
+          <button data-id='${r.id}' data-s='accepted'>Accept</button>
+          <button data-id='${r.id}' data-s='declined'>Decline</button>
+          <a class="pill" href="mailto:${r.mentee_email}?subject=Re:%20Mentorship%20Request">Email</a>
+        </div>`;
+      box.appendChild(c);
     });
-  })();
+    box.querySelectorAll("button[data-id]").forEach(b=>b.onclick=async()=>{
+      const {error}=await supabase.from("requests").update({status:b.dataset.s}).eq("id",b.dataset.id);
+      if(error){ showToast("Update failed: "+error.message,{type:"error"}); }
+      else{ showToast(`Request ${b.dataset.s} ✅`); loadInbox(); }
+    });
+    showToast("Inbox refreshed");
+  }catch(e){
+    box.innerHTML="<div class='error'>Inbox error: "+(e.message||e)+"</div>";
+    showToast("Inbox error: "+(e.message||e),{type:"error"});
+  }
+}
+
+/* ---------- Mentee Requests (list + realtime) ---------- */
+let myReqChannel=null;
+function renderMyRequests(rows){
+  const box=document.getElementById("myRequests");
+  if(!box)return;
+  if(!rows||!rows.length){box.innerHTML="<div class='muted'>No requests yet.</div>";return;}
+  box.classList.remove("muted");
+  box.innerHTML=rows.map(r=>`
+    <div class="card" style="margin:8px 0;">
+      <strong>${r.mentor_email}</strong>
+      <span class="pill">${r.status}</span>
+      <div class="muted">${new Date(r.created_at).toLocaleString()}</div>
+      ${r.note?`<div class="rowblock">${r.note}</div>`:""}
+    </div>
+  `).join("");
+}
+async function loadMyRequests(){
+  if(!window.supabase||!mentee?.email){
+    const box=document.getElementById("myRequests");
+    if(box) box.innerHTML="<div class='muted'>Enter and save your email first.</div>";
+    return;
+  }
+  const {data,error}=await supabase.from("requests").select("*").eq("mentee_email",mentee.email).order("created_at",{ascending:false});
+  if(error){
+    document.getElementById("myRequests").innerHTML="<div class='error'>Failed to load: "+(error.message||error)+"</div>";
+    return;
+  }
+  renderMyRequests(data);
+}
+function subscribeMyRequests(email){
+  if(!window.supabase||!email)return;
+  // cleanup previous
+  if(myReqChannel){ try{ supabase.removeChannel(myReqChannel); }catch(_){} myReqChannel=null; }
+  // Ensure Realtime is enabled on the 'requests' table in Supabase (Table → Replication)
+  myReqChannel = supabase.channel('requests_for_'+email)
+    .on('postgres_changes',{
+      event:'*', schema:'public', table:'requests',
+      filter:`mentee_email=eq.${email}`
+    }, payload=>{
+      if(payload.eventType==='UPDATE'){
+        const newStatus=payload.new?.status;
+        if(newStatus){ showToast(`Your request was ${newStatus}`, {type:newStatus==='accepted'?'success':'error'}); }
+      }
+      loadMyRequests();
+    })
+    .subscribe(status=>{
+      if(status==='SUBSCRIBED') console.log('✅ Realtime subscribed for mentee:', email);
+    });
+}
+
+/* ---------- Events ---------- */
+// Filters
+document.getElementById("search").oninput=e=>{F.q=e.target.value;apply();};
+document.getElementById("typeFilter").onchange=e=>{F.type=e.target.value;apply();};
+document.getElementById("availabilityFilter").onchange=e=>{F.avail=e.target.value;apply();};
+// Topic "Others"
+const topicSel=document.getElementById("topicFilter");
+const topicOther=document.getElementById("topicOther");
+topicSel.addEventListener("change",e=>{
+  const isOther=e.target.value==="__other";
+  topicOther.style.display=isOther?"":"none";
+  if(!isOther) topicOther.value="";
+  F.topic=e.target.value; apply();
+});
+topicOther.addEventListener("input",()=>{ F.topic="__other:"+topicOther.value.trim(); apply(); });
+
+// Auto-suggest and save mentee profile
+const autoApply=debounce(()=>{
+  mentee={
+    name:document.getElementById("menteeName").value.trim(),
+    email:document.getElementById("menteeEmail").value.trim(),
+    region:document.getElementById("menteeRegion").value.trim(),
+    interests:document.getElementById("menteeInterests").value.trim(),
+    type:document.getElementById("menteeType").value
+  };
+  localStorage.setItem("mentee",JSON.stringify(mentee));
+  apply();
+  // subscribe + load My Requests when email is set
+  if(window._sbReady && mentee.email){
+    subscribeMyRequests(mentee.email);
+    loadMyRequests();
+  }
+},350);
+document.getElementById("menteeInterests").addEventListener("input",autoApply);
+document.getElementById("menteeType").addEventListener("change",autoApply);
+document.getElementById("menteeRegion").addEventListener("input",autoApply);
+document.getElementById("menteeName").addEventListener("blur",autoApply);
+document.getElementById("menteeEmail").addEventListener("blur",autoApply);
+
+// Buttons
+document.getElementById("applyMentee").onclick=()=>{ autoApply(); };
+document.getElementById("btnSaveMentee").onclick=()=>{ autoApply(); showToast("Profile saved. Suggestions will update automatically."); };
+document.getElementById("btnLoadCsv").onclick=()=>{ showToast("Reloading CSV…"); const el=document.getElementById("csvUrl"); loadCSV(el.value); };
+document.getElementById("btnLoadInbox").onclick=()=>{ showToast("Loading inbox…"); loadInbox(); };
+document.getElementById("btnRefreshInbox").onclick=()=>{ loadInbox(); showToast("Inbox refreshed"); };
+document.getElementById("btnRefreshMyRequests").onclick=()=>{ loadMyRequests(); showToast("My Requests refreshed"); };
+
+// Tabs
+document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{
+  document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+  t.classList.add("active");
+  ["mentee","mentor","admin"].forEach(v=>{
+    document.getElementById("view-"+v).style.display=(v==t.dataset.view)?"":"none";
+  });
+});
+
+/* ---------- Init ---------- */
+(async ()=>{
+  const ok = await initSupabase();
+  try{ mentee=JSON.parse(localStorage.getItem("mentee"))||{}; }catch{}
+  loadCSV(CSV_URL_DEFAULT);
+  if(ok && mentee?.email){
+    subscribeMyRequests(mentee.email);
+    loadMyRequests();
+  }
 })();
 </script>
 </body>

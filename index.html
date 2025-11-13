@@ -246,87 +246,140 @@ function getCell(row,idx,names){
   return '';
 }
 
-function toMentor(row,idx){return{
-  // Name-like column (Full Name, Mentor Name, etc.)
-  name:      getCell(row,idx,[
-    'name','Name',
-    'full name','Full Name',
-    'mentor name','Mentor Name',
-    'mentee name','Mentee Name'
-  ]),
 
-  // Email-like column
-  email:     getCell(row,idx,[
-    'email','Email',
-    'email address','Email Address',
-    'mentor email','Mentor Email',
-    'contact email','Contact Email'
-  ]),
+function toMentor(row,header,idx){ 
+  // Build raw map of all columns for this row
+  const raw = {};
+  (header||[]).forEach((label,i)=>{
+    const key = String(label||"").trim();
+    if(!key) return;
+    raw[key] = row[i] ?? "";
+  });
 
-  // Timezone / region
-  timezone:  getCell(row,idx,[
-    'timezone','Timezone',
-    'timezone/location',
-    'region','Region','country','Country'
-  ]),
+  // Helper to mark which headers are already used for core fields
+  const used = new Set();
 
-  // Availability text
-  availability:getCell(row,idx,[
-    'availability','Availability',
-    'available times','Available Times',
-    'preferred time','Preferred time','Preferred Time'
-  ]),
+  function markUsed(names){
+    (header||[]).forEach((label,i)=>{
+      const h = String(label||"").trim().toLowerCase();
+      names.forEach(n=>{
+        const needle = String(n||"").trim().toLowerCase();
+        if(!needle) return;
+        if(h===needle || h.includes(needle) || needle.includes(h)) used.add(label);
+      });
+    });
+  }
 
-  // Types / roles
-  types:     toArray(getCell(row,idx,[
-    'mentorship type','Mentorship type',
-    'types','Types',
-    'mentoring type','Mentoring Type',
-    'role','Role'
-  ])),
+  const mentor = {
+    // Name-like column (Full Name, Mentor Name, etc.)
+    name: getCell(row,idx,[
+      'name','Name',
+      'full name','Full Name',
+      'mentor name','Mentor Name',
+      'mentee name','Mentee Name'
+    ]),
 
-  // Skills / expertise
-  skills:    toArray(getCell(row,idx,[
-    'skills you can mentor on',
-    'skills','Skills',
-    'expertise','Expertise',
-    'areas of expertise','Areas of Expertise',
-    'strengths','Strengths'
-  ])),
+    // Email-like column
+    email: getCell(row,idx,[
+      'email','Email',
+      'email address','Email Address',
+      'mentor email','Mentor Email',
+      'contact email','Contact Email'
+    ]),
 
-  // Topics / interests
-  topics:    toArray(getCell(row,idx,[
-    'topics/area of interest',
-    'topics','Topics',
-    'focus areas','Focus Areas',
-    'areas of interest','Areas of Interest',
-    'interest areas','Interest Areas'
-  ])),
+    // Timezone / region
+    timezone: getCell(row,idx,[
+      'timezone','Timezone',
+      'timezone/location',
+      'region','Region','country','Country'
+    ]),
 
-  // Short bio / about
-  bio:       getCell(row,idx,[
-    'biography','bio','Bio',
-    'about','About',
-    'profile summary','Profile summary','Profile Summary'
-  ]),
+    // Availability text
+    availability: getCell(row,idx,[
+      'availability','Availability',
+      'available times','Available Times',
+      'preferred time','Preferred time','Preferred Time'
+    ]),
 
-  // LinkedIn or other profile link
-  linkedin:  getCell(row,idx,[
-    'linkedin','LinkedIn',
-    'linkedin url','LinkedIn URL',
-    'linkedin profile','LinkedIn profile','LinkedIn Profile',
-    'profile link','Profile link','Profile Link'
-  ]),
+    // Types / roles
+    types: toArray(getCell(row,idx,[
+      'mentorship type','Mentorship type',
+      'types','Types',
+      'mentoring type','Mentoring Type',
+      'role','Role'
+    ])),
 
-  // Photo is optional now; if no column, it's just empty
-  photo:     getCell(row,idx,[
-    'add your picture',
-    'photo','Photo',
-    'image','Image',
-    'avatar','Avatar',
-    'profile picture','Profile picture','Profile Picture'
-  ])
-};}
+    // Skills / expertise
+    skills: toArray(getCell(row,idx,[
+      'skills you can mentor on',
+      'skills','Skills',
+      'expertise','Expertise',
+      'areas of expertise','Areas of Expertise',
+      'strengths','Strengths'
+    ])),
+
+    // Topics / interests
+    topics: toArray(getCell(row,idx,[
+      'topics/area of interest',
+      'topics','Topics',
+      'focus areas','Focus Areas',
+      'areas of interest','Areas of Interest',
+      'interest areas','Interest Areas'
+    ])),
+
+    // Short bio / about
+    bio: getCell(row,idx,[
+      'biography','bio','Bio',
+      'about','About',
+      'profile summary','Profile summary','Profile Summary'
+    ]),
+
+    // LinkedIn or other profile link
+    linkedin: getCell(row,idx,[
+      'linkedin','LinkedIn',
+      'linkedin url','LinkedIn URL',
+      'linkedin profile','LinkedIn profile','LinkedIn Profile',
+      'profile link','Profile link','Profile Link'
+    ]),
+
+    // Photo is optional now; if no column, it's just empty
+    photo: getCell(row,idx,[
+      'add your picture',
+      'photo','Photo',
+      'image','Image',
+      'avatar','Avatar',
+      'profile picture','Profile picture','Profile Picture'
+    ]),
+
+    // All raw values (for admin / future use)
+    raw
+  };
+
+  // Mark headers used by core fields so we can show any extra ones as labelled rows
+  markUsed(['name','full name','mentor name','mentee name']);
+  markUsed(['email','email address','mentor email','contact email']);
+  markUsed(['timezone','region','country']);
+  markUsed(['availability','available times','preferred time']);
+  markUsed(['mentorship type','mentoring type','role','types']);
+  markUsed(['skills you can mentor on','skills','expertise','areas of expertise','strengths']);
+  markUsed(['topics/area of interest','topics','focus areas','areas of interest','interest areas']);
+  markUsed(['biography','bio','about','profile summary']);
+  markUsed(['linkedin','linkedin url','linkedin profile','profile link']);
+  markUsed(['add your picture','photo','image','avatar','profile picture']);
+
+  const extra = {};
+  (header||[]).forEach((label)=>{
+    const key = String(label||"").trim();
+    if(!key) return;
+    if(used.has(label)) return;
+    const val = raw[key];
+    if(val!=null && String(val).trim()!=="") extra[key] = val;
+  });
+
+  mentor.extra = extra;
+  return mentor;
+}
+
 
 const norm=s=>String(s||"").toLowerCase().replace(/[^a-z0-9\s]/g,' ').trim();
 function jaccard(a,b){ const A=new Set(a.map(norm)),B=new Set(b.map(norm)); let inter=0; A.forEach(v=>B.has(v)&&inter++); return inter/(A.size+B.size-inter||1); }
@@ -401,6 +454,9 @@ function render(){
 
   VIEW.forEach(m=>{
     const c=document.createElement("div"); c.className="card mcard";
+    const extraRows = m.extra && Object.keys(m.extra).length
+      ? `<div class='rowblock muted'>${Object.entries(m.extra).map(([k,v])=>`<div><strong>${k}:</strong> ${v}</div>`).join('')}</div>`
+      : "";
     c.innerHTML=`
       <div class="badge">${m._score||0}% match</div>
       ${m.photo?`<img class='avatar' src='${m.photo}' alt='${m.name}'>`:""}
@@ -408,6 +464,7 @@ function render(){
       <div class='meta'>${(m.types||[]).join(', ')}</div>
       ${m.bio?`<div class='rowblock'>${m.bio}</div>`:""}
       <div>${(m.skills||[]).map(x=>`<span class='pill'>${x}</span>`).join('')}</div>
+      ${extraRows}
       <div class="rowblock">
         <button data-email='${m.email}' ${window._sbReady ? "" : "disabled"}>Request Mentorship</button>
         ${m.linkedin?`<a class="pill" target="_blank" rel="noopener" href="${m.linkedin}">LinkedIn</a>`:""}
@@ -472,7 +529,7 @@ const headerRow = findHeaderRow(rows);
 const header    = rows[headerRow];
 const body      = rows.slice(headerRow+1);
 const idx       = headerIndexMap(header);
-MENTORS = body.map(r=>toMentor(r,idx)).filter(m=>m.name);
+MENTORS = body.map(r=>toMentor(r,header,idx)).filter(m=>m.name);
     renderOptions(); apply(); renderAdminTable();
     if(s) s.textContent=`Loaded ${MENTORS.length} mentor${MENTORS.length!==1?'s':''}.`;
     showToast(`CSV loaded: ${MENTORS.length} mentor${MENTORS.length!==1?'s':''}`);

@@ -213,19 +213,119 @@ function parseCSV(t){
   return rows.filter(r=>r.some(x=>String(x).trim()!==''));
 }
 function headerIndexMap(h){ const i={}; h.forEach((x,n)=>i[String(x||"").trim().toLowerCase()]=n); return i; }
-function getCell(row,idx,names){ for(const n of names){ const k=n.trim().toLowerCase(); if(idx[k]!=null) return row[idx[k]]||''; } return ''; }
+
+function findHeaderRow(rows){
+  // Look in the first 10 rows for something that has both a name-ish and email-ish header
+  for(let i=0;i<Math.min(rows.length,10);i++){
+    const r = (rows[i]||[]).map(c => String(c||'').trim().toLowerCase());
+    const hasName  = r.some(c => c.includes('name'));
+    const hasEmail = r.some(c => c.includes('email'));
+    if(hasName && hasEmail) return i;
+  }
+  return 0; // fallback
+}
+
+function getCell(row,idx,names){
+  // Try exact matches first, then fuzzy (substring) matches on header names
+  for(const n of names){
+    const needle = String(n||"").trim().toLowerCase();
+    if(!needle) continue;
+
+    // exact header match
+    if(idx[needle] != null) return row[idx[needle]] || '';
+
+    // fuzzy match: header contains needle or needle contains header
+    for(const key in idx){
+      if(!key) continue;
+      if(key.includes(needle) || needle.includes(key)){
+        const i = idx[key];
+        if(i != null) return row[i] || '';
+      }
+    }
+  }
+  return '';
+} return ''; }
 
 function toMentor(row,idx){return{
-  name:getCell(row,idx,['name','Name','full name','Full Name','mentor name','Mentor Name']),
-  email:getCell(row,idx,['email','Email','email address','Email Address','work email','Work Email']),
-  timezone:getCell(row,idx,['timezone','Timezone','timezone/location']),
-  availability:getCell(row,idx,['availability','Availability']),
-  types:toArray(getCell(row,idx,['mentorship type','Mentorship Type','types','Types','mentoring type','Mentoring Type'])),
-  skills:toArray(getCell(row,idx,['skills you can mentor on','Skills you can mentor on','skills','Skills','expertise','Expertise'])),
-  topics:toArray(getCell(row,idx,['topics/area of interest','Topics/Area of interest','topics','Topics','focus areas','Focus Areas'])),
-  bio:getCell(row,idx,['biography','Biography','bio','Bio','about','About']),
-  linkedin:getCell(row,idx,['linkedin','LinkedIn','linkedin url','LinkedIn URL']),
-  photo:getCell(row,idx,['add your picture','Add your picture','photo','Photo','image','Image','avatar','Avatar'])
+  // Name-like column (Full Name, Mentor Name, etc.)
+  name:      getCell(row,idx,[
+    'name','Name',
+    'full name','Full Name',
+    'mentor name','Mentor Name',
+    'mentee name','Mentee Name'
+  ]),
+
+  // Email-like column
+  email:     getCell(row,idx,[
+    'email','Email',
+    'email address','Email Address',
+    'mentor email','Mentor Email',
+    'contact email','Contact Email'
+  ]),
+
+  // Timezone / region
+  timezone:  getCell(row,idx,[
+    'timezone','Timezone',
+    'timezone/location',
+    'region','Region','country','Country'
+  ]),
+
+  // Availability text
+  availability:getCell(row,idx,[
+    'availability','Availability',
+    'available times','Available Times',
+    'preferred time','Preferred time','Preferred Time'
+  ]),
+
+  // Types / roles
+  types:     toArray(getCell(row,idx,[
+    'mentorship type','Mentorship type',
+    'types','Types',
+    'mentoring type','Mentoring Type',
+    'role','Role'
+  ])),
+
+  // Skills / expertise
+  skills:    toArray(getCell(row,idx,[
+    'skills you can mentor on',
+    'skills','Skills',
+    'expertise','Expertise',
+    'areas of expertise','Areas of Expertise',
+    'strengths','Strengths'
+  ])),
+
+  // Topics / interests
+  topics:    toArray(getCell(row,idx,[
+    'topics/area of interest',
+    'topics','Topics',
+    'focus areas','Focus Areas',
+    'areas of interest','Areas of Interest',
+    'interest areas','Interest Areas'
+  ])),
+
+  // Short bio / about
+  bio:       getCell(row,idx,[
+    'biography','bio','Bio',
+    'about','About',
+    'profile summary','Profile summary','Profile Summary'
+  ]),
+
+  // LinkedIn or other profile link
+  linkedin:  getCell(row,idx,[
+    'linkedin','LinkedIn',
+    'linkedin url','LinkedIn URL',
+    'linkedin profile','LinkedIn profile','LinkedIn Profile',
+    'profile link','Profile link','Profile Link'
+  ]),
+
+  // Photo is optional now; if no column, it's just empty
+  photo:     getCell(row,idx,[
+    'add your picture',
+    'photo','Photo',
+    'image','Image',
+    'avatar','Avatar',
+    'profile picture','Profile picture','Profile Picture'
+  ])
 };}
 
 const norm=s=>String(s||"").toLowerCase().replace(/[^a-z0-9\s]/g,' ').trim();
@@ -362,32 +462,22 @@ async function fetchCsvWithFallback(url){
     return await r2.text();
   }
 }
-
-function findHeaderRow(rows){
-  const candidates = ['name','email'];
-  for(let i=0;i<Math.min(rows.length,15);i++){
-    const r = (rows[i]||[]).map(x=>String(x||'').trim().toLowerCase());
-    const ok = candidates.every(w => r.includes(w) || r.some(x => x.includes(w)));
-    if(ok) return i;
-  }
-  return 0;
-}
 async function loadCSV(u){
   const s=document.getElementById("status"), e=document.getElementById("error");
   if(s) s.textContent="Loading mentors…"; if(e){ e.style.display="none"; e.textContent=""; }
   try{
     const text=await fetchCsvWithFallback(u);
     const rows=parseCSV(text); if(!rows.length) throw new Error("CSV empty");
-    const hRow = findHeaderRow(rows);
-    const header = rows[hRow];
-    const body = rows.slice(hRow+1);
-    const idx=headerIndexMap(header);
-    MENTORS=body.map(r=>toMentor(r,idx)).filter(m=>m.name);
+const headerRow = findHeaderRow(rows);
+const header    = rows[headerRow];
+const body      = rows.slice(headerRow+1);
+const idx       = headerIndexMap(header);
+MENTORS = body.map(r=>toMentor(r,idx)).filter(m=>m.name);
     renderOptions(); apply(); renderAdminTable();
     if(s) s.textContent=`Loaded ${MENTORS.length} mentor${MENTORS.length!==1?'s':''}.`;
     showToast(`CSV loaded: ${MENTORS.length} mentor${MENTORS.length!==1?'s':''}`);
   }catch(err){
-    if(e){ e.style.display="block"; e.textContent="Failed to fetch CSV (check link visibility or headers)"; } if(s) s.textContent="";
+    if(e){ e.style.display="block"; e.textContent="Failed to fetch"; } if(s) s.textContent="";
     console.error(err); showToast("CSV load failed",{type:"error"});
   }
 }

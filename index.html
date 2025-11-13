@@ -136,7 +136,7 @@ thead tr{background:#0e1320}
     <h2>Admin Panel</h2>
     <div class="row">
       <input id="csvUrl" placeholder="CSV export link"
-        value="https://docs.google.com/spreadsheets/d/e/2PACX-1vSCpUVIL4QBXyTVCKN_z-8dQYlmFpSYES3spDxw8RODDYwhypCCLbwemTEoFEZT7ZyKoCeswC3sQgc_/pub?output=csv" />
+        value="https://docs.google.com/spreadsheets/d/e/2PACX-1vS1hYMj_C7uI_eugNmeH6DxgPFbYVMQYmWLnlCsazmkJ7HowekL-CE_wRwQCPZuMWIdeTFRT44Q9Hwt/pub?output=csv" />
       <button id="btnLoadCsv">Reload CSV</button>
       <input value="https://dayxbdhzuiwkmnkehueb.supabase.co" readonly />
     </div>
@@ -155,7 +155,7 @@ thead tr{background:#0e1320}
 
 <!-- ===== CONFIG (including Supabase constants) ===== -->
 <script>
-const CSV_URL_DEFAULT="https://docs.google.com/spreadsheets/d/e/2PACX-1vSCpUVIL4QBXyTVCKN_z-8dQYlmFpSYES3spDxw8RODDYwhypCCLbwemTEoFEZT7ZyKoCeswC3sQgc_/pub?output=csv";
+const CSV_URL_DEFAULT="https://docs.google.com/spreadsheets/d/e/2PACX-1vS1hYMj_C7uI_eugNmeH6DxgPFbYVMQYmWLnlCsazmkJ7HowekL-CE_wRwQCPZuMWIdeTFRT44Q9Hwt/pub?output=csv";
 const SUPABASE_URL="https://dayxbdhzuiwkmnkehueb.supabase.co";
 const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRheXhiZGh6dWl3a21ua2VodWViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxOTgyMzAsImV4cCI6MjA3Nzc3NDIzMH0.OU8cUFOUrV0zE0AtJH3BPzhqR70UJu6aNw8eavSf4xc";
 window.SUPABASE_URL=SUPABASE_URL;window.SUPABASE_ANON_KEY=SUPABASE_ANON_KEY;
@@ -244,7 +244,8 @@ function getCell(row,idx,names){
     }
   }
   return '';
-} return ''; }
+}
+ return ''; }
 
 function toMentor(row,idx){return{
   // Name-like column (Full Name, Mentor Name, etc.)
@@ -647,6 +648,17 @@ document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{
     document.getElementById("view-"+v).style.display=(v==t.dataset.view)?"":"none";
   });
 });
+
+// Auto-refresh mentors from CSV every 60 seconds using the current CSV URL or default
+setInterval(() => {
+  try {
+    const input = document.getElementById("csvUrl");
+    const url = (input && input.value.trim()) || CSV_URL_DEFAULT;
+    if (url) loadCSV(url);
+  } catch (e) {
+    console.warn("Auto CSV refresh failed:", e);
+  }
+}, 60000);
 
 /* ---------- Init ---------- */
 (async ()=>{

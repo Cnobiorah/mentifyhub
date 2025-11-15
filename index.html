@@ -5,49 +5,160 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Mentorship.AI — Empowering Mentorship Connections</title>
 <style>
-:root{--bg:#0b0d12;--card:#121621;--text:#eaf0ff;--muted:#9aa3b2;--accent:#39d98a;--border:#262c3a;}
+:root{
+  --bg:#0b0d12;
+  --card:#121621;
+  --text:#eaf0ff;
+  --muted:#9aa3b2;
+  --accent:#39d98a;
+  --border:#262c3a;
+}
 *{box-sizing:border-box}
-body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;color:var(--text);
-  background:linear-gradient(160deg,#0b0d12 0%,#0e1220 60%,#0b0d12 100%);}
-header{padding:24px 20px 8px;border-bottom:1px solid var(--border);
-  position:sticky;top:0;backdrop-filter:blur(8px);background:#0b0d12cc;}
-h1{margin:0;font-size:20px;letter-spacing:.2px}
-main{padding:16px 20px 80px;max-width:1200px;margin:0 auto;}
-.grid{display:grid;gap:16px;grid-template-columns:repeat(12,1fr);}
-.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;
-  box-shadow:0 10px 24px rgba(0,0,0,.25);}
-.row{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;}
-input,select,button{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border);
-  background:#0e1320;color:var(--text)}
-button{background:linear-gradient(180deg,#1e2740,#171d33);cursor:pointer}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+  color:var(--text);
+  background:linear-gradient(160deg,#0b0d12 0%,#0e1220 60%,#0b0d12 100%);
+}
+header{
+  padding:24px 20px 8px;
+  border-bottom:1px solid var(--border);
+  position:sticky;top:0;
+  backdrop-filter:blur(8px);
+  background:#0b0d12cc;
+  z-index:20;
+}
+h1{
+  margin:0;
+  font-size:20px;
+  letter-spacing:.2px;
+}
+main{
+  padding:16px 20px 80px;
+  max-width:1200px;
+  margin:0 auto;
+}
+.grid{
+  display:grid;
+  gap:16px;
+  grid-template-columns:repeat(12,1fr);
+}
+.card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:14px;
+  box-shadow:0 10px 24px rgba(0,0,0,.25);
+}
+.row{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:12px;
+}
+input,select,button{
+  width:100%;
+  padding:10px 12px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background:#0e1320;
+  color:var(--text);
+  font-size:14px;
+}
+select{cursor:pointer;}
+button{
+  background:linear-gradient(180deg,#1e2740,#171d33);
+  cursor:pointer;
+}
+button:disabled{opacity:0.5;cursor:not-allowed;}
 .muted{color:var(--muted);font-size:12px}
 .status{margin-top:8px}
-.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;}
+.cards{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+  gap:16px;
+}
 .mcard{position:relative;overflow:hidden}
 .mcard h3{margin:8px 0 4px;font-size:18px}
 .meta{font-size:12px;color:var(--muted);margin-bottom:8px}
-.pill{display:inline-block;font-size:12px;padding:4px 8px;border:1px solid var(--border);
-  border-radius:999px;margin:2px 4px 0 0;background:#0e1320}
+.pill{
+  display:inline-block;
+  font-size:12px;
+  padding:4px 8px;
+  border:1px solid var(--border);
+  border-radius:999px;
+  margin:2px 4px 0 0;
+  background:#0e1320;
+}
 .rowblock{margin:8px 0}
-.avatar{width:100%;height:160px;object-fit:cover;border-radius:10px;background:#0b0f1a}
-.badge{position:absolute;top:10px;right:10px;padding:6px 10px;border-radius:999px;border:1px solid var(--border);
-  background:#0e1320;font-weight:600}
+.avatar{
+  width:100%;
+  height:160px;
+  object-fit:cover;
+  border-radius:10px;
+  background:#0b0f1a;
+}
+.badge{
+  position:absolute;
+  top:10px;
+  right:10px;
+  padding:6px 10px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  background:#0e1320;
+  font-weight:600;
+}
 a{color:var(--accent);text-decoration:none}
 .error{color:#ff8686}
-.tabs{display:flex;gap:8px;margin-top:8px}
-.tab{padding:8px 12px;border-radius:999px;border:1px solid var(--border);background:#0e1320;cursor:pointer}
-.tab.active{outline:1px solid var(--accent)}
+.tabs{
+  display:flex;
+  gap:8px;
+  margin-top:8px;
+}
+.tab{
+  padding:8px 12px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  background:#0e1320;
+  cursor:pointer;
+  font-size:13px;
+}
+.tab.active{outline:1px solid var(--accent);}
 @media(max-width:860px){.row{grid-template-columns:1fr 1fr}}
 .hr{height:1px;background:var(--border);margin:8px 0 4px}
 table{border-collapse:collapse;width:100%}
-th,td{padding:8px;border-bottom:1px solid var(--border);text-align:left;font-size:12px}
+th,td{
+  padding:8px;
+  border-bottom:1px solid var(--border);
+  text-align:left;
+  font-size:12px;
+}
 thead tr{background:#0e1320}
 
 /* Toasts */
-#toastWrap{position:fixed;right:16px;bottom:16px;z-index:9999;display:flex;flex-direction:column;gap:8px;}
-.toast{background:#121621;color:#eaf0ff;border:1px solid #262c3a;border-left:3px solid #39d98a;
-  padding:10px 12px;border-radius:10px;min-width:220px;max-width:360px;box-shadow:0 10px 24px rgba(0,0,0,.35);
-  opacity:0;transform:translateY(8px);transition:opacity .25s ease,transform .25s ease,border-color .2s ease;font-size:14px;}
+#toastWrap{
+  position:fixed;
+  right:16px;
+  bottom:16px;
+  z-index:9999;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+.toast{
+  background:#121621;
+  color:#eaf0ff;
+  border:1px solid #262c3a;
+  border-left:3px solid #39d98a;
+  padding:10px 12px;
+  border-radius:10px;
+  min-width:220px;
+  max-width:360px;
+  box-shadow:0 10px 24px rgba(0,0,0,.35);
+  opacity:0;
+  transform:translateY(8px);
+  transition:opacity .25s ease,transform .25s ease,border-color .2s ease;
+  font-size:14px;
+}
 .toast.show{opacity:1;transform:translateY(0);}
 .toast.error{border-left-color:#ff6b6b;}
 </style>
@@ -67,46 +178,150 @@ thead tr{background:#0e1320}
   <section id="view-mentee" class="card" style="grid-column:span 12;">
     <h2>Find a Mentor (Suggestions appear automatically)</h2>
 
+    <!-- Row 1: identity + region -->
     <div class="row">
       <input id="menteeName" placeholder="Your full name" />
       <input id="menteeEmail" placeholder="Your email (for mentor reply)" />
-      <input id="menteeRegion" placeholder="Your region/timezone (e.g., UK, Europe, WAT)" />
+      <select id="menteeRegion">
+        <option value="">Select your region</option>
+        <option>Africa</option>
+        <option>Europe</option>
+        <option>Asia</option>
+        <option>North America</option>
+        <option>South America</option>
+        <option>Oceania</option>
+        <option>Middle East</option>
+        <option>Other</option>
+      </select>
       <button id="btnSaveMentee">Save Profile</button>
     </div>
 
+    <!-- Row 2: country, timezone, field/discipline -->
+    <div class="row" style="margin-top:8px;">
+      <select id="menteeCountry">
+        <option value="">Select your country of residence</option>
+        <option>🇬🇧 United Kingdom</option>
+        <option>🇳🇬 Nigeria</option>
+        <option>🇿🇦 South Africa</option>
+        <option>🇰🇪 Kenya</option>
+        <option>🇬🇭 Ghana</option>
+        <option>🇪🇬 Egypt</option>
+        <option>🇫🇷 France</option>
+        <option>🇩🇪 Germany</option>
+        <option>🇳🇱 Netherlands</option>
+        <option>🇪🇸 Spain</option>
+        <option>🇮🇹 Italy</option>
+        <option>🇺🇸 United States</option>
+        <option>🇨🇦 Canada</option>
+        <option>🇧🇷 Brazil</option>
+        <option>🇮🇳 India</option>
+        <option>🇸🇬 Singapore</option>
+        <option>🇨🇳 China</option>
+        <option>🇯🇵 Japan</option>
+        <option>🇦🇺 Australia</option>
+        <option>🇳🇿 New Zealand</option>
+        <option>Other (please specify)</option>
+      </select>
+      <select id="menteeTimezone">
+        <option value="">Select your timezone</option>
+        <option>UTC±00:00 — London, Accra</option>
+        <option>UTC+01:00 — Lagos, Berlin, Paris</option>
+        <option>UTC+02:00 — Johannesburg, Cairo</option>
+        <option>UTC+03:00 — Nairobi, Riyadh</option>
+        <option>UTC+04:00 — Dubai, Abu Dhabi</option>
+        <option>UTC+05:30 — New Delhi, Mumbai</option>
+        <option>UTC+08:00 — Singapore, Beijing</option>
+        <option>UTC+10:00 — Sydney, Melbourne</option>
+        <option>Other (please specify)</option>
+      </select>
+      <select id="menteeField">
+        <option value="">Select your professional field / discipline</option>
+        <option>Architecture &amp; Built Environment</option>
+        <option>Engineering (Civil, Electrical, Mechanical)</option>
+        <option>Sustainability &amp; Green Skills</option>
+        <option>Urban Planning &amp; Design</option>
+        <option>Medicine &amp; Surgery</option>
+        <option>Nursing &amp; Healthcare</option>
+        <option>Business &amp; Management</option>
+        <option>Technology &amp; AI</option>
+        <option>Education &amp; Research</option>
+        <option>Law &amp; Policy</option>
+        <option>Other (please specify)</option>
+      </select>
+      <div></div>
+    </div>
+
+    <!-- Row 2b: other text boxes for geo + field -->
+    <div class="row" style="margin-top:6px;">
+      <input id="menteeRegionOther" placeholder="If Other, specify your region" style="display:none;">
+      <input id="menteeCountryOther" placeholder="If Other, specify your country" style="display:none;">
+      <input id="menteeTimezoneOther" placeholder="If Other, specify your timezone" style="display:none;">
+      <input id="menteeFieldOther" placeholder="If Other, specify your field" style="display:none;">
+    </div>
+
     <div class="muted">
-      Enter your interests & type, then click <em>Suggest Mentors</em> — or just start typing and the system will automatically recommend top matches.
+      Fill these fields, then enter your interests &amp; goal — Mentorship.AI will suggest mentors that best match your
+      <strong>region, field, goals, areas to develop, experience level, availability and communication style.</strong>
     </div>
     <div class="hr"></div>
 
+    <!-- Row 3: interests + goal + outcome -->
     <div class="row">
       <input id="menteeInterests" placeholder="Your interests (e.g., solar; retrofit, BIM)" />
-      <select id="menteeType">
-        <option value="">Any mentorship type</option>
-        <option>Career Mentoring</option>
-        <option>Technical Mentoring</option>
-        <option>Project Support</option>
-        <option>Interview Prep</option>
-      </select>
+      <input id="menteeGoal" placeholder="What is your main goal for mentorship?" />
+      <input id="menteeOutcome" placeholder="What do you want to achieve from mentorship?" />
       <div></div>
-      <button id="applyMentee">Suggest Mentors</button>
     </div>
 
+    <!-- Row 4: areas, level, availability, communication -->
     <div class="row" style="margin-top:8px;">
-      <input id="search" placeholder="(Optional) Search across names/skills/bio…"/>
-      <select id="typeFilter"><option value="">All mentorship types</option></select>
-      <div>
-        <select id="topicFilter"><option value="">All topics / skills</option></select>
-        <input id="topicOther" placeholder="Type a skill/topic" style="display:none;margin-top:8px;">
-      </div>
-      <select id="availabilityFilter">
-        <option value="">Any time</option>
+      <select id="menteeAreas">
+        <option value="">Areas you’d like to be mentored on</option>
+        <option>Career Guidance</option>
+        <option>Project Feedback</option>
+        <option>Technical Skills</option>
+        <option>Cerification Preparation</option>
+        <option>Research &amp; Academic Support</option>
+        <option>Leadership &amp; Networking</option>
+        <option>Other</option>
+      </select>
+      <select id="menteeLevel">
+        <option value="">Select your experience level</option>
+        <option>Student</option>
+        <option>Early-career (0–3 years)</option>
+        <option>Mid-career (3–8 years)</option>
+        <option>Experienced professional (8+ years)</option>
+      </select>
+      <select id="menteeAvailability">
+        <option value="">Availability (days / times)</option>
         <option>Morning</option>
         <option>Afternoon</option>
         <option>Evening</option>
         <option>Weekends</option>
-        <option>Any other time</option>
+        <option>Other</option>
       </select>
+      <select id="menteeCommunication">
+        <option value="">Preferred mentorship communication</option>
+        <option>Email</option>
+        <option>Phone</option>
+        <option>Virtual (zoom/meet)</option>
+        <option>Other</option>
+      </select>
+    </div>
+
+    <!-- Row 4b: other text boxes for areas + availability + communication -->
+    <div class="row" style="margin-top:6px;">
+      <input id="menteeAreasOther" placeholder="If Other, specify the area" style="display:none;">
+      <input id="menteeAvailabilityOther" placeholder="If Other, specify your availability" style="display:none;">
+      <input id="menteeCommunicationOther" placeholder="If Other, specify communication method" style="display:none;">
+      <div></div>
+    </div>
+
+    <div class="hr"></div>
+
+    <!-- Filters (search only) -->
+    <div class="row">
+      <input id="search" placeholder="(Optional) Search across names/skills/bio…"/>
     </div>
 
     <div id="mentors" class="cards" style="margin-top:10px;"></div>
@@ -117,6 +332,7 @@ thead tr{background:#0e1320}
     <div id="myRequests" class="rowblock muted">No requests yet.</div>
     <div class="rowblock">
       <button id="btnRefreshMyRequests">Refresh My Requests</button>
+      <button id="applyMentee">Suggest Mentors</button>
     </div>
   </section>
 
@@ -127,6 +343,7 @@ thead tr{background:#0e1320}
       <input id="inboxEmail" placeholder="Mentor email to load inbox" />
       <button id="btnLoadInbox">Load Inbox</button>
       <button id="btnRefreshInbox">Refresh</button>
+      <div></div>
     </div>
     <div id="inbox" class="rowblock"></div>
   </section>
@@ -139,6 +356,7 @@ thead tr{background:#0e1320}
         value="https://docs.google.com/spreadsheets/d/e/2PACX-1vS1hYMj_C7uI_eugNmeH6DxgPFbYVMQYmWLnlCsazmkJ7HowekL-CE_wRwQCPZuMWIdeTFRT44Q9Hwt/pub?output=csv" />
       <button id="btnLoadCsv">Reload CSV</button>
       <input value="https://dayxbdhzuiwkmnkehueb.supabase.co" readonly />
+      <div></div>
     </div>
     <div class="muted">CSV and Supabase are already configured. Replace link to test different sheet.</div>
     <div id="status" class="muted status"></div>
@@ -158,263 +376,279 @@ thead tr{background:#0e1320}
 const CSV_URL_DEFAULT="https://docs.google.com/spreadsheets/d/e/2PACX-1vS1hYMj_C7uI_eugNmeH6DxgPFbYVMQYmWLnlCsazmkJ7HowekL-CE_wRwQCPZuMWIdeTFRT44Q9Hwt/pub?output=csv";
 const SUPABASE_URL="https://dayxbdhzuiwkmnkehueb.supabase.co";
 const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRheXhiZGh6dWl3a21ua2VodWViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxOTgyMzAsImV4cCI6MjA3Nzc3NDIzMH0.OU8cUFOUrV0zE0AtJH3BPzhqR70UJu6aNw8eavSf4xc";
-window.SUPABASE_URL=SUPABASE_URL;window.SUPABASE_ANON_KEY=SUPABASE_ANON_KEY;
+
+window.SUPABASE_URL=SUPABASE_URL;
+window.SUPABASE_ANON_KEY=SUPABASE_ANON_KEY;
 
 /* behavior flags */
 const REQUIRE_INTERESTS_FIRST=true;
 const SUGGESTION_COUNT=5;
 </script>
 
-<!-- ✅ Supabase ESM loader -->
+<!-- Supabase client (ESM) -->
 <script type="module">
   import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
   const url = window.SUPABASE_URL;
   const key = window.SUPABASE_ANON_KEY;
   window.supabase = createClient(url, key);
   window._sbReady = true;
-  console.log("✅ Supabase initialized (ESM)");
-  // enable buttons rendered before ready
+  console.log("✅ Supabase initialized");
   document.querySelectorAll("button[data-email][disabled]").forEach(b=>b.disabled=false);
   if(typeof showToast==="function") showToast("Connected to database");
 </script>
 
 <script>
-/* shim so any code awaiting this resolves */
 async function initSupabase(){ return !!window._sbReady; }
 
 /* ---------- Toasts ---------- */
-function showToast(msg,{type="success",timeout=2800}={}) {
+function showToast(msg,{type="success",timeout=2800}={}){
   const w=document.getElementById("toastWrap"); if(!w) return;
   const e=document.createElement("div");
   e.className="toast"+(type==="error"?" error":"");
   e.textContent=msg;
   w.appendChild(e);
   requestAnimationFrame(()=>e.classList.add("show"));
-  setTimeout(()=>{ e.classList.remove("show"); setTimeout(()=>e.remove(),250); }, timeout);
+  setTimeout(()=>{
+    e.classList.remove("show");
+    setTimeout(()=>e.remove(),250);
+  },timeout);
 }
 
 /* ---------- Utilities ---------- */
-function debounce(fn, ms = 350){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a),ms);} }
-function hasProfileReady(me=mentee){ return (me.interests&&me.interests.trim().length>=2)||me.type||me.region; }
-function toArray(s){ return String(s||"").split(/[;,/]/).map(v=>v.trim()).filter(Boolean); }
+function debounce(fn,ms=350){let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms);};}
+function hasProfileReady(me=mentee){
+  return (me.interests && me.interests.trim().length>=2) || me.field || me.region;
+}
+function toArray(s){return String(s||"").split(/[;,/]/).map(v=>v.trim()).filter(Boolean);}
 
-/* CSV parser (robust) */
+/* CSV parser */
 function parseCSV(t){
-  const first=t.split(/\r?\n/)[0]||""; const delim=[",",";","\t"].sort((a,b)=>(first.split(a).length)<(first.split(b).length)?1:-1)[0];
-  const rows=[]; let cell="", row=[], q=false;
+  const first=t.split(/\r?\n/)[0]||"";
+  const delim=[",",";","\t"].sort((a,b)=>(first.split(a).length)<(first.split(b).length)?1:-1)[0];
+  const rows=[]; let cell="",row=[],q=false;
   for(let i=0;i<t.length;i++){
-    const ch=t[i], n=t[i+1];
-    if(ch=='"'){ if(q&&n=='"'){cell+='"'; i++;} else q=!q; }
-    else if(!q&&ch==delim){ row.push(cell); cell=""; }
-    else if(!q&&(ch=="\n"||ch=="\r")){ if(cell!=''||row.length){ row.push(cell); rows.push(row); row=[]; cell=""; } if(ch=="\r"&&n=="\n") i++; }
-    else cell+=ch;
+    const ch=t[i],n=t[i+1];
+    if(ch=='"'){ if(q&&n=='"'){cell+='"';i++;} else q=!q; }
+    else if(!q&&ch==delim){row.push(cell);cell="";}
+    else if(!q&&(ch=="\n"||ch=="\r")){
+      if(cell!=''||row.length){row.push(cell);rows.push(row);row=[];cell="";}
+      if(ch=="\r"&&n=="\n") i++;
+    } else cell+=ch;
   }
-  if(cell!=''||row.length){ row.push(cell); rows.push(row); }
+  if(cell!=''||row.length){row.push(cell);rows.push(row);}
   return rows.filter(r=>r.some(x=>String(x).trim()!==''));
 }
-function headerIndexMap(h){ const i={}; h.forEach((x,n)=>i[String(x||"").trim().toLowerCase()]=n); return i; }
-
+function headerIndexMap(h){const i={};h.forEach((x,n)=>i[String(x||"").trim().toLowerCase()]=n);return i;}
 function findHeaderRow(rows){
-  // Look in the first 10 rows for something that has both a name-ish and email-ish header
   for(let i=0;i<Math.min(rows.length,10);i++){
-    const r = (rows[i]||[]).map(c => String(c||'').trim().toLowerCase());
-    const hasName  = r.some(c => c.includes('name'));
-    const hasEmail = r.some(c => c.includes('email'));
-    if(hasName && hasEmail) return i;
+    const r=(rows[i]||[]).map(c=>String(c||"").trim().toLowerCase());
+    const hasName=r.some(c=>c.includes("name"));
+    const hasEmail=r.some(c=>c.includes("email"));
+    if(hasName&&hasEmail) return i;
   }
-  return 0; // fallback
+  return 0;
 }
-
 function getCell(row,idx,names){
-  // Try exact matches first, then fuzzy (substring) matches on header names
   for(const n of names){
-    const needle = String(n||"").trim().toLowerCase();
+    const needle=String(n||"").trim().toLowerCase();
     if(!needle) continue;
-
-    // exact header match
-    if(idx[needle] != null) return row[idx[needle]] || '';
-
-    // fuzzy match: header contains needle or needle contains header
+    if(idx[needle]!=null) return row[idx[needle]]||"";
     for(const key in idx){
       if(!key) continue;
-      if(key.includes(needle) || needle.includes(key)){
-        const i = idx[key];
-        if(i != null) return row[i] || '';
+      if(key.includes(needle)||needle.includes(key)){
+        const i=idx[key]; if(i!=null) return row[i]||"";
       }
     }
   }
-  return '';
+  return "";
 }
 
+/* ---------- Map CSV → Mentor using your headers ---------- */
+function toMentor(row,header,idx){return{
+  // Core identity
+  name:  getCell(row,idx,["Full Name","full name","name","Name"]),
+  email: getCell(row,idx,["Email address","email address","Email","email"]),
 
-function toMentor(row,header,idx){ 
-  // Build raw map of all columns for this row
-  const raw = {};
-  (header||[]).forEach((label,i)=>{
-    const key = String(label||"").trim();
-    if(!key) return;
-    raw[key] = row[i] ?? "";
-  });
+  // 1–3: Region / Country / Timezone
+  region:   getCell(row,idx,["Region","region"]),                       // 1
+  country:  getCell(row,idx,["Country of Residence","country"]),        // 2
+  timezone: getCell(row,idx,["Timezone","timezone"]),                   // 3
 
-  // Helper to mark which headers are already used for core fields
-  const used = new Set();
+  // 4: Professional Field / Discipline
+  field:    getCell(row,idx,["Professional Field / Discipline","professional field","discipline"]), // 4
 
-  function markUsed(names){
-    (header||[]).forEach((label,i)=>{
-      const h = String(label||"").trim().toLowerCase();
-      names.forEach(n=>{
-        const needle = String(n||"").trim().toLowerCase();
-        if(!needle) return;
-        if(h===needle || h.includes(needle) || needle.includes(h)) used.add(label);
-      });
-    });
+  // 5: Main Goal or Focus as a Mentor
+  mainGoal: getCell(row,idx,[
+    "Main Goal or Focus as a Mentor","main goal or focus as a mentor","main goal"
+  ]),                                                                   // 5
+
+  // 6: Areas You’d Like to Mentor In
+  areasMentor: toArray(getCell(row,idx,[
+    "Areas You’d Like to Mentor In","Areas You'd Like to Mentor In","areas you"
+  ])),                                                                  // 6
+
+  // 7: Experience Level(s) You’re Interested in Mentoring
+  experienceLevels: toArray(getCell(row,idx,[
+    "Experience Level(s) You’re Interested in Mentoring",
+    "Experience Level(s) You're Interested in Mentoring",
+    "experience levels"
+  ])),                                                                  // 7
+
+  // 8: Expected Outcomes for Your Mentees
+  expectedOutcomes: getCell(row,idx,[
+    "Expected Outcomes for Your Mentees","expected outcomes for your mentees","expected outcomes"
+  ]),                                                                   // 8
+
+  // 9: Availability (Days / Times)
+  availability: getCell(row,idx,[
+    "Availability (Days / Times)","availability (days / times)","availability"
+  ]),                                                                   // 9
+
+  // 10: Preferred Mentorship Communication
+  communication: getCell(row,idx,[
+    "Preferred Mentorship Communication","preferred mentorship communication",
+    "preferred communication","communication"
+  ]),                                                                   // 10
+
+  // Context fields
+  linkedin: getCell(row,idx,["LinkedIn Profile (optional)","linkedin profile","LinkedIn","linkedin"]),
+  role:     getCell(row,idx,["Current Role / Organization","current role","organisation","organization"]),
+  years:    getCell(row,idx,["Year of Experience","years of experience","experience"]),
+  bio:      getCell(row,idx,["Short Biography","biography","bio","Bio"]),
+  menteeCapacity: getCell(row,idx,[
+    "How many mentees can you mentor at a time","mentees you can mentor"
+  ]),
+  consent:  getCell(row,idx,["Consent","consent"]),
+
+  types:  toArray(getCell(row,idx,[
+    "Professional Field / Discipline","Main Goal or Focus as a Mentor"
+  ])),
+  skills: toArray(getCell(row,idx,[
+    "Areas You’d Like to Mentor In","Areas You'd Like to Mentor In"
+  ])),
+  topics: toArray(getCell(row,idx,[
+    "Expected Outcomes for Your Mentees"
+  ])),
+  photo: ""
+};}
+
+const norm=s=>String(s||"").toLowerCase().replace(/[^a-z0-9\s]/g," ").trim();
+function jaccard(a,b){
+  const A=new Set(a.map(norm)),B=new Set(b.map(norm));let inter=0;
+  A.forEach(v=>{if(B.has(v)) inter++;});
+  const denom=A.size+B.size-inter;
+  return denom?inter/denom:0;
+}
+
+/* ---------- Match score using 10 core fields ---------- */
+function score(m, me){
+  const textTokens=s=>String(s||"").split(/[\s,;/]+/).filter(Boolean);
+
+  // 1–3: Region / Country / Timezone
+  let geoScore=0;
+  const mr=norm(m.region), mc=norm(m.country), mtz=norm(m.timezone);
+  const ur=norm(me.region), uc=norm(me.country), utz=norm(me.timezone);
+
+  if(ur){ if(mr && mr.includes(ur)) geoScore+=0.04; }
+  if(uc){
+    if(mc && mc.includes(uc)) geoScore+=0.03;
+    else if(mr && mr.includes(uc)) geoScore+=0.02;
+  }
+  if(utz){ if(mtz && mtz.includes(utz)) geoScore+=0.03; }
+
+  // 4: Professional Field / Discipline
+  let fieldScore=0;
+  const menteeFieldText=me.field||me.interests;
+  if(m.field && menteeFieldText){
+    fieldScore=jaccard(
+      textTokens(m.field),
+      textTokens(menteeFieldText)
+    );
   }
 
-  const mentor = {
-    // Name-like column (Full Name, Mentor Name, etc.)
-    name: getCell(row,idx,[
-      'name','Name',
-      'full name','Full Name',
-      'mentor name','Mentor Name',
-      'mentee name','Mentee Name'
-    ]),
+  // 5: Main Goal or Focus as a Mentor
+  let goalScore=0;
+  const menteeGoal=me.goal||me.interests;
+  if(m.mainGoal && menteeGoal){
+    goalScore=jaccard(
+      textTokens(m.mainGoal),
+      textTokens(menteeGoal)
+    );
+  }
 
-    // Email-like column
-    email: getCell(row,idx,[
-      'email','Email',
-      'email address','Email Address',
-      'mentor email','Mentor Email',
-      'contact email','Contact Email'
-    ]),
+  // 6: Areas to mentor in vs mentee areas
+  let areasScore=0;
+  const mentorAreas=(m.areasMentor && m.areasMentor.length)?m.areasMentor:(m.skills||[]);
+  const menteeAreas=me.areas?toArray(me.areas):toArray(me.interests);
+  if(mentorAreas.length && menteeAreas.length){
+    areasScore=jaccard(mentorAreas,menteeAreas);
+  }
 
-    // Timezone / region
-    timezone: getCell(row,idx,[
-      'timezone','Timezone',
-      'timezone/location',
-      'region','Region','country','Country'
-    ]),
+  // 7: Experience levels
+  let levelScore=0;
+  if(m.experienceLevels && m.experienceLevels.length && me.level){
+    const Lm=m.experienceLevels.map(norm);
+    const Lc=norm(me.level);
+    if(Lm.includes(Lc)) levelScore=1;
+    else if(Lm.some(l=>l.includes(Lc) || Lc.includes(l))) levelScore=0.6;
+  }
 
-    // Availability text
-    availability: getCell(row,idx,[
-      'availability','Availability',
-      'available times','Available Times',
-      'preferred time','Preferred time','Preferred Time'
-    ]),
+  // 8: Expected outcomes
+  let outcomeScore=0;
+  const menteeOutcome=me.outcome||me.interests;
+  if(m.expectedOutcomes && menteeOutcome){
+    outcomeScore=jaccard(
+      textTokens(m.expectedOutcomes),
+      textTokens(menteeOutcome)
+    );
+  }
 
-    // Types / roles
-    types: toArray(getCell(row,idx,[
-      'mentorship type','Mentorship type',
-      'types','Types',
-      'mentoring type','Mentoring Type',
-      'role','Role'
-    ])),
+  // 9: Availability
+  let availScore=0;
+  if(m.availability && me.availability){
+    const ma=norm(m.availability), ua=norm(me.availability);
+    if(ma.includes(ua)||ua.includes(ma)) availScore=1;
+    else{
+      const words=["morning","afternoon","evening","weekend","weekday","saturday","sunday"];
+      if(words.some(w=>ma.includes(w)&&ua.includes(w))) availScore=0.6;
+    }
+  }
 
-    // Skills / expertise
-    skills: toArray(getCell(row,idx,[
-      'skills you can mentor on',
-      'skills','Skills',
-      'expertise','Expertise',
-      'areas of expertise','Areas of Expertise',
-      'strengths','Strengths'
-    ])),
+  // 10: Preferred communication
+  let commScore=0;
+  if(m.communication && me.communication){
+    const mc2=norm(m.communication), uc2=norm(me.communication);
+    if(mc2.includes(uc2)||uc2.includes(mc2)) commScore=1;
+    else if(mc2.includes("either")||mc2.includes("both")) commScore=0.8;
+  }
 
-    // Topics / interests
-    topics: toArray(getCell(row,idx,[
-      'topics/area of interest',
-      'topics','Topics',
-      'focus areas','Focus Areas',
-      'areas of interest','Areas of Interest',
-      'interest areas','Interest Areas'
-    ])),
+  const total=
+      geoScore*1.0 +
+      fieldScore*0.20 +
+      goalScore*0.15 +
+      areasScore*0.20 +
+      levelScore*0.10 +
+      outcomeScore*0.10 +
+      availScore*0.10 +
+      commScore*0.10;
 
-    // Short bio / about
-    bio: getCell(row,idx,[
-      'biography','bio','Bio',
-      'about','About',
-      'profile summary','Profile summary','Profile Summary'
-    ]),
-
-    // LinkedIn or other profile link
-    linkedin: getCell(row,idx,[
-      'linkedin','LinkedIn',
-      'linkedin url','LinkedIn URL',
-      'linkedin profile','LinkedIn profile','LinkedIn Profile',
-      'profile link','Profile link','Profile Link'
-    ]),
-
-    // Photo is optional now; if no column, it's just empty
-    photo: getCell(row,idx,[
-      'add your picture',
-      'photo','Photo',
-      'image','Image',
-      'avatar','Avatar',
-      'profile picture','Profile picture','Profile Picture'
-    ]),
-
-    // All raw values (for admin / future use)
-    raw
-  };
-
-  // Mark headers used by core fields so we can show any extra ones as labelled rows
-  markUsed(['name','full name','mentor name','mentee name']);
-  markUsed(['email','email address','mentor email','contact email']);
-  markUsed(['timezone','region','country']);
-  markUsed(['availability','available times','preferred time']);
-  markUsed(['mentorship type','mentoring type','role','types']);
-  markUsed(['skills you can mentor on','skills','expertise','areas of expertise','strengths']);
-  markUsed(['topics/area of interest','topics','focus areas','areas of interest','interest areas']);
-  markUsed(['biography','bio','about','profile summary']);
-  markUsed(['linkedin','linkedin url','linkedin profile','profile link']);
-  markUsed(['add your picture','photo','image','avatar','profile picture']);
-
-  const extra = {};
-  (header||[]).forEach((label)=>{
-    const key = String(label||"").trim();
-    if(!key) return;
-    if(used.has(label)) return;
-    const val = raw[key];
-    if(val!=null && String(val).trim()!=="") extra[key] = val;
-  });
-
-  mentor.extra = extra;
-  return mentor;
-}
-
-
-const norm=s=>String(s||"").toLowerCase().replace(/[^a-z0-9\s]/g,' ').trim();
-function jaccard(a,b){ const A=new Set(a.map(norm)),B=new Set(b.map(norm)); let inter=0; A.forEach(v=>B.has(v)&&inter++); return inter/(A.size+B.size-inter||1); }
-function score(m,me){
-  const mt=[...(m.skills||[]),...(m.topics||[])], it=toArray(me.interests||'');
-  return Math.round(
-    (0.60*jaccard(mt,it))
-    + (me.type&&m.types?.some(t=>norm(t)==norm(me.type))?0.15:0)
-    + (/morning|available|open|yes|accept/i.test(m.availability||"")?0.10:0)
-    + (me.region&&m.timezone?.toLowerCase().includes(me.region?.toLowerCase())?0.10:0)
-    + ((m.bio||"").toLowerCase().includes((me.interests||"").toLowerCase())?0.05:0)
-  *100);
-}
-function matchesAvailability(mentorAvail, filterVal){
-  if(!filterVal) return true;
-  const src=String(mentorAvail||"").toLowerCase(), want=filterVal.toLowerCase();
-  if(want==="morning")   return /morning|am|8am|9am|10am|11am/.test(src);
-  if(want==="afternoon") return /afternoon|pm|12pm|1pm|2pm|3pm|4pm/.test(src);
-  if(want==="evening")   return /evening|pm|5pm|6pm|7pm|8pm|night/.test(src);
-  if(want==="weekends")  return /weekend|saturday|sunday/.test(src);
-  if(want==="any other time") return true;
-  return src.includes(want);
+  return Math.round(total*100);
 }
 
 /* ---------- State ---------- */
-let MENTORS=[], VIEW=[];
-let mentee={name:"",email:"",region:"",interests:"",type:""};
-let F={q:"",type:"",topic:"",avail:""};
+let MENTORS=[],VIEW=[];
+let mentee={};
+let F={q:""};
 
 /* ---------- Admin table ---------- */
 function renderAdminTable(){
   const box=document.getElementById("adminMentorTable");
   if(!box) return;
-  if(!MENTORS.length){ box.textContent="No mentors loaded yet."; return; }
-  const rows = MENTORS.map(m=>`
+  if(!MENTORS.length){
+    box.textContent="No mentors loaded yet.";
+    return;
+  }
+  const rows=MENTORS.map(m=>`
     <tr>
       <td>${m.name||""}</td>
       <td>${m.email||""}</td>
@@ -423,7 +657,7 @@ function renderAdminTable(){
       <td>${m.availability||""}</td>
       <td>${m.timezone||""}</td>
     </tr>`).join("");
-  box.innerHTML = `
+  box.innerHTML=`
     <div class="muted" style="margin-bottom:6px;">Total mentors: ${MENTORS.length}</div>
     <div style="overflow:auto;max-height:360px;border:1px solid var(--border);border-radius:12px;">
       <table>
@@ -442,31 +676,43 @@ function render(){
   const host=document.getElementById("mentors"); host.innerHTML="";
   if(REQUIRE_INTERESTS_FIRST && !hasProfileReady()){
     host.innerHTML=`<div class="card" style="border-style:dashed">
-      Start typing your interests (e.g., "solar; retrofit, BIM"), or choose a Mentorship Type/Region — suggestions will appear automatically.</div>`;
+      Add your interests / region / field — suggestions will appear automatically.</div>`;
     return;
   }
-  if(!VIEW.length){ host.innerHTML="<div class='muted'>No mentors match yet. Try adjusting your interests or filters.</div>"; return; }
-
+  if(!VIEW.length){
+    host.innerHTML="<div class='muted'>No mentors match yet. Try adjusting your details or keywords.</div>";
+    return;
+  }
   const banner=document.createElement("div");
-  banner.className="card"; banner.style.margin="0 0 8px";
+  banner.className="card";
+  banner.style.margin="0 0 8px";
   banner.innerHTML=`<strong>Suggested mentors</strong> — top ${VIEW.length} by match score.`;
   host.appendChild(banner);
 
   VIEW.forEach(m=>{
-    const c=document.createElement("div"); c.className="card mcard";
-    const extraRows = m.extra && Object.keys(m.extra).length
-      ? `<div class='rowblock muted'>${Object.entries(m.extra).map(([k,v])=>`<div><strong>${k}:</strong> ${v}</div>`).join('')}</div>`
-      : "";
+    const c=document.createElement("div");
+    c.className="card mcard";
     c.innerHTML=`
       <div class="badge">${m._score||0}% match</div>
-      ${m.photo?`<img class='avatar' src='${m.photo}' alt='${m.name}'>`:""}
+      ${m.photo?`<img class="avatar" src="${m.photo}" alt="${m.name}">`:""}
       <h3>${m.name}</h3>
-      <div class='meta'>${(m.types||[]).join(', ')}</div>
-      ${m.bio?`<div class='rowblock'>${m.bio}</div>`:""}
-      <div>${(m.skills||[]).map(x=>`<span class='pill'>${x}</span>`).join('')}</div>
-      ${extraRows}
+      <div class="meta">
+        ${[m.field,m.role,m.years].filter(Boolean).join(" • ")}
+      </div>
+      ${ (m.region || m.country || m.timezone)
+        ? `<div class="muted">${[m.region,m.country,m.timezone].filter(Boolean).join(" • ")}</div>`:"" }
+      ${m.bio?`<div class="rowblock">${m.bio}</div>`:""}
+      <div>${(m.skills||[]).map(x=>`<span class="pill">${x}</span>`).join("")}</div>
+      <div class="rowblock muted">
+        ${m.mainGoal?`<div><strong>Main goal as mentor:</strong> ${m.mainGoal}</div>`:""}
+        ${m.experienceLevels && m.experienceLevels.length?`<div><strong>Experience levels:</strong> ${m.experienceLevels.join(", ")}</div>`:""}
+        ${m.expectedOutcomes?`<div><strong>Expected outcomes:</strong> ${m.expectedOutcomes}</div>`:""}
+        ${m.availability?`<div><strong>Availability:</strong> ${m.availability}</div>`:""}
+        ${m.communication?`<div><strong>Preferred communication:</strong> ${m.communication}</div>`:""}
+        ${m.menteeCapacity?`<div><strong>Can mentor:</strong> ${m.menteeCapacity}</div>`:""}
+      </div>
       <div class="rowblock">
-        <button data-email='${m.email}' ${window._sbReady ? "" : "disabled"}>Request Mentorship</button>
+        <button data-email="${m.email}" ${window._sbReady?"":"disabled"}>Request Mentorship</button>
         ${m.linkedin?`<a class="pill" target="_blank" rel="noopener" href="${m.linkedin}">LinkedIn</a>`:""}
       </div>`;
     host.appendChild(c);
@@ -474,7 +720,12 @@ function render(){
   host.querySelectorAll("button[data-email]").forEach(b=>b.onclick=()=>sendRequest(b.dataset.email));
 
   if(!window._sbReady){
-    (async()=>{ const ok=await initSupabase(); if(ok){ host.querySelectorAll("button[data-email][disabled]").forEach(btn=>btn.disabled=false);} })();
+    (async()=>{
+      const ok=await initSupabase();
+      if(ok){
+        host.querySelectorAll("button[data-email][disabled]").forEach(btn=>btn.disabled=false);
+      }
+    })();
   }
 }
 
@@ -482,115 +733,129 @@ function apply(){
   if(REQUIRE_INTERESTS_FIRST && !hasProfileReady()){
     const host=document.getElementById("mentors");
     host.innerHTML=`<div class="card" style="border-style:dashed">
-      Add interests / type / region — suggestions will appear automatically.</div>`;
+      Add your interests / region / field — suggestions will appear automatically.</div>`;
     return;
   }
   const q=(F.q||"").toLowerCase();
-  const ranked = MENTORS
+  const ranked=MENTORS
     .map(m=>({...m,_score:score(m,mentee)}))
-    .filter(m=>(!q||JSON.stringify(m).toLowerCase().includes(q)))
-    .filter(m=>(!F.type||m.types?.includes(F.type)))
-    .filter(m=>{
-      if(!F.topic) return true;
-      if(F.topic.startsWith("__other:")){
-        const t=F.topic.slice("__other:".length).toLowerCase();
-        const hay=[...(m.skills||[]),...(m.topics||[])].join(" ").toLowerCase();
-        return t ? hay.includes(t) : true;
-      }
-      return (m.skills?.includes(F.topic) || m.topics?.includes(F.topic));
-    })
-    .filter(m=>matchesAvailability(m.availability, F.avail))
+    .filter(m=>(!q || JSON.stringify(m).toLowerCase().includes(q)))
     .sort((a,b)=>b._score-a._score);
 
-  VIEW = ranked.slice(0,SUGGESTION_COUNT);
+  VIEW=ranked.slice(0,SUGGESTION_COUNT);
   render();
 }
 
-/* ---------- CSV (with CORS fallback) ---------- */
+/* ---------- CSV loading ---------- */
 async function fetchCsvWithFallback(url){
   try{
     const r=await fetch(url,{mode:"cors",cache:"no-store"});
     if(!r.ok) throw new Error("HTTP "+r.status);
-    const t=await r.text(); if(t && t.trim().length) return t;
+    const t=await r.text();
+    if(t && t.trim().length) return t;
     throw new Error("Empty CSV");
   }catch(e){
     const prox="https://api.allorigins.win/raw?url="+encodeURIComponent(url);
-    const r2=await fetch(prox,{cache:"no-store"}); if(!r2.ok) throw new Error("Proxy HTTP "+r2.status);
+    const r2=await fetch(prox,{cache:"no-store"});
+    if(!r2.ok) throw new Error("Proxy HTTP "+r2.status);
     return await r2.text();
   }
 }
 async function loadCSV(u){
   const s=document.getElementById("status"), e=document.getElementById("error");
-  if(s) s.textContent="Loading mentors…"; if(e){ e.style.display="none"; e.textContent=""; }
+  if(s) s.textContent="Loading mentors…";
+  if(e){e.style.display="none";e.textContent="";}
   try{
     const text=await fetchCsvWithFallback(u);
-    const rows=parseCSV(text); if(!rows.length) throw new Error("CSV empty");
-const headerRow = findHeaderRow(rows);
-const header    = rows[headerRow];
-const body      = rows.slice(headerRow+1);
-const idx       = headerIndexMap(header);
-MENTORS = body.map(r=>toMentor(r,header,idx)).filter(m=>m.name);
-    renderOptions(); apply(); renderAdminTable();
-    if(s) s.textContent=`Loaded ${MENTORS.length} mentor${MENTORS.length!==1?'s':''}.`;
-    showToast(`CSV loaded: ${MENTORS.length} mentor${MENTORS.length!==1?'s':''}`);
+    const rows=parseCSV(text);
+    if(!rows.length) throw new Error("CSV empty");
+    const headerRow=findHeaderRow(rows);
+    const header=rows[headerRow];
+    const body=rows.slice(headerRow+1);
+    const idx=headerIndexMap(header);
+    MENTORS=body.map(r=>toMentor(r,header,idx)).filter(m=>m.name);
+    renderAdminTable();
+    apply();
+    if(s) s.textContent=`Loaded ${MENTORS.length} mentor${MENTORS.length!==1?"s":""}.`;
+    showToast(`CSV loaded: ${MENTORS.length} mentor${MENTORS.length!==1?"s":""}`);
   }catch(err){
-    if(e){ e.style.display="block"; e.textContent="Failed to fetch"; } if(s) s.textContent="";
-    console.error(err); showToast("CSV load failed",{type:"error"});
+    console.error(err);
+    if(e){e.style.display="block";e.textContent="Failed to fetch"; }
+    if(s) s.textContent="";
+    showToast("CSV load failed",{type:"error"});
   }
-}
-function renderOptions(){
-  const uniq=a=>[...new Set((a||[]).filter(Boolean))];
-  const types=uniq(MENTORS.flatMap(m=>m.types||[])).sort((a,b)=>a.localeCompare(b));
-  const topics=uniq(MENTORS.flatMap(m=>[...(m.skills||[]),...(m.topics||[])])).sort((a,b)=>a.localeCompare(b));
-  document.getElementById("typeFilter").innerHTML =
-    '<option value="">All mentorship types</option>'+types.map(t=>`<option>${t}</option>`).join("");
-  const topicSel=document.getElementById("topicFilter");
-  topicSel.innerHTML =
-    '<option value="">All topics / skills</option>'+
-    topics.map(t=>`<option>${t}</option>`).join("")+
-    '<option value="__other">Others…</option>';
 }
 
 /* ---------- Requests + Inbox ---------- */
 async function sendRequest(email){
   if(!window._sbReady || !window.supabase){
-    showToast("Connecting to database… please try again in a moment.",{type:"error"}); return;
+    showToast("Connecting to database… please try again in a moment.",{type:"error"});
+    return;
   }
-  if(!mentee.email){ showToast("Please save your profile first.",{type:"error"}); return; }
-  const payload={mentor_email:email,mentee_email:mentee.email,mentee_name:mentee.name,status:"pending",note:mentee.interests,created_at:new Date().toISOString()};
+  if(!mentee.email){
+    showToast("Please save your profile first.",{type:"error"});
+    return;
+  }
+  const payload={
+    mentor_email:email,
+    mentee_email:mentee.email,
+    mentee_name:mentee.name,
+    status:"pending",
+    note:mentee.interests,
+    created_at:new Date().toISOString()
+  };
   try{
     const {error}=await supabase.from("requests").insert([payload]);
     if(error) throw error;
     showToast("Request sent ✅");
-    loadMyRequests(); // reflect immediately in My Requests
+    loadMyRequests();
   }catch(e){
     showToast("Error sending request: "+(e.message||e),{type:"error"});
   }
 }
 async function loadInbox(){
   const email=document.getElementById("inboxEmail").value.trim();
-  const box=document.getElementById("inbox"); box.innerHTML="";
-  if(!email){ box.innerHTML="<div class='muted'>Enter email.</div>"; return; }
+  const box=document.getElementById("inbox");
+  box.innerHTML="";
+  if(!email){
+    box.innerHTML="<div class='muted'>Enter email.</div>";
+    return;
+  }
   try{
-    const {data,error}=await supabase.from("requests").select("*").eq("mentor_email",email).order("created_at",{ascending:false});
+    const {data,error}=await supabase
+      .from("requests")
+      .select("*")
+      .eq("mentor_email",email)
+      .order("created_at",{ascending:false});
     if(error) throw error;
-    if(!data.length){ box.innerHTML="<div class='muted'>No requests yet.</div>"; showToast("Inbox refreshed"); return; }
+    if(!data.length){
+      box.innerHTML="<div class='muted'>No requests yet.</div>";
+      showToast("Inbox refreshed");
+      return;
+    }
     data.forEach(r=>{
-      const c=document.createElement("div"); c.className="card"; c.style.margin="8px 0";
-      c.innerHTML=`<strong>${r.mentee_name||r.mentee_email}</strong> <span class="pill">${r.status}</span>
+      const c=document.createElement("div");
+      c.className="card";
+      c.style.margin="8px 0";
+      c.innerHTML=`
+        <strong>${r.mentee_name||r.mentee_email}</strong> <span class="pill">${r.status}</span>
         <div class="muted">${r.mentee_email}</div>
         <div class="rowblock">${r.note||""}</div>
         <div class="rowblock">
-          <button data-id='${r.id}' data-s='accepted'>Accept</button>
-          <button data-id='${r.id}' data-s='declined'>Decline</button>
+          <button data-id="${r.id}" data-s="accepted">Accept</button>
+          <button data-id="${r.id}" data-s="declined">Decline</button>
           <a class="pill" href="mailto:${r.mentee_email}?subject=Re:%20Mentorship%20Request">Email</a>
         </div>`;
       box.appendChild(c);
     });
     box.querySelectorAll("button[data-id]").forEach(b=>b.onclick=async()=>{
       const {error}=await supabase.from("requests").update({status:b.dataset.s}).eq("id",b.dataset.id);
-      if(error){ showToast("Update failed: "+error.message,{type:"error"}); }
-      else{ showToast(`Request ${b.dataset.s} ✅`); loadInbox(); }
+      if(error){
+        showToast("Update failed: "+error.message,{type:"error"});
+      }else{
+        showToast(`Request ${b.dataset.s} ✅`);
+        loadInbox();
+      }
     });
     showToast("Inbox refreshed");
   }catch(e){
@@ -603,8 +868,12 @@ async function loadInbox(){
 let myReqChannel=null;
 function renderMyRequests(rows){
   const box=document.getElementById("myRequests");
-  if(!box)return;
-  if(!rows||!rows.length){box.innerHTML="<div class='muted'>No requests yet.</div>";return;}
+  if(!box) return;
+  if(!rows || !rows.length){
+    box.classList.add("muted");
+    box.innerHTML="<div class='muted'>No requests yet.</div>";
+    return;
+  }
   box.classList.remove("muted");
   box.innerHTML=rows.map(r=>`
     <div class="card" style="margin:8px 0;">
@@ -616,12 +885,16 @@ function renderMyRequests(rows){
   `).join("");
 }
 async function loadMyRequests(){
-  if(!window.supabase||!mentee?.email){
+  if(!window.supabase || !mentee?.email){
     const box=document.getElementById("myRequests");
     if(box) box.innerHTML="<div class='muted'>Enter and save your email first.</div>";
     return;
   }
-  const {data,error}=await supabase.from("requests").select("*").eq("mentee_email",mentee.email).order("created_at",{ascending:false});
+  const {data,error}=await supabase
+    .from("requests")
+    .select("*")
+    .eq("mentee_email",mentee.email)
+    .order("created_at",{ascending:false});
   if(error){
     document.getElementById("myRequests").innerHTML="<div class='error'>Failed to load: "+(error.message||error)+"</div>";
     return;
@@ -629,96 +902,211 @@ async function loadMyRequests(){
   renderMyRequests(data);
 }
 function subscribeMyRequests(email){
-  if(!window.supabase||!email)return;
-  // cleanup previous
-  if(myReqChannel){ try{ supabase.removeChannel(myReqChannel); }catch(_){} myReqChannel=null; }
-  // Ensure Realtime is enabled on the 'requests' table in Supabase (Table → Replication)
-  myReqChannel = supabase.channel('requests_for_'+email)
-    .on('postgres_changes',{
-      event:'*', schema:'public', table:'requests',
+  if(!window.supabase || !email) return;
+  if(myReqChannel){
+    try{ supabase.removeChannel(myReqChannel); }catch(_){}
+    myReqChannel=null;
+  }
+  myReqChannel=supabase.channel("requests_for_"+email)
+    .on("postgres_changes",{
+      event:"*",
+      schema:"public",
+      table:"requests",
       filter:`mentee_email=eq.${email}`
     }, payload=>{
-      if(payload.eventType==='UPDATE'){
+      if(payload.eventType==="UPDATE"){
         const newStatus=payload.new?.status;
-        if(newStatus){ showToast(`Your request was ${newStatus}`, {type:newStatus==='accepted'?'success':'error'}); }
+        if(newStatus){
+          showToast(`Your request was ${newStatus}`,{
+            type:newStatus==="accepted"?"success":"error"
+          });
+        }
       }
       loadMyRequests();
     })
     .subscribe(status=>{
-      if(status==='SUBSCRIBED') console.log('✅ Realtime subscribed for mentee:', email);
+      if(status==="SUBSCRIBED"){
+        console.log("✅ Realtime subscribed for mentee:",email);
+      }
     });
 }
 
-/* ---------- Events ---------- */
-// Filters
-document.getElementById("search").oninput=e=>{F.q=e.target.value;apply();};
-document.getElementById("typeFilter").onchange=e=>{F.type=e.target.value;apply();};
-document.getElementById("availabilityFilter").onchange=e=>{F.avail=e.target.value;apply();};
-// Topic "Others"
-const topicSel=document.getElementById("topicFilter");
-const topicOther=document.getElementById("topicOther");
-topicSel.addEventListener("change",e=>{
-  const isOther=e.target.value==="__other";
-  topicOther.style.display=isOther?"":"none";
-  if(!isOther) topicOther.value="";
-  F.topic=e.target.value; apply();
-});
-topicOther.addEventListener("input",()=>{ F.topic="__other:"+topicOther.value.trim(); apply(); });
+/* ---------- "Other" dropdown helper ---------- */
+function attachOtherInput(selectId, otherInputId) {
+  const sel = document.getElementById(selectId);
+  const other = document.getElementById(otherInputId);
+  if (!sel || !other) return;
 
-// Auto-suggest and save mentee profile
+  sel.addEventListener("change", () => {
+    const val = (sel.value || "").toLowerCase();
+    if (val.includes("other")) {
+      other.style.display = "";
+    } else {
+      other.style.display = "none";
+      other.value = "";
+    }
+    autoApply();
+  });
+}
+
+/* ---------- Filters ---------- */
+// Only search now
+document.getElementById("search").oninput=e=>{
+  F.q=e.target.value;
+  apply();
+};
+
+/* ---------- Auto-suggest and save mentee profile ---------- */
 const autoApply=debounce(()=>{
-  mentee={
-    name:document.getElementById("menteeName").value.trim(),
-    email:document.getElementById("menteeEmail").value.trim(),
-    region:document.getElementById("menteeRegion").value.trim(),
-    interests:document.getElementById("menteeInterests").value.trim(),
-    type:document.getElementById("menteeType").value
+  // Region with "Other"
+  const regionSel = document.getElementById("menteeRegion")?.value || "";
+  const regionOtherEl = document.getElementById("menteeRegionOther");
+  let region = regionSel;
+  if (regionSel.toLowerCase().includes("other") && regionOtherEl && regionOtherEl.value.trim()) {
+    region = regionOtherEl.value.trim();
+  }
+
+  // Country with "Other"
+  const countrySel = document.getElementById("menteeCountry")?.value || "";
+  const countryOtherEl = document.getElementById("menteeCountryOther");
+  let country = countrySel;
+  if (countrySel.toLowerCase().includes("other") && countryOtherEl && countryOtherEl.value.trim()) {
+    country = countryOtherEl.value.trim();
+  }
+
+  // Timezone with "Other"
+  const tzSel = document.getElementById("menteeTimezone")?.value || "";
+  const tzOtherEl = document.getElementById("menteeTimezoneOther");
+  let timezone = tzSel;
+  if (tzSel.toLowerCase().includes("other") && tzOtherEl && tzOtherEl.value.trim()) {
+    timezone = tzOtherEl.value.trim();
+  }
+
+  // Field with "Other"
+  const fieldSel = document.getElementById("menteeField")?.value || "";
+  const fieldOtherEl = document.getElementById("menteeFieldOther");
+  let field = fieldSel;
+  if (fieldSel.toLowerCase().includes("other") && fieldOtherEl && fieldOtherEl.value.trim()) {
+    field = fieldOtherEl.value.trim();
+  }
+
+  // Areas with "Other"
+  const areasSel = document.getElementById("menteeAreas")?.value || "";
+  const areasOtherEl = document.getElementById("menteeAreasOther");
+  let areas = areasSel;
+  if (areasSel.toLowerCase().includes("other") && areasOtherEl && areasOtherEl.value.trim()) {
+    areas = areasOtherEl.value.trim();
+  }
+
+  // Availability with "Other"
+  const availSel = document.getElementById("menteeAvailability")?.value || "";
+  const availOtherEl = document.getElementById("menteeAvailabilityOther");
+  let availability = availSel;
+  if (availSel.toLowerCase().includes("other") && availOtherEl && availOtherEl.value.trim()) {
+    availability = availOtherEl.value.trim();
+  }
+
+  // Communication with "Other"
+  const commSel = document.getElementById("menteeCommunication")?.value || "";
+  const commOtherEl = document.getElementById("menteeCommunicationOther");
+  let communication = commSel;
+  if (commSel.toLowerCase().includes("other") && commOtherEl && commOtherEl.value.trim()) {
+    communication = commOtherEl.value.trim();
+  }
+
+  mentee = {
+    name:   document.getElementById("menteeName").value.trim(),
+    email:  document.getElementById("menteeEmail").value.trim(),
+
+    // geo / context
+    region,
+    country,
+    timezone,
+
+    // field + interests
+    field,
+    interests: document.getElementById("menteeInterests").value.trim(),
+
+    // core match fields
+    goal:         document.getElementById("menteeGoal")?.value.trim() || "",
+    areas,
+    level:        document.getElementById("menteeLevel")?.value || "",
+    outcome:      document.getElementById("menteeOutcome")?.value.trim() || "",
+    availability,
+    communication
   };
+
   localStorage.setItem("mentee",JSON.stringify(mentee));
   apply();
-  // subscribe + load My Requests when email is set
   if(window._sbReady && mentee.email){
     subscribeMyRequests(mentee.email);
     loadMyRequests();
   }
 },350);
+
+/* attach "Other" behaviour */
+attachOtherInput("menteeRegion", "menteeRegionOther");
+attachOtherInput("menteeCountry", "menteeCountryOther");
+attachOtherInput("menteeTimezone", "menteeTimezoneOther");
+attachOtherInput("menteeField", "menteeFieldOther");
+attachOtherInput("menteeAreas", "menteeAreasOther");
+attachOtherInput("menteeAvailability", "menteeAvailabilityOther");
+attachOtherInput("menteeCommunication", "menteeCommunicationOther");
+
+/* also react when typing in the "Other" boxes */
+["menteeRegionOther","menteeCountryOther","menteeTimezoneOther",
+ "menteeFieldOther","menteeAreasOther","menteeAvailabilityOther","menteeCommunicationOther"]
+ .forEach(id=>{
+   const el=document.getElementById(id);
+   if(el) el.addEventListener("input", autoApply);
+ });
+
+/* basic mentee field listeners */
 document.getElementById("menteeInterests").addEventListener("input",autoApply);
-document.getElementById("menteeType").addEventListener("change",autoApply);
-document.getElementById("menteeRegion").addEventListener("input",autoApply);
+document.getElementById("menteeRegion").addEventListener("change",autoApply);
+document.getElementById("menteeCountry").addEventListener("change",autoApply);
+document.getElementById("menteeTimezone").addEventListener("change",autoApply);
+document.getElementById("menteeField").addEventListener("change",autoApply);
+document.getElementById("menteeGoal").addEventListener("blur",autoApply);
+document.getElementById("menteeOutcome").addEventListener("blur",autoApply);
+document.getElementById("menteeAreas").addEventListener("change",autoApply);
+document.getElementById("menteeLevel").addEventListener("change",autoApply);
+document.getElementById("menteeAvailability").addEventListener("change",autoApply);
+document.getElementById("menteeCommunication").addEventListener("change",autoApply);
 document.getElementById("menteeName").addEventListener("blur",autoApply);
 document.getElementById("menteeEmail").addEventListener("blur",autoApply);
 
 // Buttons
-document.getElementById("applyMentee").onclick=()=>{ autoApply(); };
-document.getElementById("btnSaveMentee").onclick=()=>{ autoApply(); showToast("Profile saved. Suggestions will update automatically."); };
-document.getElementById("btnLoadCsv").onclick=()=>{ showToast("Reloading CSV…"); const el=document.getElementById("csvUrl"); loadCSV(el.value); };
-document.getElementById("btnLoadInbox").onclick=()=>{ showToast("Loading inbox…"); loadInbox(); };
-document.getElementById("btnRefreshInbox").onclick=()=>{ loadInbox(); showToast("Inbox refreshed"); };
-document.getElementById("btnRefreshMyRequests").onclick=()=>{ loadMyRequests(); showToast("My Requests refreshed"); };
+document.getElementById("applyMentee").onclick=()=>{autoApply();};
+document.getElementById("btnSaveMentee").onclick=()=>{autoApply();showToast("Profile saved. Suggestions will update automatically.");};
+document.getElementById("btnLoadCsv").onclick=()=>{showToast("Reloading CSV…");const el=document.getElementById("csvUrl");loadCSV(el.value);};
+document.getElementById("btnLoadInbox").onclick=()=>{showToast("Loading inbox…");loadInbox();};
+document.getElementById("btnRefreshInbox").onclick=()=>{loadInbox();showToast("Inbox refreshed");};
+document.getElementById("btnRefreshMyRequests").onclick=()=>{loadMyRequests();showToast("My Requests refreshed");};
 
 // Tabs
 document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{
   document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
   t.classList.add("active");
   ["mentee","mentor","admin"].forEach(v=>{
-    document.getElementById("view-"+v).style.display=(v==t.dataset.view)?"":"none";
+    document.getElementById("view-"+v).style.display=(v===t.dataset.view)?"":"none";
   });
 });
 
-// Auto-refresh mentors from CSV every 60 seconds using the current CSV URL or default
-setInterval(() => {
-  try {
-    const input = document.getElementById("csvUrl");
-    const url = (input && input.value.trim()) || CSV_URL_DEFAULT;
-    if (url) loadCSV(url);
-  } catch (e) {
-    console.warn("Auto CSV refresh failed:", e);
+// Auto-refresh CSV every 60 seconds
+setInterval(()=>{
+  try{
+    const input=document.getElementById("csvUrl");
+    const url=(input && input.value.trim()) || CSV_URL_DEFAULT;
+    if(url) loadCSV(url);
+  }catch(e){
+    console.warn("Auto CSV refresh failed:",e);
   }
-}, 60000);
+},60000);
 
 /* ---------- Init ---------- */
 (async ()=>{
-  const ok = await initSupabase();
+  const ok=await initSupabase();
   try{ mentee=JSON.parse(localStorage.getItem("mentee"))||{}; }catch{}
   loadCSV(CSV_URL_DEFAULT);
   if(ok && mentee?.email){

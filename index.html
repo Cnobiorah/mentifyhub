@@ -744,12 +744,29 @@
 
   <!-- Admin View -->
   <section id="view-admin" class="card" style="grid-column:span 12;display:none;">
-    <h2>Admin Panel — Mentors (Supabase)</h2>
-    <div class="muted" style="margin-bottom:8px;">
-      This panel manages mentors stored in the <strong>public.mentors</strong> table in Supabase.
-      You can add new mentors, edit existing ones, and delete if needed. All matching and mentee suggestions use this database.
+
+    <div id="adminLoginCard">
+      <h2>Admin login</h2>
+      <p class="muted" style="margin:0 0 10px;">
+        Only authorised admins can manage mentors. Sign in with your admin email and password.
+      </p>
+      <div class="row">
+        <input id="adminLoginEmail" placeholder="Admin email" />
+        <input id="adminLoginPassword" type="password" placeholder="Password" />
+        <button id="btnAdminLogin">Sign in</button>
+      </div>
+      <div id="adminLoginStatus" class="muted" style="margin-top:6px;"></div>
     </div>
 
+    <div id="adminPanel" style="display:none;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <h2>Admin Panel — Mentors (Supabase)</h2>
+        <button id="btnAdminLogout" class="btn-small">Log out</button>
+      </div>
+      <div class="muted" style="margin:4px 0 8px;">
+        This panel manages mentors stored in the <strong>public.mentors</strong> table in Supabase.
+        You can add new mentors, edit existing ones, and delete if needed. All matching and mentee suggestions use this database.
+      </div>
     <!-- Add / Edit Mentor Form -->
     <div class="rowblock">
       <h3 style="margin-bottom:4px;">Add / Edit Mentor</h3>
@@ -890,6 +907,8 @@
       <div id="adminMentorTable" class="muted">Loading mentors…</div>
     </div>
   </section>
+    </div>
+  </section>
 </main>
 
 <div id="toastWrap" aria-live="polite" aria-atomic="true"></div>
@@ -905,8 +924,7 @@
   const REQUIRE_INTERESTS_FIRST = true;
   const SUGGESTION_COUNT = 5;
 
-  // 🔐 Simple admin PIN (change this to whatever you like)
-  const ADMIN_PIN = "MENTIFY2025";
+  // Admin access is now handled via Supabase Auth (email + password).
 </script>
 
 <!-- Supabase client -->
@@ -953,8 +971,22 @@
   let mentee = {};
   let F = { q: "" };
 
-  // 🔐 admin unlock flag
-  let adminUnlocked = false;
+  // 🔐 Admin auth via Supabase
+  async function checkAdminSession(){
+    if(!window.supabase) return;
+    try{
+      const { data: { session } } = await supabase.auth.getSession();
+      const loggedIn = !!session;
+      const loginCard = document.getElementById("adminLoginCard");
+      const panel = document.getElementById("adminPanel");
+      if(loginCard && panel){
+        loginCard.style.display = loggedIn ? "none" : "";
+        panel.style.display = loggedIn ? "" : "none";
+      }
+    }catch(e){
+      console.error("checkAdminSession error", e);
+    }
+  }
 
   const getSelectValue = id => {
     const el=document.getElementById(id);
@@ -1776,40 +1808,66 @@
     document.getElementById("btnSaveMentor").onclick = handleSaveMentor;
     document.getElementById("btnResetMentor").onclick = clearAdminForm;
 
-    // 🔐 Tab switching with admin PIN gate
+    // 🔐 Tab switching between views
     document.querySelectorAll(".tab").forEach(t=>{
       t.onclick=()=>{
         const target = t.dataset.view;
-
-        if(target === "admin" && !adminUnlocked){
-          const pin = prompt("Admin access only.\n\nEnter admin PIN:");
-          if(pin === null || pin.trim() === ""){
-            showToast("Admin PIN is required",{type:"error"});
-            return;
-          }
-          if(pin.trim() !== ADMIN_PIN){
-            showToast("Incorrect admin PIN",{type:"error"});
-            return;
-          }
-          adminUnlocked = true;
-          localStorage.setItem("adminUnlocked","1");
-          showToast("Admin access unlocked");
-        }
-
         document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
         t.classList.add("active");
         ["mentee","mentor","admin"].forEach(v=>{
-          document.getElementById("view-"+v).style.display=(v===target)?"":"none";
+          const section = document.getElementById("view-"+v);
+          if(section) section.style.display = (v===target) ? "" : "none";
         });
       };
     });
+
+    // 🔐 Admin login / logout wiring
+    const loginBtn = document.getElementById("btnAdminLogin");
+    if(loginBtn){
+      loginBtn.onclick = async ()=>{
+        const email = (document.getElementById("adminLoginEmail").value || "").trim();
+        const password = document.getElementById("adminLoginPassword").value;
+        const statusEl = document.getElementById("adminLoginStatus");
+        if(statusEl) statusEl.textContent = "Signing in…";
+        try{
+          const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+          if(error){
+            if(statusEl) statusEl.textContent = "Login failed: " + (error.message || "");
+            showToast("Admin login failed",{type:"error"});
+            return;
+          }
+          if(statusEl) statusEl.textContent = "";
+          showToast("Admin logged in ✅");
+          checkAdminSession();
+        }catch(e){
+          console.error(e);
+          if(statusEl) statusEl.textContent = "Login error.";
+          showToast("Admin login error",{type:"error"});
+        }
+      };
+    }
+
+    const logoutBtn = document.getElementById("btnAdminLogout");
+    if(logoutBtn){
+      logoutBtn.onclick = async ()=>{
+        try{
+          await supabase.auth.signOut();
+        }catch(e){
+          console.error(e);
+        }
+        showToast("Logged out");
+        checkAdminSession();
+      };
+    }
   }
 
   /* ------------ Init ------------ */
   (async ()=>{
-    adminUnlocked = localStorage.getItem("adminUnlocked") === "1";
-
     initEvents();
+    checkAdminSession();
+    if(window.supabase && supabase.auth && supabase.auth.onAuthStateChange){
+      supabase.auth.onAuthStateChange((_event,_session)=>{ checkAdminSession(); });
+    }
     try{
       mentee = JSON.parse(localStorage.getItem("mentee")||"{}");
     }catch{ mentee={}; }

@@ -1109,9 +1109,7 @@
   }
 
   /* ------------ Mentor card UI ------------ */
-  function buildMentorCard(m,{showScore=true,badgeText}={}){
-    const c=document.createElement("div");
-    c.className="card mcard";
+  function buildMentorCard(m,{showScore=true,badgeText}={}){const c=document.createElement("div");c.className="card mcard";
     let badgeHtml="";
 
     if(badgeText){
@@ -1131,6 +1129,11 @@
       <div class="meta">
         ${[m.field,m.role,m.years].filter(Boolean).join(" • ")}
       </div>
+      <div class="meta">
+        ${m.email ? `<a href="mailto:${m.email}">Email</a>` : ""}
+        ${(m.email && m.linkedin) ? " • " : ""}
+        ${m.linkedin ? `<a href="${m.linkedin}" target="_blank">LinkedIn</a>` : ""}
+      </div>
       ${(m.region||m.country||m.timezone)?`<div class="muted">${[m.region,m.country,m.timezone].filter(Boolean).join(" • ")}</div>`:""}
       ${m.bio?`<div class="rowblock">${m.bio}</div>`:""}
       <div>${(m.skills||[]).map(x=>`<span class="pill">${x}</span>`).join("")}</div>
@@ -1146,8 +1149,7 @@
         ${m.email?`<button class="btn-small" data-email="${m.email}">Request Mentorship</button>`:""}
         ${m.linkedin?`<a class="pill" target="_blank" rel="noopener" href="${m.linkedin}">LinkedIn</a>`:""}
       </div>`;
-    return c;
-  }
+    return c;}
 
   function wireRequestButtons(scope){
     const root=scope || document;

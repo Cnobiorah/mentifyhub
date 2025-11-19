@@ -804,6 +804,11 @@
           <option>Other</option>
         </select>
       </div>
+      <div class="row" style="margin-top:6px;">
+        <input id="adminRegionOther" placeholder="If Other, specify region" style="display:none;">
+        <input id="adminCountryOther" placeholder="If Other, specify country" style="display:none;">
+        <div></div><div></div>
+      </div>
       <div class="row" style="margin-top:8px;">
         <select id="adminTimezone">
           <option value="">Select timezone</option>
@@ -831,6 +836,11 @@
         </select>
         <input id="adminRole" placeholder="Current role / organisation" />
         <input id="adminYearExperience" placeholder="Years exp. (e.g., 5+)" />
+      </div>
+      <div class="row" style="margin-top:6px;">
+        <input id="adminTimezoneOther" placeholder="If Other, specify timezone" style="display:none;">
+        <input id="adminFieldOther" placeholder="If Other, specify field" style="display:none;">
+        <div></div><div></div>
       </div>
 
       <p class="muted" style="margin:10px 0 4px;">Mentorship preferences</p>
@@ -863,8 +873,8 @@
 
       <!-- “Other” boxes -->
       <div class="row" style="margin-top:6px;">
-        <input id="adminAreasMentorOther" placeholder="If Other, specify area(s) to mentor in" />
-        <input id="adminExperienceLevelsOther" placeholder="If Other, specify experience level(s)" />
+        <input id="adminAreasMentorOther" placeholder="If Other, specify area(s) to mentor in" style="display:none;">
+        <input id="adminExperienceLevelsOther" placeholder="If Other, specify experience level(s)" style="display:none;">
         <div></div><div></div>
       </div>
 
@@ -887,6 +897,11 @@
           <option>Other</option>
         </select>
         <input id="adminLinkedin" placeholder="LinkedIn profile URL" />
+      </div>
+      <div class="row" style="margin-top:6px;">
+        <input id="adminAvailabilityOther" placeholder="If Other, describe availability" style="display:none;">
+        <input id="adminCommunicationOther" placeholder="If Other, specify communication method" style="display:none;">
+        <div></div><div></div>
       </div>
       <div class="row" style="margin-top:8px;">
         <input id="adminMenteeCapacity" placeholder="How many mentees can this mentor take?" />
@@ -1365,10 +1380,20 @@
      "adminExpectedOutcomes","adminAvailability","adminCommunication",
      "adminLinkedin","adminMenteeCapacity",
      "adminAreasMentorOther","adminExperienceLevelsOther",
-     "adminAreasMentor","adminExperienceLevels"
+     "adminAreasMentor","adminExperienceLevels",
+     "adminRegionOther","adminCountryOther","adminTimezoneOther","adminFieldOther",
+     "adminAvailabilityOther","adminCommunicationOther"
     ].forEach(id=>{
       const el=document.getElementById(id);
       if(el) el.value="";
+    });
+
+    ["adminRegionOther","adminCountryOther","adminTimezoneOther","adminFieldOther",
+     "adminAreasMentorOther","adminExperienceLevelsOther",
+     "adminAvailabilityOther","adminCommunicationOther"
+    ].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el) el.style.display="none";
     });
 
     document.getElementById("adminFormStatus").textContent = "";
@@ -1385,6 +1410,30 @@
       return;
     }
 
+    const regionSel = document.getElementById("adminRegion").value.trim();
+    const regionOther = (document.getElementById("adminRegionOther")?.value || "").trim();
+    const regionFinal = regionSel.toLowerCase().includes("other") && regionOther ? regionOther : regionSel;
+
+    const countrySel = document.getElementById("adminCountry").value.trim();
+    const countryOther = (document.getElementById("adminCountryOther")?.value || "").trim();
+    const countryFinal = countrySel.toLowerCase().includes("other") && countryOther ? countryOther : countrySel;
+
+    const tzSel = document.getElementById("adminTimezone").value.trim();
+    const tzOther = (document.getElementById("adminTimezoneOther")?.value || "").trim();
+    const timezoneFinal = tzSel.toLowerCase().includes("other") && tzOther ? tzOther : tzSel;
+
+    const fieldSel = document.getElementById("adminField").value.trim();
+    const fieldOther = (document.getElementById("adminFieldOther")?.value || "").trim();
+    const fieldFinal = fieldSel.toLowerCase().includes("other") && fieldOther ? fieldOther : fieldSel;
+
+    const availabilitySel = document.getElementById("adminAvailability").value.trim();
+    const availabilityOther = (document.getElementById("adminAvailabilityOther")?.value || "").trim();
+    const availabilityFinal = availabilitySel.toLowerCase().includes("other") && availabilityOther ? availabilityOther : availabilitySel;
+
+    const communicationSel = document.getElementById("adminCommunication").value.trim();
+    const communicationOther = (document.getElementById("adminCommunicationOther")?.value || "").trim();
+    const communicationFinal = communicationSel.toLowerCase().includes("other") && communicationOther ? communicationOther : communicationSel;
+
     const areasSelected = getSelectValue("adminAreasMentor");
     const areasOther = document.getElementById("adminAreasMentorOther").value.trim();
     const areasFinal = [areasSelected, areasOther].filter(Boolean).join(", ");
@@ -1396,10 +1445,10 @@
     const payload = {
       name,
       email,
-      region: document.getElementById("adminRegion").value.trim() || null,
-      country: document.getElementById("adminCountry").value.trim() || null,
-      timezone: document.getElementById("adminTimezone").value.trim() || null,
-      field: document.getElementById("adminField").value.trim() || null,
+      region: regionFinal || null,
+      country: countryFinal || null,
+      timezone: timezoneFinal || null,
+      field: fieldFinal || null,
       role: document.getElementById("adminRole").value.trim() || null,
       year_experience: document.getElementById("adminYearExperience").value.trim() || null,
       bio: document.getElementById("adminBio").value.trim() || null,
@@ -1407,8 +1456,8 @@
       areas_mentor: areasFinal || null,
       experience_levels: levelsFinal || null,
       expected_outcomes: document.getElementById("adminExpectedOutcomes").value.trim() || null,
-      availability: document.getElementById("adminAvailability").value.trim() || null,
-      communication: document.getElementById("adminCommunication").value.trim() || null,
+      availability: availabilityFinal || null,
+      communication: communicationFinal || null,
       linkedin: document.getElementById("adminLinkedin").value.trim() || null,
       mentee_capacity: document.getElementById("adminMenteeCapacity").value.trim() || null
     };
@@ -1626,6 +1675,21 @@
     });
   }
 
+  function attachAdminOtherInput(selectId, otherInputId){
+    const sel=document.getElementById(selectId);
+    const other=document.getElementById(otherInputId);
+    if(!sel || !other) return;
+    sel.addEventListener("change", ()=>{
+      const val=(sel.value||"").toLowerCase();
+      if(val.includes("other")){
+        other.style.display="";
+      }else{
+        other.style.display="none";
+        other.value="";
+      }
+    });
+  }
+
   const autoApply = debounce(()=>{
     const regionSel = document.getElementById("menteeRegion")?.value || "";
     const regionOtherEl = document.getElementById("menteeRegionOther");
@@ -1709,6 +1773,15 @@
     attachOtherInput("menteeAreas","menteeAreasOther");
     attachOtherInput("menteeAvailability","menteeAvailabilityOther");
     attachOtherInput("menteeCommunication","menteeCommunicationOther");
+
+    attachAdminOtherInput("adminRegion","adminRegionOther");
+    attachAdminOtherInput("adminCountry","adminCountryOther");
+    attachAdminOtherInput("adminTimezone","adminTimezoneOther");
+    attachAdminOtherInput("adminField","adminFieldOther");
+    attachAdminOtherInput("adminAreasMentor","adminAreasMentorOther");
+    attachAdminOtherInput("adminExperienceLevels","adminExperienceLevelsOther");
+    attachAdminOtherInput("adminAvailability","adminAvailabilityOther");
+    attachAdminOtherInput("adminCommunication","adminCommunicationOther");
 
     ["menteeRegionOther","menteeCountryOther","menteeTimezoneOther",
      "menteeFieldOther","menteeAreasOther","menteeAvailabilityOther","menteeCommunicationOther"

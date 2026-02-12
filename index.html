@@ -44,11 +44,13 @@
     }
     .brand{ display:flex; align-items:center; gap:12px; min-width: 220px; }
     .logo{
-      width:40px; height:40px; border-radius: 14px;
-      background: linear-gradient(135deg, rgba(11,59,137,.14), rgba(29,78,216,.16));
-      border: 1px solid rgba(29,78,216,.18);
-      display:flex; align-items:center; justify-content:center;
-      font-weight:800; color: var(--accent);
+      display:flex; align-items:center;
+    }
+    .logo-img{
+      height:44px;
+      width:auto;
+      display:block;
+      object-fit:contain;
     }
     .brand h1{ margin:0; font-size:16px; letter-spacing:.2px; }
     .brand p{ margin:2px 0 0; font-size:12px; color:var(--muted); }
@@ -258,17 +260,15 @@
   <div class="container">
     <header class="topbar">
       <div class="brand">
-        <div class="logo">M</div>
-        <div>
-          <h1>MentifyHub</h1>
-          <p>Green skills mentorship for built environment professionals.</p>
+        <div class="logo">
+          <img class="logo-img" src="assets/mentifyhub-logo.jpg" alt="MentifyHub Logo" />
         </div>
       </div>
 
       <nav class="nav">
         <span class="chip">Mentorship • Research • Impact</span>
-        <a class="btn" href="auth.html?mode=signup">Explore</a>
-        <a class="btn solid" href="auth.html?mode=signin">Sign in</a>
+        <a class="btn" href="auth.html?mode=signup&role=mentee">Explore</a>
+        <a class="btn solid" href="auth.html?mode=signin&role=mentee">Sign in</a>
       </nav>
     </header>
 
@@ -282,8 +282,8 @@
         </p>
 
         <div class="cta-row">
-          <a class="btn solid" href="auth.html?role=mentee">Get started as a mentee</a>
-          <a class="btn primary" href="auth.html?role=mentor">Become a mentor</a>
+          <a class="btn solid" href="auth.html?mode=signup&role=mentee">Get started as a mentee</a>
+          <a class="btn primary" href="auth.html?mode=signup&role=mentor">Become a mentor</a>
         </div>
 
         <div class="mini">

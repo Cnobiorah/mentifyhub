@@ -1,0 +1,484 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MentifyHub — Mentee Onboarding</title>
+  <meta name="description" content="Complete your mentee profile to get smarter mentor matches." />
+  <style>
+    :root{--bg:#fff;--card:#fff;--text:#0f172a;--muted:#475569;--line:#e5e7eb;--soft:#f8fafc;--soft2:#f1f5f9;--accent:#0b3b89;--accent2:#1d4ed8;--radius:18px;--shadow:0 20px 50px rgba(2,6,23,.08);}
+    *{box-sizing:border-box} html,body{height:100%}
+    body{margin:0;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;color:var(--text);
+      background:radial-gradient(900px 520px at 15% 5%, rgba(29,78,216,.10), transparent 55%),
+               radial-gradient(900px 520px at 90% 10%, rgba(11,59,137,.08), transparent 55%),#fff;}
+    a{color:inherit;text-decoration:none}
+    .container{max-width:980px;margin:0 auto;padding:22px}
+    .topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 16px;border:1px solid var(--line);border-radius:22px;
+      background:rgba(255,255,255,.82);backdrop-filter:blur(10px);box-shadow:0 10px 24px rgba(2,6,23,.06);position:sticky;top:14px;z-index:20}
+    .brand{display:flex;align-items:center;gap:12px}
+    .logo{width:40px;height:40px;border-radius:14px;background:linear-gradient(135deg, rgba(11,59,137,.14), rgba(29,78,216,.16));
+      border:1px solid rgba(29,78,216,.18);display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--accent)}
+    .brand h1{margin:0;font-size:16px;letter-spacing:.2px}
+    .brand p{margin:2px 0 0;font-size:12px;color:var(--muted)}
+    .nav{display:flex;align-items:center;gap:10px}
+    .chip{padding:9px 12px;border-radius:999px;border:1px solid var(--line);background:var(--soft);font-size:13px;color:var(--muted)}
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:10px 14px;border-radius:14px;border:1px solid var(--line);background:#fff;
+      cursor:pointer;font-weight:700;font-size:14px;transition:transform .06s ease, box-shadow .2s ease, border-color .2s ease;user-select:none}
+    .btn:hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(2,6,23,.08);border-color:#dbe2ea}
+    .btn.solid{border-color:transparent;background:linear-gradient(180deg, var(--accent2), var(--accent));color:#fff;box-shadow:0 16px 40px rgba(29,78,216,.22)}
+    .btn.solid:hover{box-shadow:0 18px 46px rgba(29,78,216,.26)}
+    .shell{margin-top:18px;display:grid;grid-template-columns:1fr 360px;gap:16px;align-items:start}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+    .main{padding:18px} .side{padding:16px;position:sticky;top:92px}
+    .title{margin:0;font-size:20px;letter-spacing:.2px}
+    .subtitle{margin:8px 0 0;color:var(--muted);font-size:14px;line-height:1.55}
+    .progress{margin-top:14px;display:flex;align-items:center;justify-content:space-between;gap:12px;color:var(--muted);font-size:12px}
+    .bar{height:10px;width:100%;border-radius:999px;border:1px solid var(--line);background:var(--soft);overflow:hidden}
+    .bar>div{height:100%;width:0%;background:linear-gradient(90deg, rgba(29,78,216,.35), rgba(11,59,137,.35));transition:width .2s ease}
+    .step{margin-top:16px;padding:16px;border:1px solid var(--line);border-radius:16px;background:linear-gradient(180deg,#fff,var(--soft))}
+    .step h3{margin:0;font-size:14px;letter-spacing:.2px}
+    .step p{margin:6px 0 0;color:var(--muted);font-size:13px;line-height:1.5}
+    .grid{margin-top:12px;display:grid;grid-template-columns:repeat(12,1fr);gap:12px}
+    .col-6{grid-column:span 6} .col-12{grid-column:span 12}
+    label{display:block;margin:12px 0 6px;font-size:13px;font-weight:700}
+    input,select,textarea{width:100%;padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:#fff;font-size:14px;outline:none;
+      transition:box-shadow .15s ease,border-color .15s ease}
+    textarea{min-height:92px;resize:vertical}
+    input:focus,select:focus,textarea:focus{border-color:rgba(29,78,216,.35);box-shadow:0 0 0 4px rgba(29,78,216,.10)}
+    .tagbox{display:flex;flex-wrap:wrap;gap:8px;padding:12px;border-radius:14px;border:1px solid var(--line);background:#fff}
+    .tag{display:inline-flex;align-items:center;gap:8px;padding:8px 10px;border-radius:999px;border:1px solid var(--line);background:var(--soft);font-size:13px}
+    .tag button{border:none;background:transparent;cursor:pointer;color:var(--muted);font-weight:800}
+    .tag-input{flex:1;min-width:180px;border:none!important;padding:6px 8px!important;outline:none!important;background:transparent!important}
+    .actions{margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;justify-content:space-between;align-items:center}
+    .actions .right{display:flex;gap:10px;flex-wrap:wrap}
+    .hint{margin-top:10px;color:var(--muted);font-size:12px;line-height:1.45}
+    .steps-nav{margin-top:12px;display:flex;flex-direction:column;gap:10px}
+    .step-item{padding:12px;border:1px solid var(--line);border-radius:16px;background:#fff;cursor:pointer}
+    .step-item b{display:block;font-size:13px}
+    .step-item span{display:block;margin-top:4px;color:var(--muted);font-size:12px;line-height:1.45}
+    .step-item.active{border-color:rgba(29,78,216,.28);box-shadow:0 16px 40px rgba(2,6,23,.06);background:linear-gradient(180deg,#fff,var(--soft2))}
+    .hidden{display:none!important}
+    @media (max-width:980px){.shell{grid-template-columns:1fr}.side{position:static}.topbar{position:static}}
+    @media (max-width:720px){.col-6{grid-column:span 12}.actions{flex-direction:column;align-items:stretch}.actions .right .btn{width:100%}}
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<div class="container">
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">M</div>
+      <div><h1>MentifyHub</h1><p>Mentee onboarding</p></div>
+    </div>
+    <nav class="nav">
+      <span class="chip" id="chip">Step 1 of 3</span>
+      <a class="btn" href="index.html">Home</a>
+      <a class="btn solid" id="goDashBtn" href="mentee-dashboard.html" style="display:none;">Go to Dashboard</a>
+      <button class="btn" id="restartBtn" type="button" title="Clear saved draft and restart">Start over</button>
+      <button class="btn solid" id="saveTop" type="button">Save</button>
+    </nav>
+  </header>
+
+  <div class="shell">
+    <div class="card main">
+      <h2 class="title">Complete your mentee profile</h2>
+      <p class="subtitle">Short steps so you don’t fill everything at once.</p>
+
+      <div class="progress">
+        <div style="min-width:120px;">Progress</div>
+        <div class="bar"><div id="barFill"></div></div>
+        <div style="min-width:78px;text-align:right;" id="pct">0%</div>
+      </div>
+
+      <section class="step" data-step="1">
+        <h3>Goal & level</h3>
+        <p>What are you trying to achieve, and what level are you currently at?</p>
+        <div class="grid">
+          <div class="col-6">
+            <label for="goal">Primary goal</label>
+            <select id="goal">
+              <option value="">Select a goal…</option>
+              <option>Certification exam preparation</option>
+              <option>Career transition into green skills</option>
+              <option>Portfolio / project guidance</option>
+              <option>Research direction & publishing</option>
+              <option>Building performance / modelling skills</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="col-6">
+            <label for="level">Current level</label>
+            <select id="level">
+              <option value="">Select level…</option>
+              <option>Beginner</option>
+              <option>Intermediate</option>
+              <option>Advanced</option>
+            </select>
+          </div>
+          <div class="col-12">
+            <label for="goalText">Goal details (optional)</label>
+            <textarea id="goalText" placeholder="Example: I want to prepare for LEED GA in 8 weeks and build a small portfolio project."></textarea>
+          </div>
+        </div>
+      </section>
+
+      <section class="step hidden" data-step="2">
+        <h3>Focus & tags</h3>
+        <p>Select your field and the topics you want mentorship on (tags).</p>
+        <div class="grid">
+          <div class="col-6">
+            <label for="field">Primary field</label>
+            <select id="field">
+              <option value="">Select field…</option>
+              <option>Green Buildings</option>
+              <option>Energy & Renewables</option>
+              <option>Sustainability / ESG</option>
+              <option>Built Environment (General)</option>
+              <option>BIM / Digital Twins</option>
+              <option>Policy & Research</option>
+            </select>
+          </div>
+          <div class="col-6">
+            <label for="subfield">Subfield (optional)</label>
+            <select id="subfield">
+              <option value="">Select subfield…</option>
+              <option>Life Cycle Assessment (LCA)</option>
+              <option>Energy Modelling (EnergyPlus/OpenStudio)</option>
+              <option>Passive Design</option>
+              <option>HVAC & Building Services</option>
+              <option>Carbon Accounting</option>
+              <option>Materials & Circularity</option>
+            </select>
+          </div>
+          <div class="col-12">
+            <label>Skills / Topics wanted (tags)</label>
+            <div class="tagbox" id="tagbox">
+              <span class="tag">LEED <button type="button" aria-label="remove">×</button></span>
+              <span class="tag">EDGE <button type="button" aria-label="remove">×</button></span>
+              <span class="tag">EnergyPlus <button type="button" aria-label="remove">×</button></span>
+              <input class="tag-input" id="tagInput" placeholder="Type a tag and press Enter (e.g., WELL, BREEAM, LCA)" />
+            </div>
+            <div class="hint">Use consistent tags. Matching uses tag overlap + fit.</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="step hidden" data-step="3">
+        <h3>Preferences</h3>
+        <p>Timezone, availability and your preferred communication channel.</p>
+        <div class="grid">
+          <div class="col-6">
+            <label for="country">Country</label>
+            <input id="country" placeholder="e.g., United Kingdom" />
+          </div>
+          <div class="col-6">
+            <label for="timezone">Timezone</label>
+            <select id="timezone">
+              <option value="">Select timezone…</option>
+              <option>GMT</option>
+              <option>GMT+1</option>
+              <option>GMT+2</option>
+              <option>GMT-5</option>
+              <option>GMT-8</option>
+            </select>
+          </div>
+          <div class="col-6">
+            <label for="availability">Preferred availability</label>
+            <select id="availability">
+              <option value="">Select…</option>
+              <option>Weekdays</option>
+              <option>Weeknights</option>
+              <option>Weekends</option>
+              <option>Flexible</option>
+            </select>
+          </div>
+          <div class="col-6">
+            <label for="communication">Preferred communication</label>
+            <select id="communication">
+              <option value="">Select…</option>
+              <option>Zoom</option>
+              <option>Google Meet</option>
+              <option>Microsoft Teams</option>
+              <option>WhatsApp</option>
+              <option>Email</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <div class="actions">
+        <button class="btn" id="backBtn" type="button" disabled>Back</button>
+        <div class="right">
+          <button class="btn" id="saveBtn" type="button">Save later</button>
+          <button class="btn solid" id="nextBtn" type="button">Next</button>
+        </div>
+      </div>
+      <div class="hint">Production: Save writes to Supabase (and keeps a local draft backup).</div>
+    </div>
+
+    <aside class="card side">
+      <div style="font-weight:800;font-size:14px;">Onboarding steps</div>
+      <div class="hint" style="margin-top:6px;">Click a step to jump.</div>
+
+      <div class="steps-nav">
+        <div class="step-item active" data-nav="1"><b>1. Goal & level</b><span>What you want to achieve.</span></div>
+        <div class="step-item" data-nav="2"><b>2. Focus & tags</b><span>Field and topics for matching.</span></div>
+        <div class="step-item" data-nav="3"><b>3. Preferences</b><span>Timezone, availability & comms.</span></div>
+      </div>
+
+      <div class="hint" style="margin-top:14px;">Matching uses: tag overlap • field match • timezone • availability • level fit.</div>
+    </aside>
+  </div>
+</div>
+
+<script>
+  
+  // ===============================
+  // PRODUCTION: Supabase wiring
+  // ===============================
+  const SUPABASE_URL = "https://mscgaaaobxiuzqsukvjc.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y";
+  const TABLES = { mentees: "mentees", mentors: "mentors" };
+
+  // Supabase client (avoid naming collisions with the global 'supabase')
+  const sb = (SUPABASE_URL.startsWith("http") && SUPABASE_ANON_KEY.startsWith("ey"))
+    ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+    : null;
+
+  async function requireSession() {
+    if(!sb){
+      alert("Add your Supabase URL + anon key in this file first.");
+      return null;
+    }
+    const { data: { session }, error } = await sb.auth.getSession();
+    if(error) console.error(error);
+    if(!session){
+      const returnTo = encodeURIComponent("mentee-onboarding.html");
+      window.location.href = `auth.html?mode=signin&returnTo=${returnTo}&role=mentee`;
+      return null;
+    }
+    return session.user;
+  }
+
+  function safeArr(v){
+    if(Array.isArray(v)) return v;
+    if(typeof v === "string") return v.split(",").map(s=>s.trim()).filter(Boolean);
+    return [];
+  }
+// Tag UI
+  const tagbox = document.getElementById('tagbox');
+  const tagInput = document.getElementById('tagInput');
+  function makeTag(text){
+    const span = document.createElement('span');
+    span.className = 'tag';
+    span.innerHTML = `${text} <button type="button" aria-label="remove">×</button>`;
+    span.querySelector('button').onclick = () => span.remove();
+    return span;
+  }
+  document.querySelectorAll('.tag button').forEach(btn => btn.onclick = () => btn.parentElement.remove());
+  tagInput.addEventListener('keydown', (e) => {
+    if(e.key === 'Enter'){
+      e.preventDefault();
+      const v = tagInput.value.trim();
+      if(!v) return;
+      tagbox.insertBefore(makeTag(v), tagInput);
+      tagInput.value = '';
+    }
+  });
+
+  // Wizard
+  const steps = Array.from(document.querySelectorAll('.step'));
+  const navItems = Array.from(document.querySelectorAll('.step-item'));
+  const chip = document.getElementById('chip');
+  const barFill = document.getElementById('barFill');
+  const pct = document.getElementById('pct');
+  const backBtn = document.getElementById('backBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const saveBtn = document.getElementById('saveBtn');
+  const saveTop = document.getElementById('saveTop');
+
+  let current = 1;
+  const total = steps.length;
+
+  function showStep(n){
+    current = Math.min(Math.max(n, 1), total);
+    steps.forEach(s => s.classList.toggle('hidden', Number(s.dataset.step) !== current));
+    navItems.forEach(i => i.classList.toggle('active', Number(i.dataset.nav) === current));
+
+    chip.textContent = `Step ${current} of ${total}`;
+    const progress = Math.round((current-1) / (total-1) * 100);
+    barFill.style.width = progress + '%';
+    pct.textContent = progress + '%';
+
+    backBtn.disabled = current === 1;
+    nextBtn.textContent = current === total ? 'Finish' : 'Next';
+  }
+
+  navItems.forEach(i => i.addEventListener('click', () => showStep(Number(i.dataset.nav))));
+  backBtn.addEventListener('click', () => showStep(current - 1));
+  nextBtn.addEventListener('click', () => {
+    if(current < total) showStep(current + 1);
+    else finishAndRedirect();
+  });
+  // saveDraft is redefined below with Supabase support
+  saveBtn.addEventListener('click', saveDraft);
+  saveTop.addEventListener('click', saveDraft);    const restartBtn = document.getElementById('restartBtn');
+    if(restartBtn){
+      restartBtn.addEventListener('click', ()=>{
+        if(!confirm('Start over? This will clear your saved draft on this device.')) return;
+        localStorage.removeItem('mentee_onboarding_draft');
+        window.location.href = window.location.pathname + '?reset=1';
+      });
+    }
+
+
+  
+  async function collectData(){
+    return {
+      goal: document.getElementById('goal').value,
+      level: document.getElementById('level').value,
+      goal_text: document.getElementById('goalText').value,
+      field: document.getElementById('field').value,
+      subfield: document.getElementById('subfield').value,
+      tags: Array.from(document.querySelectorAll('#tagbox .tag')).map(t => t.childNodes[0].textContent.trim()).filter(Boolean),
+      country: document.getElementById('country').value,
+      timezone: document.getElementById('timezone').value,
+      availability: document.getElementById('availability').value,
+      communication: document.getElementById('communication').value
+    };
+  }
+
+  async function saveToSupabase(user, data){
+    // Upsert mentee profile
+    const payload = {
+      user_id: user.id,
+      full_name: (user.user_metadata && user.user_metadata.full_name) ? user.user_metadata.full_name : (user.email || ""),
+      goal: data.goal || null,
+      level: data.level || null,
+      field: data.field || null,
+      subfield: data.subfield || null,
+      tags: safeArr(data.tags),
+      country: data.country || null,
+      timezone: data.timezone || null,
+      availability: data.availability || null,
+      communication: data.communication || null
+    };
+
+    const { error } = await sb
+      .from(TABLES.mentees)
+      .upsert(payload, { onConflict: "user_id" });
+
+    if(error) throw error;
+  }
+
+  async function loadFromSupabase(user){
+    try{
+      const { data, error } = await sb
+      .from(TABLES.mentees)
+        .select("*")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if(error) throw error;
+      if(!data) return false;
+
+      // Fill UI
+      document.getElementById('goal').value = data.goal || '';
+      document.getElementById('level').value = data.level || '';
+      document.getElementById('goalText').value = data.goal_text || '';
+      document.getElementById('field').value = data.field || '';
+      document.getElementById('subfield').value = data.subfield || '';
+
+      document.querySelectorAll('#tagbox .tag').forEach(t => t.remove());
+      (data.tags || []).forEach(t => tagbox.insertBefore(makeTag(t), tagInput));
+
+      document.getElementById('country').value = data.country || '';
+      document.getElementById('timezone').value = data.timezone || '';
+      document.getElementById('availability').value = data.availability || '';
+      document.getElementById('communication').value = data.communication || '';
+
+      return true;
+    }catch(e){
+      console.error(e);
+      return false;
+    }
+  }
+
+  async function saveDraft(){
+    const data = {
+      ...(await collectData()),
+      step: current
+    };
+    localStorage.setItem('mentee_onboarding_draft', JSON.stringify(data));
+
+    const user = await requireSession();
+    if(!user) return;
+
+    try{
+      await saveToSupabase(user, data);
+      alert('Saved.');
+      try{ document.getElementById('goDashBtn').style.display = 'inline-flex'; }catch(_){ }
+    }catch(e){
+      console.error(e);
+      alert('Saved locally, but could not save to Supabase (check RLS/table names).');
+    }
+  }
+
+  async function finishAndRedirect(){
+    const user = await requireSession();
+    if(!user) return;
+    const data = await collectData();
+
+    try{
+      await saveToSupabase(user, data);
+      localStorage.removeItem('mentee_onboarding_draft');
+      window.location.href = "mentee-dashboard.html";
+    }catch(e){
+      console.error(e);
+      alert('Could not finish: check Supabase table/RLS. Your draft is still saved locally.');
+    }
+  }
+  
+  // Boot: require session; prefer Supabase data, else local draft
+  (async function boot(){
+    // If user explicitly wants to restart onboarding, clear any saved draft and remove the flag.
+    const qs = new URLSearchParams(window.location.search);
+    if(qs.get('reset') === '1'){
+      localStorage.removeItem('mentee_onboarding_draft');
+      // Clean the URL so refresh doesn't keep wiping drafts
+      window.history.replaceState(null, '', window.location.pathname);
+    }
+    const user = await requireSession();
+    if(!user) return;
+
+    const loaded = await loadFromSupabase(user);
+    if(loaded){
+      showStep(1);
+      return;
+    }
+
+    // fallback local restore
+    const raw = localStorage.getItem('mentee_onboarding_draft');
+    if(raw){
+      try{
+        const d = JSON.parse(raw);
+        document.getElementById('goal').value = d.goal || '';
+        document.getElementById('level').value = d.level || '';
+        document.getElementById('goalText').value = d.goalText || d.goal_text || '';
+        document.getElementById('field').value = d.field || '';
+        document.getElementById('subfield').value = d.subfield || '';
+        document.querySelectorAll('#tagbox .tag').forEach(t => t.remove());
+        (d.tags || []).forEach(t => tagbox.insertBefore(makeTag(t), tagInput));
+        document.getElementById('country').value = d.country || '';
+        document.getElementById('timezone').value = d.timezone || '';
+        document.getElementById('availability').value = d.availability || '';
+        document.getElementById('communication').value = d.communication || '';
+        showStep(d.step || 1);
+      }catch(e){ showStep(1); }
+    } else {
+      showStep(1);
+    }
+  })();
+
+</script>
+</body>
+</html>

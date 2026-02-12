@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MentifyHub — Mentor Dashboard</title>
+  <meta name="description" content="Manage mentorship requests and your mentor profile." />
+
+  <!-- Supabase JS (v2) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root{--bg:#fff;--card:#fff;--text:#0f172a;--muted:#475569;--line:#e5e7eb;--soft:#f8fafc;--soft2:#f1f5f9;--accent:#0b3b89;--accent2:#1d4ed8;--radius:18px;--shadow:0 20px 50px rgba(2,6,23,.08);}
+    *{box-sizing:border-box} html,body{height:100%}
+    body{margin:0;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;color:var(--text);
+      background:radial-gradient(900px 520px at 15% 5%, rgba(29,78,216,.10), transparent 55%),
+               radial-gradient(900px 520px at 90% 10%, rgba(11,59,137,.08), transparent 55%),#fff;}
+    a{color:inherit;text-decoration:none}
+    .container{max-width:1100px;margin:0 auto;padding:22px}
+    .topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 16px;border:1px solid var(--line);border-radius:22px;
+      background:rgba(255,255,255,.82);backdrop-filter:blur(10px);box-shadow:0 10px 24px rgba(2,6,23,.06);position:sticky;top:14px;z-index:20}
+    .brand{display:flex;align-items:center;gap:12px}
+    .logo{width:40px;height:40px;border-radius:14px;background:linear-gradient(135deg, rgba(11,59,137,.14), rgba(29,78,216,.16));
+      border:1px solid rgba(29,78,216,.18);display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--accent)}
+    .brand h1{margin:0;font-size:16px;letter-spacing:.2px}
+    .brand p{margin:2px 0 0;font-size:12px;color:var(--muted)}
+    .nav{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+    .chip{padding:9px 12px;border-radius:999px;border:1px solid var(--line);background:var(--soft);font-size:13px;color:var(--muted)}
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:10px 14px;border-radius:14px;border:1px solid var(--line);background:#fff;
+      cursor:pointer;font-weight:700;font-size:14px;transition:transform .06s ease, box-shadow .2s ease, border-color .2s ease;user-select:none}
+    .btn:hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(2,6,23,.08);border-color:#dbe2ea}
+    .btn.solid{border-color:transparent;background:linear-gradient(180deg, var(--accent2), var(--accent));color:#fff;box-shadow:0 16px 40px rgba(29,78,216,.22)}
+    .btn.solid:hover{box-shadow:0 18px 46px rgba(29,78,216,.26)}
+    .btn.danger{border-color:rgba(239,68,68,.25);background:linear-gradient(180deg, rgba(239,68,68,.08), rgba(239,68,68,.05));color:#b91c1c}
+    .btn.small{padding:8px 10px;border-radius:12px;font-size:13px}
+    .btn[disabled]{opacity:.55;cursor:not-allowed;transform:none;box-shadow:none}
+
+    .grid{margin-top:16px;display:grid;grid-template-columns: 1fr 340px;gap:16px;align-items:start}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+    .main{padding:18px}
+    .side{padding:16px;position:sticky;top:92px}
+    .title{margin:0;font-size:18px;letter-spacing:.2px}
+    .subtitle{margin:8px 0 0;color:var(--muted);font-size:14px;line-height:1.55}
+
+    .stats{margin-top:14px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .stat{padding:12px;border:1px solid var(--line);border-radius:16px;background:linear-gradient(180deg,#fff,var(--soft))}
+    .stat b{display:block;font-size:16px}
+    .stat span{display:block;margin-top:4px;color:var(--muted);font-size:12px}
+
+    .list{margin-top:14px;display:flex;flex-direction:column;gap:10px}
+    .item{padding:14px;border:1px solid var(--line);border-radius:16px;background:#fff}
+    .itemTop{display:flex;gap:10px;align-items:flex-start;justify-content:space-between}
+    .who{min-width:0}
+    .who b{display:block;font-size:14px}
+    .who small{display:block;margin-top:3px;color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:520px}
+    .badge{padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:var(--soft);font-size:12px;color:var(--muted);white-space:nowrap}
+    .badge.pending{border-color:rgba(234,179,8,.25);background:rgba(234,179,8,.12);color:#92400e}
+    .badge.accepted{border-color:rgba(34,197,94,.25);background:rgba(34,197,94,.10);color:#166534}
+    .badge.declined{border-color:rgba(239,68,68,.25);background:rgba(239,68,68,.08);color:#991b1b}
+    .badge.cancelled{border-color:rgba(100,116,139,.25);background:rgba(148,163,184,.18);color:#334155}
+
+    .msg{margin:10px 0 0;color:var(--text);font-size:13px;line-height:1.6;white-space:pre-wrap}
+    .meta{margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;color:var(--muted);font-size:12px}
+    .actions{margin-top:12px;display:flex;gap:10px;flex-wrap:wrap}
+
+    .note{margin-top:12px;padding:12px;border-radius:16px;border:1px solid var(--line);background:linear-gradient(180deg,#fff,var(--soft));color:var(--muted);font-size:13px;line-height:1.55}
+
+    .side h3{margin:0;font-size:14px}
+    .side p{margin:8px 0 0;color:var(--muted);font-size:13px;line-height:1.55}
+    .side .stack{margin-top:12px;display:flex;flex-direction:column;gap:10px}
+
+    .skeleton{border-radius:14px;border:1px solid var(--line);background:linear-gradient(90deg, var(--soft), #fff, var(--soft));background-size: 200% 100%;
+      animation: shimmer 1.1s ease-in-out infinite;}
+    @keyframes shimmer{0%{background-position:0% 0}100%{background-position:200% 0}}
+
+    @media (max-width: 980px){.grid{grid-template-columns:1fr}.side{position:static}.topbar{position:static}.stats{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo">M</div>
+        <div>
+          <h1>MentifyHub</h1>
+          <p>Mentor dashboard</p>
+        </div>
+      </div>
+      <nav class="nav">
+        <span class="chip" id="whoChip">Checking session…</span>
+        <a class="btn" href="mentor-directory.html">Directory</a>
+        <a class="btn" href="mentor-onboarding.html">Edit profile</a>
+        <button class="btn danger" id="signOutBtn" type="button">Sign out</button>
+      </nav>
+    </header>
+
+    <div class="grid">
+      <div class="card main">
+        <h2 class="title">Incoming mentorship requests</h2>
+        <p class="subtitle">Review mentee requests and respond. Only you can see and update your requests.</p>
+
+        <div class="stats" aria-label="request stats">
+          <div class="stat"><b id="statAll">—</b><span>Total</span></div>
+          <div class="stat"><b id="statPending">—</b><span>Pending</span></div>
+          <div class="stat"><b id="statAccepted">—</b><span>Accepted</span></div>
+        </div>
+
+        <div class="list" id="list">
+          <div class="item skeleton" style="height:92px"></div>
+          <div class="item skeleton" style="height:92px"></div>
+        </div>
+
+        <div class="note" id="note" style="display:none"></div>
+      </div>
+
+      <aside class="card side">
+        <h3>Tips</h3>
+        <p>Reply quickly and clearly. If you accept, you can message the mentee with next steps (calendar, agenda, and what to prepare).</p>
+        <div class="stack">
+          <div class="note" style="margin:0">
+            <b style="color:var(--text)">Suggested reply template</b><br />
+            “Hi [Name], thanks for reaching out. I can support you with [topic]. Please share your goal + timeline, and 2–3 availability slots this week.”
+          </div>
+          <div class="note" style="margin:0">
+            <b style="color:var(--text)">Next upgrade</b><br />
+            We can add a mentor calendar + messaging thread per request once this inbox is working.
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    // ========================
+    // SUPABASE CONFIG
+    // ========================
+    // IMPORTANT: Use the SAME values you use in auth.html
+    const SUPABASE_URL = "https://mscgaaaobxiuzqsukvjc.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y";
+
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const TABLES = {
+      mentors: "mentors",
+      mentees: "mentees",
+      requests: "mentorship_requests",
+    };
+
+    const els = {
+      whoChip: document.getElementById('whoChip'),
+      list: document.getElementById('list'),
+      note: document.getElementById('note'),
+      statAll: document.getElementById('statAll'),
+      statPending: document.getElementById('statPending'),
+      statAccepted: document.getElementById('statAccepted'),
+      signOutBtn: document.getElementById('signOutBtn'),
+    };
+
+    function showNote(msg){
+      els.note.style.display = 'block';
+      els.note.textContent = msg;
+    }
+
+    function fmtDate(iso){
+      try{
+        const d = new Date(iso);
+        return d.toLocaleString(undefined, { year:'numeric', month:'short', day:'2-digit', hour:'2-digit', minute:'2-digit' });
+      }catch(e){
+        return iso || '';
+      }
+    }
+
+    function badgeClass(status){
+      const s = (status || 'pending').toLowerCase();
+      return `badge ${s}`;
+    }
+
+    function escapeHtml(str){
+      return String(str ?? '').replace(/[&<>"']/g, (m)=>({
+        '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'
+      }[m]));
+    }
+
+    async function requireAuth(){
+      const { data: { user }, error } = await sb.auth.getUser();
+      if(error){
+        console.error(error);
+      }
+      if(!user){
+        // send to auth page and return here after sign in
+        window.location.href = `auth.html?mode=signin&returnTo=${encodeURIComponent('mentor-dashboard.html')}`;
+        return null;
+      }
+      return user;
+    }
+
+    async function loadMentorDisplayName(user){
+      // Try mentors table first
+      try{
+        const { data } = await sb
+          .from(TABLES.mentors)
+          .select('full_name, email, headline')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        const name = (data?.full_name || user.user_metadata?.full_name || user.email || 'Mentor');
+        const headline = data?.headline ? `• ${data.headline}` : '';
+        els.whoChip.textContent = `${name}${headline}`;
+      }catch(e){
+        els.whoChip.textContent = user.email || 'Mentor';
+      }
+    }
+
+    async function loadRequests(user){
+      els.list.innerHTML = '<div class="item skeleton" style="height:92px"></div><div class="item skeleton" style="height:92px"></div>';
+      els.note.style.display = 'none';
+
+      const { data: reqs, error } = await sb
+        .from(TABLES.requests)
+        .select('id, mentee_id, mentor_id, message, status, created_at, updated_at')
+        .eq('mentor_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if(error){
+        console.error(error);
+        els.list.innerHTML = '';
+        showNote(`Could not load requests: ${error.message}`);
+        updateStats([]);
+        return;
+      }
+
+      const requests = reqs || [];
+      updateStats(requests);
+
+      if(!requests.length){
+        els.list.innerHTML = '';
+        showNote('No mentorship requests yet. When a mentee requests you, it will appear here.');
+        return;
+      }
+
+      // Fetch mentee display info
+      const menteeIds = Array.from(new Set(requests.map(r => r.mentee_id).filter(Boolean)));
+      let menteeMap = new Map();
+      if(menteeIds.length){
+        const { data: mentees, error: mErr } = await sb
+          .from(TABLES.mentees)
+          .select('user_id, full_name, email, field, level')
+          .in('user_id', menteeIds);
+
+        if(!mErr && mentees){
+          for(const m of mentees){
+            menteeMap.set(m.user_id, m);
+          }
+        }
+      }
+
+      els.list.innerHTML = requests.map(r => {
+        const m = menteeMap.get(r.mentee_id);
+        const name = m?.full_name || 'Mentee';
+        const email = m?.email || '';
+        const metaBits = [m?.field, m?.level].filter(Boolean).map(escapeHtml);
+        const meta = metaBits.length ? ` • ${metaBits.join(' • ')}` : '';
+
+        const status = (r.status || 'pending').toLowerCase();
+        const canAct = status === 'pending';
+
+        return `
+          <div class="item" data-id="${escapeHtml(r.id)}">
+            <div class="itemTop">
+              <div class="who">
+                <b>${escapeHtml(name)}${meta}</b>
+                <small>${escapeHtml(email || '—')} • Requested ${escapeHtml(fmtDate(r.created_at))}</small>
+              </div>
+              <span class="${badgeClass(status)}">${escapeHtml(status)}</span>
+            </div>
+            <div class="msg">${escapeHtml(r.message)}</div>
+            <div class="meta">
+              <span>Updated: ${escapeHtml(fmtDate(r.updated_at || r.created_at))}</span>
+            </div>
+            <div class="actions">
+              ${canAct ? `<button class="btn solid small" data-act="accept">Accept</button>
+                         <button class="btn danger small" data-act="decline">Decline</button>`
+                      : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Attach action handlers
+      els.list.querySelectorAll('.item').forEach(card => {
+        const id = card.getAttribute('data-id');
+        card.querySelectorAll('button[data-act]').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const act = btn.getAttribute('data-act');
+            const nextStatus = act === 'accept' ? 'accepted' : 'declined';
+            await updateRequestStatus(id, nextStatus, btn);
+            // reload
+            await loadRequests(user);
+          });
+        });
+      });
+    }
+
+    function updateStats(requests){
+      const all = requests.length;
+      const pending = requests.filter(r => (r.status || 'pending').toLowerCase() === 'pending').length;
+      const accepted = requests.filter(r => (r.status || '').toLowerCase() === 'accepted').length;
+      els.statAll.textContent = String(all);
+      els.statPending.textContent = String(pending);
+      els.statAccepted.textContent = String(accepted);
+    }
+
+    async function updateRequestStatus(id, status, btn){
+      try{
+        if(btn){ btn.disabled = true; btn.textContent = (status === 'accepted') ? 'Accepting…' : 'Declining…'; }
+        const { error } = await sb
+          .from(TABLES.requests)
+          .update({ status })
+          .eq('id', id);
+
+        if(error){
+          console.error(error);
+          alert(error.message);
+        }
+      } finally {
+        if(btn){ btn.disabled = false; }
+      }
+    }
+
+    els.signOutBtn.addEventListener('click', async () => {
+      await sb.auth.signOut();
+      window.location.href = 'auth.html?mode=signin';
+    });
+
+    (async function init(){
+      const user = await requireAuth();
+      if(!user) return;
+      await loadMentorDisplayName(user);
+      await loadRequests(user);
+    })();
+  </script>
+</body>
+</html>

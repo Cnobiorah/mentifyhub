@@ -1,0 +1,830 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MentifyHub — Mentee Dashboard</title>
+  <meta name="description" content="Mentee dashboard arranged like your sketch (3 columns) and wired to Supabase." />
+  <style>
+    :root{
+      --bg:#ffffff;
+      --card:#ffffff;
+      --text:#0f172a;
+      --muted:#475569;
+      --line:#e5e7eb;
+      --soft:#f8fafc;
+      --soft2:#f1f5f9;
+      --accent:#0b3b89;
+      --accent2:#1d4ed8;
+      --radius:18px;
+      --shadow:0 18px 45px rgba(2,6,23,.08);
+    }
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      color: var(--text);
+      background:
+        radial-gradient(900px 520px at 15% 5%, rgba(29,78,216,.10), transparent 55%),
+        radial-gradient(900px 520px at 90% 10%, rgba(11,59,137,.08), transparent 55%),
+        var(--bg);
+    }
+    a{ color:inherit; text-decoration:none; }
+    button,input{ font-family: inherit; }
+
+    .app{ max-width: 1320px; margin: 0 auto; padding: 18px 18px 26px; }
+
+    /* Top bar: brand left, Browse mentors right (like your sketch) */
+    .topbar{
+      display:flex; align-items:center; justify-content:space-between; gap:14px;
+      padding: 12px 14px;
+      border:1px solid var(--line);
+      border-radius: 22px;
+      background: rgba(255,255,255,.82);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 10px 24px rgba(2,6,23,.06);
+      position: sticky; top: 14px; z-index: 30;
+    }
+    .brand{ display:flex; align-items:center; gap:12px; min-width: 240px; }
+    .logo{
+      width:40px; height:40px; border-radius: 14px;
+      background: linear-gradient(135deg, rgba(11,59,137,.14), rgba(29,78,216,.16));
+      border: 1px solid rgba(29,78,216,.18);
+      display:flex; align-items:center; justify-content:center;
+      font-weight: 900; color: var(--accent);
+      user-select:none;
+    }
+    .brand h1{ margin:0; font-size: 16px; letter-spacing:.2px; }
+    .brand p{ margin:2px 0 0; font-size:12px; color: var(--muted); }
+
+    .right-actions{ display:flex; align-items:center; gap:10px; flex-wrap: wrap; justify-content:flex-end; }
+    .chip{
+      padding: 8px 12px;
+      border-radius: 999px;
+      border:1px solid var(--line);
+      background: var(--soft);
+      font-size: 13px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .btn{
+      display:inline-flex; align-items:center; justify-content:center; gap:10px;
+      padding: 10px 14px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: #fff;
+      cursor:pointer;
+      font-weight: 800;
+      font-size: 14px;
+      transition: transform .06s ease, box-shadow .2s ease, border-color .2s ease;
+      user-select:none;
+      white-space: nowrap;
+    }
+    .btn:hover{ transform: translateY(-1px); box-shadow: 0 10px 24px rgba(2,6,23,.08); border-color:#dbe2ea; }
+    .btn.solid{
+      border-color: transparent;
+      background: linear-gradient(180deg, var(--accent2), var(--accent));
+      color:#fff;
+      box-shadow: 0 16px 40px rgba(29,78,216,.22);
+    }
+    .btn.solid:hover{ box-shadow: 0 18px 46px rgba(29,78,216,.26); }
+    .btn.sm{ padding: 9px 12px; border-radius: 12px; font-size: 13px; }
+
+    /* 3 columns like your drawing */
+    .layout{
+      display:grid;
+      grid-template-columns: 300px 1fr 360px;
+      gap: 16px;
+      margin-top: 16px;
+      align-items: start;
+    }
+
+    .panel{
+      border:1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255,255,255,.88);
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow);
+      padding: 12px;
+    }
+
+    /* Left: ONE big card that contains Welcome + nav items (as you sketched) */
+    .leftCard{ position: sticky; top: 92px; }
+    .welcomeRow{ display:flex; align-items:center; gap:10px; padding: 8px 8px 10px; }
+    .avatar{
+      width:42px; height:42px; border-radius: 16px;
+      background: linear-gradient(135deg, rgba(29,78,216,.20), rgba(11,59,137,.12));
+      border: 1px solid rgba(29,78,216,.18);
+      display:flex; align-items:center; justify-content:center;
+      font-weight: 900; color: var(--accent);
+      user-select:none;
+      flex: 0 0 auto;
+    }
+    .welcomeMeta b{ display:block; font-size: 14px; }
+    .welcomeMeta p{ margin:2px 0 0; font-size: 12px; color: var(--muted); }
+
+    .labelRow{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding: 0 8px; margin-top: 6px; }
+    .labelRow span{ font-size: 12px; color: var(--muted); font-weight: 700; }
+    .labelRow b{ font-size: 12px; color: var(--accent); }
+
+    .bar{
+      height: 10px;
+      border-radius: 999px;
+      border:1px solid var(--line);
+      background: var(--soft);
+      overflow:hidden;
+      margin: 8px 8px 10px;
+    }
+    .bar > div{
+      height:100%;
+      width:0%;
+      background: linear-gradient(90deg, rgba(29,78,216,.35), rgba(11,59,137,.35));
+      transition: width .25s ease;
+    }
+
+    .leftActions{ display:flex; gap:10px; padding: 0 8px 10px; }
+    .leftActions .btn{ flex:1; }
+
+    .navList{ padding: 4px 6px 6px; }
+    .navItem{
+      display:flex; align-items:center; justify-content:space-between;
+      padding: 12px 12px;
+      border-radius: 14px;
+      border:1px solid transparent;
+      cursor:pointer;
+      font-weight: 800;
+    }
+    .navItem:hover{ background: var(--soft); border-color: #eef2f7; }
+    .navItem.active{
+      background: linear-gradient(180deg, #fff, var(--soft2));
+      border-color: rgba(29,78,216,.22);
+      box-shadow: 0 12px 28px rgba(2,6,23,.06);
+    }
+    .navItem small{ color: var(--muted); font-weight: 700; }
+
+    .divider{ height:1px; background: var(--line); margin: 10px 8px; }
+
+    /* Center */
+    .center{ min-width:0; display:flex; flex-direction:column; gap: 16px; }
+    .hero{
+      border:1px solid var(--line);
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(248,250,252,.92));
+      box-shadow: var(--shadow);
+      padding: 16px;
+      display:flex;
+      gap: 14px;
+      align-items: flex-start;
+      justify-content: space-between;
+    }
+    .hero h2{ margin:0; font-size: 18px; }
+    .hero p{ margin: 8px 0 0; color: var(--muted); font-size: 14px; line-height: 1.55; }
+    .heroRight{ display:flex; gap:10px; flex-wrap: wrap; justify-content:flex-end; }
+
+    .card{
+      border:1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--card);
+      box-shadow: var(--shadow);
+      padding: 16px;
+      min-width:0;
+    }
+    .head{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      margin-bottom: 10px;
+    }
+    .head h3{
+      margin:0;
+      font-size: 14px;
+      letter-spacing:.18px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    /* Matches */
+    .matchesSub{ color: var(--muted); font-size: 12px; }
+    .matches{
+      display:grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .mentorCard{
+      border:1px solid var(--line);
+      border-radius: 16px;
+      padding: 12px;
+      background: linear-gradient(180deg, #fff, var(--soft));
+      display:flex;
+      flex-direction: column;
+      gap: 10px;
+      min-width:0;
+    }
+    .mentorTop{ display:flex; align-items:center; gap:10px; }
+    .mAvatar{
+      width:40px; height:40px; border-radius: 14px;
+      background: linear-gradient(135deg, rgba(29,78,216,.20), rgba(11,59,137,.12));
+      border: 1px solid rgba(29,78,216,.18);
+      display:flex; align-items:center; justify-content:center;
+      font-weight: 900; color: var(--accent);
+      flex: 0 0 auto;
+      user-select:none;
+    }
+    .mMeta{ min-width:0; }
+    .mMeta b{ display:block; font-size: 14px; white-space: nowrap; overflow:hidden; text-overflow: ellipsis; }
+    .mMeta span{ display:block; font-size: 12px; color: var(--muted); white-space: nowrap; overflow:hidden; text-overflow: ellipsis; }
+    .score{
+      margin-left:auto;
+      padding: 7px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(29,78,216,.18);
+      background: rgba(29,78,216,.08);
+      color: var(--accent);
+      font-weight: 900;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    .tags{ display:flex; flex-wrap: wrap; gap: 8px; }
+    .tag{
+      padding: 7px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: #fff;
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+    .actions{ display:flex; gap:10px; flex-wrap:wrap; }
+
+    .empty{
+      margin-top: 12px;
+      border: 1px dashed #d7dee8;
+      border-radius: 16px;
+      padding: 14px;
+      background: linear-gradient(180deg, #fff, var(--soft));
+    }
+    .empty b{ display:block; font-size: 13px; }
+    .empty p{ margin: 6px 0 0; color: var(--muted); font-size: 13px; line-height:1.5; }
+
+    /* Right: My activity card */
+    .rightCard{ position: sticky; top: 92px; }
+    .sectionTitle{
+      font-size: 14px;
+      letter-spacing:.18px;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    /* Toast + loading */
+    .toast{
+      position: fixed;
+      bottom: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(15,23,42,.92);
+      color: #fff;
+      padding: 10px 12px;
+      border-radius: 14px;
+      box-shadow: 0 18px 40px rgba(2,6,23,.18);
+      font-size: 13px;
+      display:none;
+      z-index: 50;
+    }
+    .toast.show{ display:block; }
+    .loading{
+      display:inline-flex; align-items:center; gap:8px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .dot{
+      width:8px;height:8px;border-radius:999px;background:rgba(29,78,216,.45);
+      animation: pulse 1.2s infinite ease-in-out;
+    }
+    .dot:nth-child(2){ animation-delay:.12s }
+    .dot:nth-child(3){ animation-delay:.24s }
+    @keyframes pulse{ 0%,100%{ transform:translateY(0); opacity:.55 } 50%{ transform:translateY(-3px); opacity:1 } }
+
+    /* Responsive */
+    @media (max-width: 1200px){
+      .layout{ grid-template-columns: 300px 1fr; }
+      .rightCard{ position: static; }
+      .rightWrap{ grid-column: 1 / -1; }
+    }
+    @media (max-width: 980px){
+      .layout{ grid-template-columns: 1fr; }
+      .leftCard{ position: static; }
+      .rightCard{ position: static; }
+      .topbar{ position: static; }
+      .matches{ grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo">M</div>
+        <div>
+          <h1>MentifyHub</h1>
+          <p>Mentee dashboard</p>
+        </div>
+      </div>
+
+      <div class="right-actions">
+        <span class="chip" id="envChip">Connecting…</span>
+        <a class="btn" id="browseBtn" href="mentor-directory.html">Browse mentors</a>
+      </div>
+    </header>
+
+    <div class="layout">
+      <!-- LEFT: ONE CARD -->
+      <aside class="panel leftCard">
+        <div class="welcomeRow">
+          <div class="avatar" id="avatar">U</div>
+          <div class="welcomeMeta" style="min-width:0;">
+            <b id="welcomeName">Welcome</b>
+            <p id="welcomeSub">Loading profile…</p>
+          </div>
+        </div>
+
+        <div class="labelRow">
+          <span>Profile completeness</span>
+          <b id="completePct">—%</b>
+        </div>
+        <div class="bar"><div id="completeBar"></div></div>
+
+        <div class="leftActions">
+          <a class="btn sm" href="mentee-onboarding.html">Edit profile</a>
+          <button class="btn sm" id="signOutBtn" type="button">Sign out</button>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="navList" aria-label="Navigation">
+          <div class="navItem active" data-scroll="dashboard">
+            <span>Dashboard</span>
+            <small>•</small>
+          </div>
+          <a class="navItem" href="mentor-directory.html"><span>Mentor directory</span><small id="matchCount">—</small></a>
+          <div class="navItem" data-scroll="activity">
+            <span>Requests</span>
+            <small id="reqCount">—</small>
+          </div>
+          <div class="navItem" onclick="toast('Messages page can be wired next.');">
+            <span>Messages</span>
+            <small>—</small>
+          </div>
+        </div>
+      </aside>
+
+      <!-- CENTER -->
+      <main class="center">
+        <section class="hero" id="dashboard">
+          <div>
+            <h2>Your mentoring journey</h2>
+            <p id="journeyText">Loading your matches…</p>
+          </div>
+          <div class="heroRight">
+            <button class="btn solid" id="refreshBtn" type="button">Refresh matches</button>
+          </div>
+        </section>
+
+        <section class="card" id="matchesSection">
+          <div class="head">
+            <h3>Top mentor matches</h3>
+            <span class="chip">Matching: Tags • Field • Level • Timezone</span>
+          </div>
+          <div class="matchesSub" id="matchesSub">
+            <span class="loading"><span class="dot"></span><span class="dot"></span><span class="dot"></span>Loading mentors…</span>
+          </div>
+
+          <div class="matches" id="matches"></div>
+
+          <div class="empty" id="emptyMatches" style="display:none;">
+            <b>No matches yet</b>
+            <p>Complete your onboarding (especially tags) so we can recommend mentors.</p>
+            <div class="actions" style="margin-top:10px;">
+              <a class="btn sm" href="mentee-onboarding.html">Complete onboarding</a>
+              <a class="btn sm" id="browseBtn2" href="mentor-directory.html">Browse mentors</a>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <!-- RIGHT: MY ACTIVITY -->
+      <aside class="panel rightCard rightWrap" id="activity">
+        <div class="head">
+          <h3 class="sectionTitle" style="margin:0;">My activity</h3>
+          <button class="btn sm" id="reloadReqBtn" type="button">Reload</button>
+        </div>
+
+        <div class="divider"></div>
+
+        <div>
+          <b style="font-size:13px;">Requests</b>
+          <div class="muted" style="margin-top:6px; font-size:13px;" id="reqSub">Loading…</div>
+
+          <div class="empty" style="margin-top:12px;" id="reqEmpty">
+            <b>No requests</b>
+            <p>Pick a mentor and send a short message about your goal.</p>
+            <div style="margin-top:10px;">
+              <a class="btn sm solid" id="goToMatchesBtn" href="#matchesSection">Go to matches</a>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div>
+            <b style="font-size:13px;">Upcoming sessions</b>
+            <div class="muted" style="margin-top:6px; font-size:13px;">
+              Sessions will appear after a mentor accepts your request.
+            </div>
+
+            <div class="empty" style="margin-top:12px;">
+              <b>No sessions scheduled</b>
+              <p>
+                After acceptance, you’ll be able to propose times based on
+                timezone and availability.
+              </p>
+            </div>
+          </div>
+
+          <div id="reqList" style="margin-top:12px; display:none;"></div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    /*************************************************************
+     * PRODUCTION CONFIG
+     *************************************************************/
+    const SUPABASE_URL = "YOUR_SUPABASE_URL";
+    const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
+
+    const TABLES = {
+      mentees: "mentees",
+      mentors: "mentors",
+      requests: "mentorship_requests"
+    };
+
+    const supabase = (SUPABASE_URL.startsWith("http") && SUPABASE_ANON_KEY.startsWith("ey"))
+      ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+      : null;
+
+    // Helpers
+    const $ = (id)=>document.getElementById(id);
+    function toast(msg){
+      const t = $("toast");
+      t.textContent = msg;
+      t.classList.add("show");
+      setTimeout(()=>t.classList.remove("show"), 2600);
+    }
+
+function setProfileUI({ full_name = "Welcome", completeness = 0, status = "" } = {}){
+  try{
+    const initials = (full_name || "U").trim().split(/\s+/).slice(0,2).map(s=>s[0]?.toUpperCase()||"U").join("");
+    const av = document.querySelector('[data-avatar-initials]') || document.getElementById("avatarInitials");
+    if(av) av.textContent = initials || "U";
+  }catch(_){}
+  try{
+    const nameEl = document.getElementById("profileName");
+    const subEl  = document.getElementById("profileSub");
+    if(nameEl) nameEl.textContent = full_name || "Welcome";
+    if(subEl)  subEl.textContent  = status || "";
+  }catch(_){}
+  try{
+    const pctEl = document.getElementById("profilePct");
+    const barEl = document.getElementById("profileBar");
+    const pct = Math.max(0, Math.min(100, Number(completeness)||0));
+    if(pctEl) pctEl.textContent = `${pct}%`;
+    if(barEl) barEl.style.width = `${pct}%`;
+  }catch(_){}
+}
+    function safeArr(v){
+      if(Array.isArray(v)) return v;
+      if(typeof v==="string") return v.split(",").map(s=>s.trim()).filter(Boolean);
+      return [];
+    }
+    function normalize(s){ return String(s||"").trim().toLowerCase(); }
+    function esc(s){
+      return String(s ?? "").replace(/[&<>"']/g, (c)=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+    }
+    function initialsOf(name, fallback="U"){
+      const ini = String(name||"").split(" ").filter(Boolean).slice(0,2).map(w=>w[0]).join("").toUpperCase();
+      return ini || fallback;
+    }
+
+    // Score model: tags (45), field (20), level (15), timezone (10), availability (10)
+    function scoreMentor(mentee, mentor){
+      const mTags = new Set(safeArr(mentee.tags).map(normalize));
+      const rTags = new Set(safeArr(mentor.tags).map(normalize));
+      const overlap = [...mTags].filter(t => rTags.has(t));
+      const tagScore = mTags.size ? (overlap.length / mTags.size) : 0;
+
+      const fieldScore = mentee.field && mentor.field ? (normalize(mentee.field)===normalize(mentor.field) ? 1 : 0) : 0;
+
+      const levelMap = { beginner:1, intermediate:2, advanced:3 };
+      const menteeLevel = levelMap[normalize(mentee.level)] || 0;
+
+      const exp = normalize(mentor.experience);
+      let mentorLevel = 0;
+      if(exp.includes("senior") || exp.includes("9")) mentorLevel = 3;
+      else if(exp.includes("mid") || exp.includes("4")) mentorLevel = 2;
+      else if(exp.includes("early") || exp.includes("1")) mentorLevel = 1;
+
+      const levelFit = (menteeLevel && mentorLevel) ? (mentorLevel >= menteeLevel ? 1 : 0.3) : 0;
+
+      const tzScore = mentee.timezone && mentor.timezone ? (normalize(mentee.timezone)===normalize(mentor.timezone) ? 1 : 0.5) : 0;
+      const availScore = mentee.availability && mentor.availability ? (normalize(mentee.availability)===normalize(mentor.availability) ? 1 : 0.6) : 0;
+
+      const total = (tagScore*45) + (fieldScore*20) + (levelFit*15) + (tzScore*10) + (availScore*10);
+      return Math.round(Math.min(100, Math.max(0, total)));
+    }
+
+    function calcCompleteness(mentee){
+      const fields = ["goal","level","field","tags","timezone","availability"];
+      let filled = 0;
+      for(const f of fields){
+        if(f==="tags"){ if(safeArr(mentee.tags).length >= 3) filled++; }
+        else { if(mentee[f]) filled++; }
+      }
+      return Math.round((filled / fields.length) * 100);
+    }
+
+    function mentorCard(mentor, score){
+      const name = mentor.full_name || mentor.name || "Mentor";
+      const headline = mentor.headline || "Mentor";
+      const field = mentor.field || "—";
+      const tags = safeArr(mentor.tags).slice(0,6);
+      const ini = initialsOf(name, "M");
+
+      return `
+        <article class="mentorCard">
+          <div class="mentorTop">
+            <div class="mAvatar">${esc(ini)}</div>
+            <div class="mMeta">
+              <b title="${esc(name)}">${esc(name)}</b>
+              <span title="${esc(headline)} • ${esc(field)}">${esc(headline)} • ${esc(field)}</span>
+            </div>
+            <div class="score">${score}%</div>
+          </div>
+          <div class="tags">
+            ${tags.map(t=>`<span class="tag">${esc(t)}</span>`).join("")}
+          </div>
+          <div class="actions">
+            <button class="btn sm solid" data-mentor="${mentor.user_id || ""}" data-name="${esc(name)}" type="button" onclick="openRequest(this)">Request</button>
+            <button class="btn sm" type="button" onclick="toast('Profile page can be wired next.')">View profile</button>
+          </div>
+        </article>
+      `;
+    }
+
+    // Request
+    async function openRequest(btn){
+      const mentorId = btn.getAttribute("data-mentor");
+      if(!mentorId){ toast("Cannot send request: mentor profile missing user_id. Ask mentor to re-save onboarding."); return; }
+      const mentorName = btn.getAttribute("data-name") || "mentor";
+      const msg = prompt(`Send a message to ${mentorName}:`);
+      if(!msg) return;
+      if(!currentUser || !supabase){ toast("Not signed in."); return; }
+      try{
+        const { error } = await supabase.from(TABLES.requests).insert({
+          mentee_id: currentUser.id,
+          mentor_id: mentorId,
+          message: msg,
+          status: "pending"
+        });
+        if(error) throw error;
+        toast("Request sent ✅");
+        await loadRequests();
+        updateJourneyText();
+      }catch(e){
+        console.error(e);
+        toast("Could not send request. Check Supabase table / RLS.");
+      }
+    }
+    window.openRequest = openRequest;
+
+    // Data
+    let currentUser=null;
+    let menteeProfile=null;
+    let allMentors=[];
+    let lastRequests=[];
+
+    async function guardAuth(){
+      if(!supabase){
+        $("envChip").textContent = "Add Supabase keys";
+        $("journeyText").textContent = "Add SUPABASE_URL + SUPABASE_ANON_KEY in this file.";
+        $("matchesSub").textContent = "Supabase not configured.";
+        return false;
+      }
+      $("envChip").textContent = "Checking session…";
+      const { data:{session}, error } = await supabase.auth.getSession();
+      if(error) console.error(error);
+      if(!session){
+        const returnTo = encodeURIComponent(window.location.pathname.split("/").pop() || "mentee-dashboard.html");
+        window.location.href = `auth.html?returnTo=${returnTo}`;
+        return false;
+      }
+      currentUser = session.user;
+      $("envChip").textContent = "Live";
+      return true;
+    }
+
+    async function loadMenteeProfile(){
+      const { data, error } = await supabase
+        .from(TABLES.mentees)
+        .select("*")
+        .eq("user_id", currentUser.id)
+        .maybeSingle();
+      if(error) console.error(error);
+      menteeProfile = data || null;
+
+      if(!menteeProfile){
+        try{
+          const raw = localStorage.getItem("mentee_onboarding_draft");
+          if(raw){
+            const d = JSON.parse(raw);
+            menteeProfile = {
+              user_id: currentUser.id,
+              full_name: currentUser.user_metadata?.full_name || currentUser.email,
+              goal: d.goal,
+              level: d.level,
+              field: d.field,
+              tags: d.tags,
+              timezone: d.timezone,
+              availability: d.availability
+            };
+            toast("Using saved draft (not yet saved to Supabase).");
+          }
+        }catch(_){}
+      }
+
+      const name = menteeProfile?.full_name || currentUser.user_metadata?.full_name || currentUser.email || "Welcome";
+      $("welcomeName").textContent = "Welcome";
+      $("welcomeSub").textContent = name;
+      $("avatar").textContent = initialsOf(name, "U");
+
+      const pct = menteeProfile ? calcCompleteness(menteeProfile) : 0;
+      $("completePct").textContent = pct + "%";
+      $("completeBar").style.width = pct + "%";
+
+      updateJourneyText();
+    }
+
+    function updateJourneyText(){
+      const pct = menteeProfile ? calcCompleteness(menteeProfile) : 0;
+      const hasRequests = (lastRequests || []).length > 0;
+      const pending = (lastRequests || []).some(r => (r.status || "").toLowerCase() === "pending");
+      const accepted = (lastRequests || []).some(r => (r.status || "").toLowerCase() === "accepted");
+
+      if(!menteeProfile || pct < 60){
+        $("journeyText").textContent = "Step 1: Complete onboarding to unlock accurate matches.";
+        return;
+      }
+      if(!hasRequests){
+        $("journeyText").textContent = "Step 2: Review your top matches and send a mentorship request.";
+        return;
+      }
+      if(accepted){
+        $("journeyText").textContent = "Step 3: You have an accepted request — next: schedule your first session.";
+        return;
+      }
+      if(pending){
+        $("journeyText").textContent = "Step 3: Request sent — waiting for mentor acceptance.";
+        return;
+      }
+      $("journeyText").textContent = "You’re on track — review matches and manage your requests.";
+    }
+
+    async function loadMentors(){
+      $("matchesSub").innerHTML = "<span class='loading'><span class='dot'></span><span class='dot'></span><span class='dot'></span>Loading mentors…</span>";
+      const { data, error } = await supabase
+        .from(TABLES.mentors)
+        .select("*")
+        .order("created_at", { ascending:false })
+        .limit(200);
+      if(error){
+        console.error(error);
+        $("matchesSub").textContent = "Could not load mentors (check RLS).";
+        return;
+      }
+      allMentors = data || [];
+      $("matchesSub").textContent = `${allMentors.length} mentors loaded`;
+      $("matchCount").textContent = String(allMentors.length);
+    }
+
+    function renderMatches(){
+      const host = $("matches");
+      host.innerHTML = "";
+      if(!menteeProfile){
+        $("emptyMatches").style.display = "block";
+        return;
+      }
+      const scored = allMentors.map(m => ({ m, score: scoreMentor(menteeProfile, m) }))
+        .sort((a,b)=>b.score-a.score);
+      const top = scored.slice(0,8);
+      if(top.length === 0){
+        $("emptyMatches").style.display = "block";
+        return;
+      }
+      $("emptyMatches").style.display = "none";
+      host.innerHTML = top.map(x => mentorCard(x.m, x.score)).join("");
+    }
+
+    async function loadRequests(){
+      $("reqSub").textContent = "Loading…";
+      const { data, error } = await supabase
+        .from(TABLES.requests)
+        .select("*")
+        .eq("mentee_id", currentUser.id)
+        .order("created_at", { ascending:false })
+        .limit(10);
+      if(error){
+        console.error(error);
+        $("reqSub").textContent = "Could not load requests (check RLS).";
+        $("reqCount").textContent = "—";
+        return;
+      }
+      lastRequests = data || [];
+      $("reqCount").textContent = String(lastRequests.length);
+
+      if(lastRequests.length === 0){
+        $("reqSub").textContent = "No requests yet.";
+        $("reqEmpty").style.display = "block";
+        $("reqList").style.display = "none";
+        updateJourneyText();
+        return;
+      }
+
+      $("reqSub").textContent = `${lastRequests.length} recent request(s)`;
+      $("reqEmpty").style.display = "none";
+      $("reqList").style.display = "block";
+
+      $("reqList").innerHTML = lastRequests.map(r => `
+        <div class="mentorCard" style="background:#fff;">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+            <b style="font-size:13px;">Request</b>
+            <span class="chip">${esc(r.status || "pending")}</span>
+          </div>
+          <div class="muted" style="font-size:13px;line-height:1.5; margin-top:6px;">${esc(r.message || "")}</div>
+          <div class="muted" style="font-size:12px;margin-top:8px;">${new Date(r.created_at || Date.now()).toLocaleString()}</div>
+        </div>
+      `).join("");
+
+      updateJourneyText();
+    }
+
+    // Scroll + nav highlight
+    function setActive(which){
+      document.querySelectorAll(".navItem").forEach(x=>x.classList.remove("active"));
+      const el = document.querySelector(`.navItem[data-scroll="${which}"]`);
+      if(el) el.classList.add("active");
+    }
+    function scrollTo(which){
+      if(which==="dashboard") document.getElementById("dashboard")?.scrollIntoView({behavior:"smooth", block:"start"});
+      if(which==="matches") document.getElementById("matchesSection")?.scrollIntoView({behavior:"smooth", block:"start"});
+      if(which==="activity") document.getElementById("activity")?.scrollIntoView({behavior:"smooth", block:"start"});
+      setActive(which);
+    }
+    document.querySelectorAll(".navItem[data-scroll]").forEach(item=>{
+      item.addEventListener("click", ()=>scrollTo(item.getAttribute("data-scroll")));
+    });
+
+    // Buttons
+            $("goToMatchesBtn").addEventListener("click", (e)=>{ e.preventDefault(); scrollTo("matches"); });
+
+    $("refreshBtn").addEventListener("click", async()=>{
+      await loadMentors();
+      renderMatches();
+      toast("Matches refreshed");
+    });
+
+    $("reloadReqBtn").addEventListener("click", async()=>{
+      await loadRequests();
+      toast("Requests updated");
+    });
+
+    $("signOutBtn").addEventListener("click", async()=>{
+      if(!supabase) return;
+      await supabase.auth.signOut();
+      window.location.href = "index.html";
+    });
+
+    // Boot
+    (async function init(){
+      const ok = await guardAuth();
+      if(!ok) return;
+      await loadMenteeProfile();
+      await loadMentors();
+      renderMatches();
+      await loadRequests();
+    })();
+  </script>
+</body>
+</html>

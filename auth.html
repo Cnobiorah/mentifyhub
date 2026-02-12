@@ -1,0 +1,655 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MentifyHub — Account</title>
+  <meta name="description" content="Create a MentifyHub account or sign in." />
+  <style>
+    :root{
+      --bg:#ffffff;
+      --card:#ffffff;
+      --text:#0f172a;
+      --muted:#475569;
+      --line:#e5e7eb;
+      --soft:#f8fafc;
+      --accent:#0b3b89;
+      --accent2:#1d4ed8;
+      --radius:18px;
+      --shadow:0 20px 50px rgba(2,6,23,.08);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      color:var(--text);
+      background:
+        radial-gradient(900px 520px at 15% 5%, rgba(29,78,216,.10), transparent 55%),
+        radial-gradient(900px 520px at 90% 10%, rgba(11,59,137,.08), transparent 55%),
+        #fff;
+    }
+    a{color:inherit; text-decoration:none}
+    .container{max-width:480px;margin:0 auto;padding:28px}
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:26px;
+    }
+    .brand{
+      display:flex;align-items:center;gap:12px;margin-bottom:18px
+    }
+    .logo{
+      width:40px;height:40px;border-radius:14px;
+      background:linear-gradient(135deg, rgba(11,59,137,.14), rgba(29,78,216,.16));
+      border:1px solid rgba(29,78,216,.18);
+      display:flex;align-items:center;justify-content:center;
+      font-weight:800;color:var(--accent)
+    }
+    h1{margin:0;font-size:22px;letter-spacing:.2px}
+    .subtitle{margin:6px 0 18px;color:var(--muted);font-size:14px;line-height:1.5}
+
+    .top-actions{
+      display:flex;
+      gap:10px;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom: 14px;
+    }
+    .pill-toggle{
+      display:flex; gap:8px;
+      padding:6px;
+      border:1px solid var(--line);
+      border-radius:999px;
+      background: var(--soft);
+    }
+    .pill-toggle button{
+      border:1px solid transparent;
+      background: transparent;
+      padding:8px 12px;
+      border-radius:999px;
+      font-weight:700;
+      font-size:13px;
+      cursor:pointer;
+      color: var(--muted);
+      transition: background .15s ease, color .15s ease, border-color .15s ease;
+      white-space:nowrap;
+    }
+    .pill-toggle button.active{
+      background: #fff;
+      border-color: rgba(29,78,216,.22);
+      color: var(--accent);
+      box-shadow: 0 10px 22px rgba(2,6,23,.06);
+    }
+
+    .role{
+      display:flex;gap:10px;margin: 10px 0 18px;
+    }
+    .role button{
+      flex:1;
+      padding:10px 12px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:#fff;
+      cursor:pointer;
+      font-weight:700;
+      font-size:14px;
+      color: var(--muted);
+      transition: background .15s ease, border-color .15s ease, color .15s ease;
+    }
+    .role button.active{
+      background:linear-gradient(180deg, rgba(29,78,216,.12), rgba(11,59,137,.10));
+      border-color:rgba(29,78,216,.35);
+      color:var(--accent);
+    }
+
+    label{display:block;font-size:13px;font-weight:700;margin:12px 0 6px}
+    input{
+      width:100%;
+      padding:12px 14px;
+      border-radius:14px;
+      border:1px solid var(--line);
+      font-size:14px;
+      outline:none;
+      transition: box-shadow .15s ease, border-color .15s ease;
+    }
+    input:focus{
+      border-color: rgba(29,78,216,.35);
+      box-shadow: 0 0 0 4px rgba(29,78,216,.10);
+    }
+
+    .actions{
+      margin-top:18px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .btn{
+      width:100%;
+      padding:12px 14px;
+      border-radius:14px;
+      border:1px solid transparent;
+      background:linear-gradient(180deg, var(--accent2), var(--accent));
+      color:#fff;
+      font-weight:800;
+      font-size:14px;
+      cursor:pointer;
+      box-shadow:0 16px 40px rgba(29,78,216,.25);
+    }
+    .btn.secondary{
+      background:#fff;
+      color:var(--text);
+      border:1px solid var(--line);
+      box-shadow:none;
+      font-weight:750;
+    }
+
+    .note{
+      margin-top:12px;
+      font-size:13px;
+      color:var(--muted);
+      text-align:center;
+      line-height: 1.45;
+    }
+
+    /* Status banner (minimal, reuses the existing note area) */
+    .note.banner{
+      text-align:left;
+      border:1px solid var(--line);
+      border-radius: 14px;
+      padding: 10px 12px;
+      background: var(--soft);
+      color: var(--text);
+    }
+    .note.banner b{ display:block; margin-bottom:4px; }
+    .note.banner.info{ border-color: rgba(29,78,216,.18); background: rgba(29,78,216,.06); }
+    .note.banner.success{ border-color: rgba(16,185,129,.22); background: rgba(16,185,129,.08); }
+    .note.banner.error{ border-color: rgba(185,28,28,.22); background: rgba(185,28,28,.06); }
+
+    /* Busy state */
+    .btn[disabled]{ opacity:.75; cursor:not-allowed; box-shadow:none; }
+
+    .back{
+      font-size:13px;
+      color: var(--muted);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      cursor:pointer;
+      white-space:nowrap;
+    }
+
+    .hidden{ display:none !important; }
+
+    @media (max-width: 420px){
+      .top-actions{ flex-direction: column; align-items: stretch; }
+      .back{ text-align:center; }
+    }
+  
+
+    
+    /* Email confirmation modal (centered like your sample) */
+    .modal-backdrop{position:fixed;inset:0;z-index:999;background:rgba(2,6,23,.55);display:flex;align-items:center;justify-content:center;padding:18px;}
+    .modal{width:100%;max-width:520px;background:#fff;border:1px solid var(--line);border-radius:22px;box-shadow:0 30px 90px rgba(2,6,23,.35);overflow:hidden;}
+    .modal-body{padding:22px 18px 14px;}
+    .modal-center{text-align:center;}
+
+    /* Envelope illustration */
+    .mail-hero{display:flex;align-items:center;justify-content:center;margin:6px 0 14px;}
+    .mail-envelope{position:relative;width:128px;height:86px;border-radius:18px;background:linear-gradient(180deg, #f8fafc, #eef2f7);border:1px solid rgba(15,23,42,.10);box-shadow:0 18px 44px rgba(2,6,23,.14);overflow:hidden;}
+    .mail-body{position:absolute;left:0;right:0;bottom:0;height:56px;background:linear-gradient(180deg,#ffffff,#f1f5f9);border-top:1px solid rgba(15,23,42,.08);}
+    .mail-flap{position:absolute;left:0;right:0;top:-6px;height:58px;transform:skewY(-8deg);background:linear-gradient(180deg,#ffffff,#e9eef5);border-bottom:1px solid rgba(15,23,42,.08);}
+    .mail-check{position:absolute;left:50%;top:16px;transform:translateX(-50%);width:34px;height:34px;border-radius:999px;background:rgba(16,185,129,.16);border:1px solid rgba(16,185,129,.28);color:#047857;font-weight:1000;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 24px rgba(16,185,129,.18);}
+
+    .modal-body h2{margin:0;font-size:22px;letter-spacing:.2px;}
+    .modal-body p{margin:10px auto 0;color:var(--muted);font-size:14px;line-height:1.6;max-width: 420px;}
+    .modal-email{margin:14px auto 0;display:inline-flex;align-items:center;gap:8px;padding:9px 12px;border-radius:999px;border:1px solid var(--line);background:var(--soft);font-size:13px;color:var(--text);font-weight:900;}
+
+    .modal-actions{padding:14px 18px;border-top:1px solid var(--line);background:var(--soft);display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+    .modal-actions .btn{width:auto;min-width:160px;}
+
+  
+
+    /* Sample-like confirmation modal styling (only affects .modal.sample) */
+    .modal.sample{max-width:560px;border-radius:26px;}
+    .modal.sample .modal-body{padding:26px 22px 16px;}
+    .modal.sample .mail-envelope{width:140px;height:96px;border-radius:22px;}
+    .modal.sample .mail-check{width:38px;height:38px;font-size:16px;}
+    .modal.sample h2{font-size:30px;letter-spacing:-.2px;margin-top:6px;}
+    .modal.sample .modal-greet{margin:14px 0 0;font-size:18px;font-weight:1000;}
+    .modal.sample .modal-copy{margin:10px auto 0;font-size:14px;max-width:460px;}
+    .modal.sample .modal-email{margin-top:14px;font-size:14px;padding:10px 14px;}
+
+    .btn.modal-primary{
+      margin-top:18px;
+      width:100%;
+      max-width:340px;
+      border-radius:16px;
+      padding:12px 16px;
+      border-color:transparent;
+      background: linear-gradient(180deg, var(--accent2), var(--accent));
+      color:#fff;
+      box-shadow: 0 16px 40px rgba(29,78,216,.22);
+      font-weight:1000;
+    }
+    .btn.modal-primary:hover{box-shadow: 0 18px 46px rgba(29,78,216,.26);transform: translateY(-1px);}
+
+    .modal.sample .modal-foot{margin-top:16px;color:var(--muted);font-size:13px;line-height:1.55;}
+</style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <div class="brand">
+        <div class="logo">M</div>
+        <div>
+          <h1 id="title">Create your account</h1>
+          <div class="subtitle" id="subtitle">Choose how you want to use MentifyHub.</div>
+        </div>
+      </div>
+
+      <div class="top-actions">
+        <div class="pill-toggle" role="tablist" aria-label="Authentication mode">
+          <button id="modeSignup" class="active" type="button" role="tab" aria-selected="true">Create account</button>
+          <button id="modeSignin" type="button" role="tab" aria-selected="false">Sign in</button>
+        </div>
+        <a class="back" href="index.html">Back to home</a>
+      </div>
+
+      <div class="role" id="rolePicker">
+        <button id="menteeBtn" class="active" type="button">Mentee</button>
+        <button id="mentorBtn" type="button">Mentor</button>
+      </div>
+
+      <form id="authForm" novalidate>
+        <div id="nameBlock">
+          <label for="fullName">Full name</label>
+          <input id="fullName" type="text" placeholder="Your name" autocomplete="name" />
+        </div>
+
+        <label for="email">Email</label>
+        <input id="email" type="email" placeholder="you@email.com" autocomplete="username" />
+
+        <label for="password">Password</label>
+        <input id="password" type="password" placeholder="••••••••" autocomplete="current-password" />
+
+        <div class="actions">
+          <button id="primaryBtn" class="btn" type="button">Create account</button>
+          <button id="secondaryBtn" class="btn secondary" type="button">Already have an account? Sign in</button>
+        </div>
+      </form>
+
+      <div class="note" id="note">
+        By continuing, you agree to our Terms & Privacy Policy.
+      </div>
+    </div>
+  </div>
+
+    
+    <!-- Email confirmation modal -->
+  <div id="emailModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-label="Confirm your email">
+    <div class="modal sample">
+      <div class="modal-body">
+        <div class="modal-center">
+          <div class="mail-hero" aria-hidden="true">
+            <div class="mail-envelope">
+              <div class="mail-check">✓</div>
+              <div class="mail-flap"></div>
+              <div class="mail-body"></div>
+            </div>
+          </div>
+
+          <h2>Confirm your email</h2>
+          <h3 class="modal-greet" id="emailHiName">Hi there!</h3>
+          <p class="modal-copy">Thank you for signing up with MentifyHub! Please confirm your email address by clicking the link we sent to:</p>
+          <div class="modal-email" id="emailSentTo">—</div>
+
+          <button class="btn modal-primary" type="button" id="modalPrimaryBtn">Open email app</button>
+
+          <div class="modal-foot">Thanks,<br/>The MentifyHub Support Team</div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn secondary" type="button" id="modalCloseBtn">I’ll confirm later</button>
+        <button class="btn" type="button" id="modalSigninBtn">Go to sign in</button>
+      </div>
+    </div>
+  </div>
+
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <script>
+    const params = new URLSearchParams(location.search);
+    let role = (params.get('role') || 'mentee').toLowerCase();
+    let mode = (params.get('mode') || 'signup').toLowerCase(); // signup | signin
+
+    const menteeBtn = document.getElementById('menteeBtn');
+    const mentorBtn = document.getElementById('mentorBtn');
+    const rolePicker = document.getElementById('rolePicker');
+
+    const modeSignup = document.getElementById('modeSignup');
+    const modeSignin = document.getElementById('modeSignin');
+
+    const title = document.getElementById('title');
+    const subtitle = document.getElementById('subtitle');
+
+    const nameBlock = document.getElementById('nameBlock');
+    const primaryBtn = document.getElementById('primaryBtn');
+    const secondaryBtn = document.getElementById('secondaryBtn');
+    const note = document.getElementById('note');
+
+    // Email confirmation modal helpers
+    const emailModal = document.getElementById('emailModal');
+    const emailSentTo = document.getElementById('emailSentTo');
+    const emailHiName = document.getElementById('emailHiName');
+    const modalPrimaryBtn = document.getElementById('modalPrimaryBtn');
+    const modalCloseBtn = document.getElementById('modalCloseBtn');
+    const modalSigninBtn = document.getElementById('modalSigninBtn');
+
+    function openEmailModal(email, fullName){
+      if(emailSentTo) emailSentTo.textContent = email || '—';
+      if(emailHiName) emailHiName.textContent = `Hi ${fullName || 'there'}!`;
+      if(emailModal) emailModal.classList.remove('hidden');
+    }
+    function closeEmailModal(){
+      if(emailModal) emailModal.classList.add('hidden');
+    }
+
+    if(modalCloseBtn) modalCloseBtn.onclick = () => { closeEmailModal(); };
+    if(modalSigninBtn) modalSigninBtn.onclick = () => { closeEmailModal(); setMode('signin'); };
+
+    if(modalPrimaryBtn){
+      modalPrimaryBtn.onclick = () => {
+        const email = (emailSentTo && emailSentTo.textContent && emailSentTo.textContent !== '—') ? emailSentTo.textContent : '';
+        // Opens the default mail app (best-effort). User still confirms via the link in their inbox.
+        window.location.href = email ? `mailto:${email}` : 'mailto:';
+      };
+    }
+
+    // Close on backdrop click
+    if(emailModal){
+      emailModal.addEventListener('click', (e) => {
+        if(e.target === emailModal) closeEmailModal();
+      });
+    }
+
+
+
+    function setNote(type, titleText, bodyText){
+      if(!note) return;
+      if(!type){
+        note.className = 'note';
+        note.textContent = 'By continuing, you agree to our Terms & Privacy Policy.';
+        return;
+      }
+      note.className = `note banner ${type}`;
+      const t = titleText ? `<b>${escapeHtml(titleText)}</b>` : '';
+      const b = bodyText ? `${escapeHtml(bodyText)}` : '';
+      note.innerHTML = `${t}${b}`;
+    }
+
+    function escapeHtml(str){
+      return String(str || '').replace(/[&<>"]/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+    }
+
+    function setBusy(isBusy, label){
+      primaryBtn.disabled = !!isBusy;
+      secondaryBtn.disabled = !!isBusy;
+      primaryBtn.textContent = isBusy ? (label || 'Please wait…') : (mode === 'signin' ? 'Sign in' : 'Create account');
+    }
+
+    function setRole(r){
+      role = r === 'mentor' ? 'mentor' : 'mentee';
+      if(role === 'mentor'){
+        mentorBtn.classList.add('active');
+        menteeBtn.classList.remove('active');
+      }else{
+        menteeBtn.classList.add('active');
+        mentorBtn.classList.remove('active');
+      }
+      // keep URL updated (nice UX)
+      params.set('role', role);
+      history.replaceState({}, '', location.pathname + '?' + params.toString());
+      updateCopy();
+    }
+
+    function setMode(m){
+      mode = m === 'signin' ? 'signin' : 'signup';
+
+      const isSignin = mode === 'signin';
+      modeSignin.classList.toggle('active', isSignin);
+      modeSignup.classList.toggle('active', !isSignin);
+      modeSignin.setAttribute('aria-selected', String(isSignin));
+      modeSignup.setAttribute('aria-selected', String(!isSignin));
+
+      nameBlock.classList.toggle('hidden', isSignin);
+      rolePicker.classList.toggle('hidden', isSignin); // role not needed for signin; role can be resolved after login
+
+      // Better autofill behavior
+      const pw = document.getElementById('password');
+      if(pw){
+        pw.setAttribute('autocomplete', isSignin ? 'current-password' : 'new-password');
+      }
+
+      primaryBtn.textContent = isSignin ? 'Sign in' : 'Create account';
+      secondaryBtn.textContent = isSignin ? "Don't have an account? Create one" : "Already have an account? Sign in";
+
+      params.set('mode', mode);
+      history.replaceState({}, '', location.pathname + '?' + params.toString());
+      updateCopy();
+    }
+
+    function updateCopy(){
+      if(mode === 'signin'){
+        title.textContent = 'Sign in';
+        subtitle.textContent = 'Welcome back. Sign in to continue.';
+        return;
+      }
+      // signup copy
+      if(role === 'mentor'){
+        title.textContent = 'Create mentor account';
+        subtitle.textContent = 'Join as a mentor and support green skills growth.';
+      }else{
+        title.textContent = 'Create mentee account';
+        subtitle.textContent = 'Get guidance and grow your green skills.';
+      }
+    }
+
+    // wire buttons
+    menteeBtn.onclick = () => setRole('mentee');
+    mentorBtn.onclick = () => setRole('mentor');
+
+    modeSignup.onclick = () => setMode('signup');
+    modeSignin.onclick = () => setMode('signin');
+
+    secondaryBtn.onclick = () => setMode(mode === 'signin' ? 'signup' : 'signin');
+
+    // set initial state
+    setRole(role);
+    setMode(mode);
+
+    // Production: Supabase Auth wiring (keeps your exact UI + IDs)
+// 1) Replace SUPABASE_URL + SUPABASE_ANON_KEY
+// 2) Ensure tables exist: mentees, mentors (and optional profiles)
+const SUPABASE_URL = "https://mscgaaaobxiuzqsukvjc.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y";
+const TABLES = { mentees: "mentees", mentors: "mentors", profiles: "profiles" };
+
+const sb = (SUPABASE_URL.startsWith("http") && SUPABASE_ANON_KEY.startsWith("ey"))
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+  : null;
+
+function requireSupabase(){
+  if(!sb){
+    setNote('error', 'Supabase not connected', 'Add your Supabase URL + anon key in auth.html first.');
+    return false;
+  }
+  return true;
+}
+
+// Email confirmation landing (NO auto login)
+(function(){
+  try{
+    const qs = new URLSearchParams(location.search);
+    const hasConfirmParams =
+      qs.has('code') || qs.has('token') || qs.has('type') ||
+      location.hash.includes('access_token=') ||
+      location.hash.includes('refresh_token=');
+
+    if(hasConfirmParams){
+      setNote('success', 'Email confirmed', 'Please sign in to continue.');
+      setMode('signin');
+      // Clean URL (remove tokens / codes)
+      history.replaceState({}, document.title, '/auth.html?mode=signin');
+    }
+  }catch(_){ /* ignore */ }
+})();
+
+
+// No auto-login: we do NOT auto-redirect signed-in sessions on this page
+(async function(){
+  if(!sb) return;
+  try{
+    await sb.auth.getSession();
+  }catch(_){ /* ignore */ }
+})();
+
+async function routeAfterAuth(user){
+  // 1) if a returnTo is provided (from an auth guard), respect it
+  const rt = params.get('returnTo');
+  if(rt){
+    window.location.href = rt;
+    return;
+  }
+
+  // 2) Determine role
+  // Prefer: user_metadata.role, else URL role, else profiles table (if you use it)
+  let r = (user.user_metadata && user.user_metadata.role) ? String(user.user_metadata.role).toLowerCase() : role;
+
+  try{
+    // If you maintain profiles table, you can read role from there (safe fallback)
+    // NOTE: This requires RLS policy to allow user to read their own profile row.
+    if(sb && TABLES.profiles){
+      const { data: prof } = await sb.from(TABLES.profiles).select("role").eq("user_id", user.id).maybeSingle();
+      if(prof?.role) r = String(prof.role).toLowerCase();
+    }
+  }catch(_){ /* ignore */ }
+
+  // 3) Route based on whether their profile row exists
+  try{
+    if(r === "mentor"){
+      const { data: m } = await sb.from(TABLES.mentors).select("user_id").eq("user_id", user.id).maybeSingle();
+      window.location.href = m ? "mentor-dashboard.html" : "mentor-onboarding.html";
+    }else{
+      const { data: me } = await sb.from(TABLES.mentees).select("user_id").eq("user_id", user.id).maybeSingle();
+      window.location.href = me ? "mentee-dashboard.html" : "mentee-onboarding.html";
+    }
+  }catch(e){
+    console.error(e);
+    // Safe fallback
+    window.location.href = (r === "mentor") ? "mentor-onboarding.html" : "mentee-onboarding.html";
+  }
+}
+
+// Replace UI-only click with production auth
+primaryBtn.onclick = async () => {
+  if(!requireSupabase()) return;
+
+  setNote(null);
+  setBusy(true, mode === 'signin' ? 'Signing in…' : 'Creating account…');
+
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+
+  if(!email || !password){
+    setBusy(false);
+    setNote('error', 'Missing details', 'Please enter your email and password.');
+    return;
+  }
+
+  if(!/^\S+@\S+\.\S+$/.test(email)){
+    setBusy(false);
+    setNote('error', 'Invalid email', 'Please enter a valid email address.');
+    return;
+  }
+
+  if(mode !== 'signin' && password.length < 6){
+    setBusy(false);
+    setNote('error', 'Weak password', 'Use at least 6 characters for your password.');
+    return;
+  }
+
+  try{
+    if(mode === 'signin'){
+      const { data, error } = await sb.auth.signInWithPassword({ email, password });
+      if(error) throw error;
+      await routeAfterAuth(data.user);
+      setBusy(false);
+      return;
+    }
+
+    // signup
+    const fullName = document.getElementById('fullName').value.trim();
+    if(!fullName){
+      setBusy(false);
+      setNote('error', 'Missing name', 'Please enter your full name.');
+      return;
+    }
+
+    const { data, error } = await sb.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { role, full_name: fullName },
+        emailRedirectTo: `${window.location.origin}/auth.html?mode=signin&role=${encodeURIComponent(role)}`
+      }
+    });
+    if(error) throw error;
+
+    // Optional: persist role + name to profiles table (safe if table exists)
+    try{
+      await sb.from(TABLES.profiles).upsert({
+        user_id: data.user?.id,
+        role,
+        full_name: fullName,
+        email
+      }, { onConflict: 'user_id' });
+    }catch(_){ /* ignore if profiles table doesn't exist */ }
+
+    // After signup: ALWAYS require email confirmation + manual sign-in
+    setBusy(false);
+    setNote('success', 'Account created', 'Check your email to confirm, then sign in.');
+    openEmailModal(email, fullName);
+    setMode('signin');
+    return;
+  }catch(err){
+    console.error(err);
+    setBusy(false);
+
+    const msg = String(err?.message || err || '').toLowerCase();
+    if(msg.includes('invalid login credentials')){
+      setNote('error', 'Sign in failed', 'Incorrect email or password.');
+      return;
+    }
+    if(msg.includes('user already registered') || msg.includes('already been registered')){
+      setNote('info', 'Account exists', 'This email is already registered. Please sign in instead.');
+      setMode('signin');
+      return;
+    }
+    if(msg.includes('email rate limit')){
+      setNote('error', 'Too many attempts', 'Please wait a bit and try again.');
+      return;
+    }
+    if(msg.includes('email not confirmed')){
+      setNote('info', 'Email not confirmed', 'Please check your email inbox and confirm your account, then sign in.');
+      return;
+    }
+
+    setNote('error', 'Authentication failed', err?.message || 'Check your Supabase keys and Auth settings.');
+  }
+};
+  </script>
+</body>
+</html>

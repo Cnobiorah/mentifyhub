@@ -1,0 +1,749 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MentifyHub — Mentor Directory</title>
+  <meta name="description" content="Discover mentors and request mentorship on MentifyHub." />
+  <style>
+    :root{
+      --bg:#ffffff;
+      --card:#ffffff;
+      --text:#0f172a;
+      --muted:#475569;
+      --line:#e5e7eb;
+      --soft:#f8fafc;
+      --soft2:#f1f5f9;
+      --accent:#0b3b89;
+      --accent2:#1d4ed8;
+      --danger:#b91c1c;
+      --radius:18px;
+      --shadow:0 18px 40px rgba(2,6,23,.10);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      color:var(--text);
+      background:
+        radial-gradient(900px 520px at 15% 5%, rgba(29,78,216,.10), transparent 55%),
+        radial-gradient(900px 520px at 90% 10%, rgba(11,59,137,.08), transparent 55%),
+        var(--bg);
+    }
+    a{color:inherit;text-decoration:none}
+    header{
+      position: sticky; top: 0; z-index: 30;
+      background: rgba(255,255,255,.85);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line);
+    }
+    .nav{
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 14px 18px;
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+    }
+    .brand{display:flex; align-items:center; gap:10px}
+    .logo{
+      width:40px;height:40px;border-radius:12px;
+      background: linear-gradient(135deg, rgba(11,59,137,.14), rgba(29,78,216,.16));
+      border: 1px solid rgba(29,78,216,.18);
+      display:flex; align-items:center; justify-content:center;
+      font-weight:900; color: var(--accent);
+    }
+    .brand strong{font-size:14px}
+    .brand span{display:block; font-size:12px; color:var(--muted); margin-top:2px}
+    .nav-right{display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:flex-end}
+    .chip{
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: var(--soft);
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+    .btn{
+      display:inline-flex; align-items:center; justify-content:center; gap:10px;
+      padding: 10px 14px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: #fff;
+      cursor:pointer;
+      font-weight: 900;
+      font-size: 13px;
+      transition: transform .06s ease, box-shadow .2s ease, border-color .2s ease, opacity .2s ease;
+      user-select:none;
+      white-space: nowrap;
+    }
+    .btn:hover{ transform: translateY(-1px); box-shadow: 0 10px 24px rgba(2,6,23,.08); border-color:#dbe2ea; }
+    .btn.primary{
+      border-color: transparent;
+      background: linear-gradient(180deg, var(--accent2), var(--accent));
+      color:#fff;
+      box-shadow: 0 16px 40px rgba(29,78,216,.22);
+    }
+    .btn.primary:hover{ box-shadow: 0 18px 46px rgba(29,78,216,.26); }
+    .btn.danger{ border-color: rgba(185,28,28,.25); color: var(--danger); background: rgba(185,28,28,.04); }
+    .btn[disabled]{opacity:.55; cursor:not-allowed; transform:none; box-shadow:none;}
+
+    main{max-width: 1200px; margin: 0 auto; padding: 22px 18px 90px;}
+    h1{margin: 0; font-size: 24px; letter-spacing: .2px}
+    .sub{margin: 8px 0 0; color: var(--muted); font-size: 14px; line-height: 1.55;}
+    .section{margin-top: 18px;}
+    .section-head{display:flex; align-items:flex-end; justify-content:space-between; gap: 12px; flex-wrap:wrap}
+    .section-head h2{margin:0; font-size: 16px; letter-spacing: .2px}
+    .section-head .hint{color: var(--muted); font-size: 13px;}
+
+    .filters{
+      margin-top: 14px;
+      background: rgba(248,250,252,.9);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 12px;
+      display:grid;
+      grid-template-columns: 2.2fr 1fr 1fr 1fr 1fr auto;
+      gap: 10px;
+    }
+    .filters input, .filters select{
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: #fff;
+      font-size: 14px;
+      outline:none;
+    }
+    .filters input:focus, .filters select:focus{
+      border-color: rgba(29,78,216,.35);
+      box-shadow: 0 0 0 4px rgba(29,78,216,.10);
+    }
+
+    .grid{display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; margin-top: 12px;}
+    .card{
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 14px;
+      display:flex; flex-direction:column; gap: 10px;
+      min-height: 190px;
+    }
+    .row{display:flex; align-items:center; justify-content:space-between; gap: 10px;}
+    .name{font-weight: 1000; font-size: 16px;}
+    .meta{color: var(--muted); font-size: 13px; line-height: 1.45;}
+    .tags{display:flex; flex-wrap:wrap; gap: 6px; margin-top: 2px;}
+    .pill{
+      display:inline-flex; align-items:center;
+      padding: 5px 9px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: #fff;
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 900;
+      max-width: 100%;
+    }
+    .score{
+      display:inline-flex; align-items:center; gap:8px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(29,78,216,.18);
+      background: rgba(29,78,216,.06);
+      color: var(--accent);
+      font-weight: 1000;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    .why{margin-top: 8px; color: var(--muted); font-size: 12px; line-height: 1.45;}
+    .divider{height:1px; background: var(--line); margin: 8px 0;}
+    .empty{
+      margin-top: 12px;
+      border: 1px dashed var(--line);
+      border-radius: var(--radius);
+      padding: 18px;
+      color: var(--muted);
+      text-align:center;
+      background: rgba(255,255,255,.75);
+    }
+
+    /* Modal */
+    .backdrop{
+      position: fixed; inset: 0; z-index: 60;
+      background: rgba(2,6,23,.55);
+      display:none;
+      align-items:center; justify-content:center;
+      padding: 18px;
+    }
+    .modal{
+      width: 100%;
+      max-width: 560px;
+      background: #fff;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,.18);
+      box-shadow: 0 30px 90px rgba(2,6,23,.35);
+      overflow:hidden;
+    }
+    .modal-head{
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      display:flex; align-items:center; justify-content:space-between; gap: 10px;
+    }
+    .modal-head strong{font-size: 14px}
+    .modal-body{padding: 16px}
+    .modal-body label{display:block; font-weight: 900; font-size: 13px; margin-bottom: 8px}
+    .modal-body textarea{
+      width:100%;
+      min-height: 120px;
+      padding: 12px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      outline:none;
+      font-size: 14px;
+      resize: vertical;
+    }
+    .modal-body textarea:focus{
+      border-color: rgba(29,78,216,.35);
+      box-shadow: 0 0 0 4px rgba(29,78,216,.10);
+    }
+    .modal-actions{
+      padding: 14px 16px;
+      border-top: 1px solid var(--line);
+      display:flex; gap: 10px; justify-content:flex-end; flex-wrap:wrap;
+      background: var(--soft);
+    }
+    .toast{
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 80;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(2,6,23,.18);
+      padding: 12px 14px;
+      display:none;
+      max-width: 360px;
+      color: var(--text);
+      font-weight: 900;
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    @media (max-width: 980px){
+      .filters{grid-template-columns: 1fr 1fr; }
+      .filters .btn{width:100%}
+    }
+  </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <header>
+    <div class="nav">
+      <div class="brand">
+        <div class="logo">M</div>
+        <div>
+          <strong>MentifyHub</strong>
+          <span>Mentor directory</span>
+        </div>
+      </div>
+      <div class="nav-right">
+        <span class="chip" id="whoChip">Loading…</span>
+                <a class="btn" href="mentor-dashboard.html">Requests</a>
+<a class="btn" href="mentee-dashboard.html">Dashboard</a>
+        <button class="btn danger" id="signOutBtn">Sign out</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <h1>Find your mentor</h1>
+    <p class="sub">We’ll show your <b>top matches</b> first based on your onboarding profile (field, tags, availability, timezone and communication).</p>
+
+    <div class="filters" aria-label="Filters">
+      <input id="q" placeholder="Search name, field, tags, bio…" />
+      <select id="field"><option value="">Field</option></select>
+      <select id="timezone"><option value="">Timezone</option></select>
+      <select id="availability"><option value="">Availability</option></select>
+      <select id="communication"><option value="">Communication</option></select>
+      <button class="btn" id="clearBtn">Clear</button>
+    </div>
+
+    <section class="section" id="topSection">
+      <div class="section-head">
+        <div>
+          <h2>Top matches for you</h2>
+          <div class="hint" id="topHint">Based on your profile.</div>
+        </div>
+        <div class="hint" id="countHint">—</div>
+      </div>
+      <div class="grid" id="topGrid"></div>
+      <div class="empty" id="topEmpty" style="display:none;">No mentors yet. When mentors publish profiles, they’ll appear here.</div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <h2>All mentors</h2>
+          <div class="hint">Browse everyone. Use filters to narrow down.</div>
+        </div>
+      </div>
+      <div class="grid" id="allGrid"></div>
+      <div class="empty" id="allEmpty" style="display:none;">No mentors match your filters.</div>
+    </section>
+  </main>
+
+  <!-- Request Modal -->
+  <div class="backdrop" id="backdrop" role="dialog" aria-modal="true" aria-label="Request mentorship">
+    <div class="modal">
+      <div class="modal-head">
+        <strong id="modalTitle">Request mentorship</strong>
+        <button class="btn" id="closeModalBtn" type="button">Close</button>
+      </div>
+      <div class="modal-body">
+        <label for="message">Message to mentor</label>
+        <textarea id="message" placeholder="Introduce yourself, your goal, and what you need help with…"></textarea>
+        <div class="meta" style="margin-top:10px;" id="modalMeta"></div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn" id="cancelBtn" type="button">Cancel</button>
+        <button class="btn primary" id="sendBtn" type="button">Send request</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- Supabase -->
+<script>
+    /*************************************************************
+     * CONFIG (replace these)
+     *************************************************************/
+    const SUPABASE_URL = "https://mscgaaaobxiuzqsukvjc.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y";
+
+    const TABLES = {
+      mentees: "mentees",
+      mentors: "mentors",
+      requests: "mentorship_requests"
+    };
+
+    const sb = (SUPABASE_URL.startsWith("http") && SUPABASE_ANON_KEY.startsWith("ey") && typeof supabase !== "undefined")
+      ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+      : null;
+
+    const els = {
+      whoChip: document.getElementById("whoChip"),
+      signOutBtn: document.getElementById("signOutBtn"),
+      q: document.getElementById("q"),
+      field: document.getElementById("field"),
+      timezone: document.getElementById("timezone"),
+      availability: document.getElementById("availability"),
+      communication: document.getElementById("communication"),
+      clearBtn: document.getElementById("clearBtn"),
+      countHint: document.getElementById("countHint"),
+      topHint: document.getElementById("topHint"),
+      topGrid: document.getElementById("topGrid"),
+      allGrid: document.getElementById("allGrid"),
+      topEmpty: document.getElementById("topEmpty"),
+      allEmpty: document.getElementById("allEmpty"),
+      backdrop: document.getElementById("backdrop"),
+      closeModalBtn: document.getElementById("closeModalBtn"),
+      cancelBtn: document.getElementById("cancelBtn"),
+      sendBtn: document.getElementById("sendBtn"),
+      modalTitle: document.getElementById("modalTitle"),
+      modalMeta: document.getElementById("modalMeta"),
+      message: document.getElementById("message"),
+      toast: document.getElementById("toast")
+    };
+
+    let USER = null;
+    let MENTEE = null;
+    let MENTORS = [];
+    let REQUESTED = new Set(); // mentor_id that already has a request (any status)
+    let CURRENT = null; // mentor currently in modal
+    let SCORED = []; // mentors with score + reasons
+
+    function toast(msg){
+      els.toast.textContent = msg;
+      els.toast.style.display = "block";
+      clearTimeout(toast._t);
+      toast._t = setTimeout(()=> els.toast.style.display="none", 2600);
+    }
+
+    function safeStr(v){ return (v == null) ? "" : String(v); }
+    function safeArr(v){
+      if(Array.isArray(v)) return v.filter(Boolean).map(x=>String(x).trim()).filter(Boolean);
+      if(typeof v === "string") return v.split(",").map(s=>s.trim()).filter(Boolean);
+      return [];
+    }
+    function uniq(arr){
+      return [...new Set(arr.filter(Boolean))].sort((a,b)=> String(a).localeCompare(String(b)));
+    }
+
+    function normalize(s){ return safeStr(s).trim().toLowerCase(); }
+
+    function overlap(a, b){
+      const A = new Set(safeArr(a).map(normalize));
+      const B = new Set(safeArr(b).map(normalize));
+      let count = 0;
+      for(const x of A){ if(B.has(x)) count++; }
+      return count;
+    }
+
+    function computeScore(mentee, mentor){
+      // Weights (simple + explainable)
+      let score = 0;
+      const why = [];
+
+      const menteeTags = safeArr(mentee?.tags);
+      const mentorTags = safeArr(mentor?.tags);
+
+      const tagHits = overlap(menteeTags, mentorTags);
+      if(menteeTags.length && mentorTags.length){
+        const tagScore = Math.min(60, Math.round((tagHits / Math.max(1, Math.min(menteeTags.length, mentorTags.length))) * 60));
+        score += tagScore;
+        if(tagHits > 0) why.push(`${tagHits} shared skill tag${tagHits>1?'s':''}`);
+      }
+
+      if(mentee?.field && mentor?.field && normalize(mentee.field) === normalize(mentor.field)){
+        score += 15;
+        why.push("same field");
+      }
+
+      // level preference (best effort)
+      const menteeLevel = normalize(mentee?.level);
+      const pref = normalize(mentor?.preferred_level);
+      if(pref && menteeLevel){
+        if(pref.includes(menteeLevel) || pref === menteeLevel){
+          score += 10;
+          why.push("fits preferred level");
+        }
+      }
+
+      if(mentee?.timezone && mentor?.timezone && normalize(mentee.timezone) === normalize(mentor.timezone)){
+        score += 5;
+        why.push("same timezone");
+      }
+
+      if(mentee?.availability && mentor?.availability && normalize(mentee.availability) === normalize(mentor.availability)){
+        score += 5;
+        why.push("matching availability");
+      }
+
+      if(mentee?.communication && mentor?.communication && normalize(mentee.communication) === normalize(mentor.communication)){
+        score += 5;
+        why.push("preferred communication match");
+      }
+
+      score = Math.max(0, Math.min(100, Math.round(score)));
+      return { score, why };
+    }
+
+    function mentorTitle(m){
+      const pieces = [];
+      if(m.headline) pieces.push(m.headline);
+      if(m.field) pieces.push(m.field);
+      if(m.experience) pieces.push(m.experience);
+      return pieces.filter(Boolean).join(" • ");
+    }
+
+    function renderCard(m, variant="all"){
+      const { score, why } = m._match || { score: null, why: [] };
+      const name = m.full_name || "Mentor";
+      const tags = safeArr(m.tags).slice(0, 10);
+
+      const already = REQUESTED.has(m.user_id);
+      const btnLabel = already ? "Requested" : "Request mentorship";
+
+      const reasons = why.slice(0, 3);
+      const whyText = reasons.length ? `Why matched: ${reasons.join(", ")}` : "Why matched: profile overlap";
+
+      const slots = (typeof m.active_slots === "number") ? m.active_slots : null;
+      const cap = (slots != null) ? `Slots: ${slots}` : null;
+
+      const metaLine = [m.field, m.subfield, m.country, m.timezone].filter(Boolean).join(" • ");
+      const meta2 = [m.availability, m.communication, cap].filter(Boolean).join(" • ");
+
+      const el = document.createElement("div");
+      el.className = "card";
+      el.innerHTML = `
+        <div class="row">
+          <div class="name">${escapeHtml(name)}</div>
+          ${score != null ? `<div class="score">${score}% match</div>` : ``}
+        </div>
+        <div class="meta">${escapeHtml(mentorTitle(m) || metaLine || "Mentor profile")}</div>
+        ${meta2 ? `<div class="meta">${escapeHtml(meta2)}</div>` : ``}
+        ${m.bio ? `<div class="meta">${escapeHtml(m.bio).slice(0, 180)}${safeStr(m.bio).length>180?'…':''}</div>` : ``}
+        <div class="tags">
+          ${tags.map(t => `<span class="pill">${escapeHtml(t)}</span>`).join("")}
+        </div>
+        ${score != null ? `<div class="why">${escapeHtml(whyText)}</div>` : ``}
+        <div class="divider"></div>
+        <div class="row">
+          <button class="btn ${already ? "" : "primary"}" ${already ? "disabled" : ""} data-mentor="${m.user_id}">${btnLabel}</button>
+          <span class="meta">Updated: ${formatDate(m.updated_at || m.created_at)}</span>
+        </div>
+      `;
+
+      const btn = el.querySelector("button[data-mentor]");
+      if(btn && !already){
+        btn.addEventListener("click", () => openModal(m));
+      }
+      return el;
+    }
+
+    function render(){
+      const q = normalize(els.q.value);
+      const field = els.field.value;
+      const tz = els.timezone.value;
+      const av = els.availability.value;
+      const comm = els.communication.value;
+
+      const filtered = SCORED.filter(m => {
+        if(q){
+          const blob = JSON.stringify(m).toLowerCase();
+          if(!blob.includes(q)) return false;
+        }
+        if(field && safeStr(m.field) !== field) return false;
+        if(tz && safeStr(m.timezone) !== tz) return false;
+        if(av && safeStr(m.availability) !== av) return false;
+        if(comm && safeStr(m.communication) !== comm) return false;
+        return true;
+      });
+
+      // Top = top 6 from overall scored (not filtered, but you can filter top too if you want)
+      const top = SCORED.slice(0, 6);
+
+      els.topGrid.innerHTML = "";
+      els.allGrid.innerHTML = "";
+
+      if(top.length === 0){
+        els.topEmpty.style.display = "block";
+      }else{
+        els.topEmpty.style.display = "none";
+        top.forEach(m => els.topGrid.appendChild(renderCard(m, "top")));
+      }
+
+      if(filtered.length === 0){
+        els.allEmpty.style.display = "block";
+      }else{
+        els.allEmpty.style.display = "none";
+        filtered.forEach(m => els.allGrid.appendChild(renderCard(m, "all")));
+      }
+
+      els.countHint.textContent = `${filtered.length} mentor${filtered.length===1?'':'s'} shown`;
+    }
+
+    function fillFilters(){
+      const fields = uniq(SCORED.map(m => m.field));
+      const tzs = uniq(SCORED.map(m => m.timezone));
+      const avs = uniq(SCORED.map(m => m.availability));
+      const comms = uniq(SCORED.map(m => m.communication));
+
+      function fill(sel, arr){
+        // reset to first option only
+        while(sel.options.length > 1) sel.remove(1);
+        arr.forEach(v => {
+          const opt = document.createElement("option");
+          opt.value = safeStr(v);
+          opt.textContent = safeStr(v);
+          sel.appendChild(opt);
+        });
+      }
+      fill(els.field, fields);
+      fill(els.timezone, tzs);
+      fill(els.availability, avs);
+      fill(els.communication, comms);
+    }
+
+    function openModal(mentor){
+      CURRENT = mentor;
+      els.modalTitle.textContent = `Request mentorship — ${mentor.full_name || "Mentor"}`;
+
+      const line1 = mentorTitle(mentor);
+      const line2 = [mentor.availability, mentor.communication, mentor.timezone].filter(Boolean).join(" • ");
+      els.modalMeta.textContent = [line1, line2].filter(Boolean).join(" — ");
+      els.message.value = defaultMessage(mentor);
+      els.backdrop.style.display = "flex";
+      els.message.focus();
+    }
+
+    function closeModal(){
+      CURRENT = null;
+      els.backdrop.style.display = "none";
+    }
+
+    function defaultMessage(mentor){
+      const name = mentor.full_name || "there";
+      const goal = MENTEE?.goal || "my growth goals";
+      const field = MENTEE?.field || "my field";
+      return `Hi ${name},\n\nI’m a mentee on MentifyHub and I’d love to request mentorship. My main goal is: ${goal}.\n\nI’m focused on ${field} and I’d appreciate your guidance on the next steps and how to build skill/experience.\n\nThank you!`;
+    }
+
+    async function sendRequest(){
+      if(!sb) { alert("Add Supabase keys first."); return; }
+      if(!USER || !CURRENT) return;
+
+      const msg = safeStr(els.message.value).trim();
+      if(msg.length < 10){
+        toast("Please write a short message (at least 10 characters).");
+        return;
+      }
+
+      els.sendBtn.disabled = true;
+      els.sendBtn.textContent = "Sending…";
+
+      try{
+        const payload = {
+          mentee_id: USER.id,
+          mentor_id: CURRENT.user_id,
+          message: msg,
+          status: "pending"
+        };
+
+        const { error } = await sb.from(TABLES.requests).insert(payload);
+        if(error) throw error;
+
+        REQUESTED.add(CURRENT.user_id);
+        toast("Request sent!");
+        closeModal();
+        render();
+      }catch(e){
+        console.error(e);
+        alert(e?.message || "Could not send request. Check RLS and table names.");
+      }finally{
+        els.sendBtn.disabled = false;
+        els.sendBtn.textContent = "Send request";
+      }
+    }
+
+    async function signOut(){
+      if(!sb) return;
+      await sb.auth.signOut();
+      window.location.href = "index.html";
+    }
+
+    async function loadData(){
+      if(!sb){
+        alert("Add your Supabase keys in mentor-directory.html first.");
+        return;
+      }
+
+      // session
+      const { data: { session } } = await sb.auth.getSession();
+      if(!session){
+        const returnTo = encodeURIComponent("mentor-directory.html");
+        window.location.href = `auth.html?mode=signin&role=mentee&returnTo=${returnTo}`;
+        return;
+      }
+      USER = session.user;
+
+      // load mentee profile (required)
+      const { data: mentee, error: meErr } = await sb
+        .from(TABLES.mentees).select("*").eq("user_id", USER.id).maybeSingle();
+
+      if(meErr){ console.error(meErr); }
+      if(!mentee){
+        // mentee has not completed onboarding
+        window.location.href = "mentee-onboarding.html";
+        return;
+      }
+      MENTEE = mentee;
+
+      // chip
+      const nm = USER.user_metadata?.full_name || mentee.full_name || USER.email || "Signed in";
+      els.whoChip.textContent = `${nm} • Mentee`;
+
+      // load mentors
+      const { data: mentors, error: moErr } = await sb
+        .from(TABLES.mentors)
+        .select("*")
+        .order("updated_at", { ascending: false })
+        .limit(500);
+
+      if(moErr){ console.error(moErr); }
+      if(moErr?.message) toast(`Could not load mentors: ${moErr.message}`);
+
+      MENTORS = mentors || [];
+
+      
+      if(MENTORS.length===0){
+        toast("No mentors returned. If mentors exist, check mentors SELECT RLS policy and that mentor onboarding saved to the mentors table.");
+      }
+// load requests (for "Requested" state)
+      const { data: reqs, error: rqErr } = await sb
+        .from(TABLES.requests)
+        .select("mentor_id,status")
+        .eq("mentee_id", USER.id);
+
+      if(rqErr){ console.error(rqErr); }
+      REQUESTED = new Set((reqs || []).map(r => r.mentor_id));
+
+      // compute match
+      SCORED = MENTORS.map(m => {
+        const match = computeScore(MENTEE, m);
+        return { ...m, _match: match };
+      }).sort((a,b) => (b._match.score - a._match.score) || safeStr(a.full_name).localeCompare(safeStr(b.full_name)));
+
+      // top hint text
+      const focus = [MENTEE.field, (safeArr(MENTEE.tags)[0] || null)].filter(Boolean).join(" • ");
+      els.topHint.textContent = focus ? `Based on: ${focus}` : "Based on your profile.";
+
+      fillFilters();
+      render();
+    }
+
+    function formatDate(iso){
+      try{
+        if(!iso) return "—";
+        const d = new Date(iso);
+        if(Number.isNaN(d.getTime())) return "—";
+        return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+      }catch(_){
+        return "—";
+      }
+    }
+
+    // basic HTML escape to prevent injection
+    function escapeHtml(str){
+      return String(str ?? "").replace(/[&<>"']/g, (m) => ({
+        "&":"&amp;",
+        "<":"&lt;",
+        ">":"&gt;",
+        '"':"&quot;",
+        "'":"&#39;"
+      }[m]));
+    }
+
+    // Events
+    els.signOutBtn.addEventListener("click", signOut);
+    els.clearBtn.addEventListener("click", () => {
+      els.q.value = "";
+      els.field.value = "";
+      els.timezone.value = "";
+      els.availability.value = "";
+      els.communication.value = "";
+      render();
+    });
+    ["input","change"].forEach(evt => {
+      els.q.addEventListener(evt, render);
+      els.field.addEventListener(evt, render);
+      els.timezone.addEventListener(evt, render);
+      els.availability.addEventListener(evt, render);
+      els.communication.addEventListener(evt, render);
+    });
+
+    // modal events
+    els.closeModalBtn.addEventListener("click", closeModal);
+    els.cancelBtn.addEventListener("click", closeModal);
+    els.backdrop.addEventListener("click", (e)=>{ if(e.target === els.backdrop) closeModal(); });
+    els.sendBtn.addEventListener("click", sendRequest);
+    document.addEventListener("keydown", (e)=>{ if(e.key === "Escape" && els.backdrop.style.display === "flex") closeModal(); });
+
+    // boot
+    loadData();
+  </script>
+</body>
+</html>

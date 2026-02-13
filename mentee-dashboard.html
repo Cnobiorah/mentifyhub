@@ -429,7 +429,7 @@
             <b>No requests</b>
             <p>Pick a mentor and send a short message about your goal.</p>
             <div style="margin-top:10px;">
-              <a class="btn sm solid" id="goToMatchesBtn" href="#matchesSection">Go to matches</a>
+              <a class="btn sm solid" id="goToMatchesBtn" href="mentor-directory.html">Go to matches</a>
             </div>
           </div>
 
@@ -463,8 +463,8 @@
     /*************************************************************
      * PRODUCTION CONFIG
      *************************************************************/
-    const SUPABASE_URL = "YOUR_SUPABASE_URL";
-    const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
+    const SUPABASE_URL = "https://mscgaaaobxiuzqsukvjc.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y";
 
     const TABLES = {
       mentees: "mentees",
@@ -628,7 +628,7 @@ function setProfileUI({ full_name = "Welcome", completeness = 0, status = "" } =
       if(error) console.error(error);
       if(!session){
         const returnTo = encodeURIComponent(window.location.pathname.split("/").pop() || "mentee-dashboard.html");
-        window.location.href = `auth.html?returnTo=${returnTo}`;
+        window.location.href = `auth.html?mode=signin&role=mentee&returnTo=${returnTo}`;
         return false;
       }
       currentUser = session.user;
@@ -797,7 +797,12 @@ function setProfileUI({ full_name = "Welcome", completeness = 0, status = "" } =
     });
 
     // Buttons
-            $("goToMatchesBtn").addEventListener("click", (e)=>{ e.preventDefault(); scrollTo("matches"); });
+    // "Browse mentors" should actually navigate to mentor-directory.html (do NOT preventDefault).
+    // Keep a separate "Go to matches" button for in-page scrolling.
+    const goToMatches = $("goToMatchesBtn");
+    if(goToMatches){
+      goToMatches.addEventListener("click", (e)=>{ e.preventDefault(); scrollTo("matches"); });
+    }
 
     $("refreshBtn").addEventListener("click", async()=>{
       await loadMentors();

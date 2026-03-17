@@ -422,6 +422,13 @@
 
     const $ = (id) => document.getElementById(id);
 
+    let supabase = null;
+    let requestTarget = null;
+    let currentUser = null;
+    let menteeProfile = null;
+    let allMentors = [];
+    let lastRequests = [];
+
     function toast(msg){
       const t = $("toast");
       t.textContent = msg;
@@ -459,13 +466,6 @@
         .toUpperCase();
       return ini || fallback;
     }
-
-    let supabase = null;
-    let requestTarget = null;
-    let currentUser = null;
-    let menteeProfile = null;
-    let allMentors = [];
-    let lastRequests = [];
 
     function buildSupabaseClient(){
       try{

@@ -73,7 +73,6 @@
     <nav class="nav">
       <span class="chip" id="chip">Step 1 of 4</span>
       <a class="btn" href="index.html">Home</a>
-      <button class="btn" id="restartBtn" type="button" title="Clear saved draft and restart">Start over</button>
       <button class="btn solid" id="saveTop" type="button">Save</button>
     </nav>
   </header>
@@ -143,13 +142,10 @@
           </div>
           <div class="col-12">
             <label>Expertise tags</label>
-            <div class="tagbox" id="tagbox">
-              <span class="tag">LEED <button type="button" aria-label="remove">×</button></span>
-              <span class="tag">WELL <button type="button" aria-label="remove">×</button></span>
-              <span class="tag">OpenStudio <button type="button" aria-label="remove">×</button></span>
-              <input class="tag-input" id="tagInput" placeholder="Type a tag and press Enter (e.g., BREEAM, EDGE, EnergyPlus)" />
-            </div>
-            <div class="hint">Use standard tags. Matching uses tag overlap + fit.</div>
+<div class="tagbox" id="tagbox">
+  <input class="tag-input" id="tagInput" placeholder="Type a tag and press Enter (e.g., BREEAM, EDGE, EnergyPlus)" />
+</div>
+<div class="hint">Use standard tags. Matching uses tag overlap + fit.</div>
           </div>
         </div>
       </section>
@@ -350,15 +346,7 @@
   });
   // saveDraft is redefined below with Supabase support
   saveBtn.addEventListener('click', saveDraft);
-  saveTop.addEventListener('click', saveDraft);    const restartBtn = document.getElementById('restartBtn');
-    if(restartBtn){
-      restartBtn.addEventListener('click', ()=>{
-        if(!confirm('Start over? This will clear your saved draft on this device.')) return;
-        localStorage.removeItem('mentor_onboarding_draft');
-        window.location.href = window.location.pathname + '?reset=1';
-      });
-    }
-
+  saveTop.addEventListener('click', saveDraft);
 
   
   function parseSlots(v){
@@ -391,22 +379,25 @@
 
   async function saveToSupabase(user, data){
     const payload = {
-      user_id: user.id,
-      full_name: (user.user_metadata && user.user_metadata.full_name) ? user.user_metadata.full_name : (user.email || ""),
-      headline: data.headline || null,
-      experience: data.experience || null,
-      bio: data.bio || null,
-      field: data.field || null,
-      subfield: data.subfield || null,
-      tags: safeArr(data.tags),
-      preferred_level: data.preferred_level || null,
-      mentorship_style: data.mentorship_style || null,
-      active_slots: (data.active_slots == null ? 1 : data.active_slots),
-      communication: data.communication || null,
-      country: data.country || null,
-      timezone: data.timezone || null,
-      availability: data.availability || null
-    };
+  user_id: user.id,
+  full_name: (user.user_metadata && user.user_metadata.full_name)
+    ? user.user_metadata.full_name
+    : (user.email || ""),
+  email: user.email || null,
+  headline: data.headline || null,
+  experience: data.experience || null,
+  bio: data.bio || null,
+  field: data.field || null,
+  subfield: data.subfield || null,
+  tags: safeArr(data.tags),
+  preferred_level: data.preferred_level || null,
+  mentorship_style: data.mentorship_style || null,
+  active_slots: (data.active_slots == null ? 1 : data.active_slots),
+  communication: data.communication || null,
+  country: data.country || null,
+  timezone: data.timezone || null,
+  availability: data.availability || null
+};
 
     const { error } = await sb
       .from(TABLES.mentors)
@@ -491,13 +482,6 @@
   
   // Boot: require session; prefer Supabase data, else local draft
   (async function boot(){
-    // If user explicitly wants to restart onboarding, clear any saved draft and remove the flag.
-    const qs = new URLSearchParams(window.location.search);
-    if(qs.get('reset') === '1'){
-      localStorage.removeItem('mentor_onboarding_draft');
-      // Clean the URL so refresh doesn't keep wiping drafts
-      window.history.replaceState(null, '', window.location.pathname);
-    }
     const user = await requireSession();
     if(!user) return;
 

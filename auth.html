@@ -598,17 +598,14 @@ primaryBtn.onclick = async () => {
       return;
     }
 
-    const redirectBase = window.location.origin;
-    const emailRedirectTo = `${redirectBase}/auth.html?mode=signin&role=${encodeURIComponent(role)}`;
-
     const { data, error } = await sb.auth.signUp({
       email,
       password,
       options: {
         data: { role, full_name: fullName },
-        // Where the user lands after clicking the confirmation email link.
-        // Using window.location.origin makes this work in production (Vercel) and locally.
-        emailRedirectTo
+        emailRedirectTo: ((location.origin.includes('localhost') || location.origin.includes('127.0.0.1'))
+          ? `${location.origin}/auth.html?mode=signin`
+          : 'https://www.mentifyhub.com/auth.html?mode=signin')
       }
     });
     if(error) throw error;

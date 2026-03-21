@@ -1,258 +1,241 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MentifyHub — Mentee Dashboard</title>
-  <meta name="description" content="Mentee dashboard for mentor matching, requests, messages, and sessions." />
+  <meta name="description" content="Fresh mentee dashboard for MentifyHub." />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root{
-      --bg:#ffffff;
+      --bg:#f6f8fc;
       --card:#ffffff;
       --text:#0f172a;
-      --muted:#475569;
-      --line:#e5e7eb;
+      --muted:#64748b;
+      --line:#e2e8f0;
       --soft:#f8fafc;
-      --soft2:#f1f5f9;
-      --accent:#0b3b89;
-      --accent2:#1d4ed8;
+      --primary:#2563eb;
+      --primary-dark:#0b3b89;
       --radius:18px;
-      --shadow:0 18px 45px rgba(2,6,23,.08);
+      --shadow:0 14px 35px rgba(2,6,23,.08);
     }
     *{box-sizing:border-box}
-    html,body{height:100%}
     body{
       margin:0;
-      font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
-      color:var(--text);
+      font-family:Inter,Arial,sans-serif;
       background:
-        radial-gradient(900px 520px at 15% 5%, rgba(29,78,216,.10), transparent 55%),
-        radial-gradient(900px 520px at 90% 10%, rgba(11,59,137,.08), transparent 55%),
+        radial-gradient(900px 520px at 10% 0%, rgba(37,99,235,.08), transparent 50%),
+        radial-gradient(800px 500px at 100% 10%, rgba(11,59,137,.06), transparent 50%),
         var(--bg);
+      color:var(--text);
     }
-    a{color:inherit;text-decoration:none}
-    button,input,textarea{font-family:inherit}
-
-    .app{max-width:1320px;margin:0 auto;padding:18px 18px 26px}
-
+    a{text-decoration:none;color:inherit}
+    button,input,textarea{font:inherit}
+    .app{max-width:1320px;margin:0 auto;padding:18px}
     .topbar{
-      display:flex;align-items:center;justify-content:space-between;gap:14px;
-      padding:12px 14px;
+      display:flex;justify-content:space-between;align-items:center;gap:12px;
+      background:rgba(255,255,255,.88);
       border:1px solid var(--line);
-      border-radius:22px;
-      background:rgba(255,255,255,.82);
+      border-radius:24px;
+      padding:14px 16px;
+      box-shadow:var(--shadow);
+      position:sticky;top:14px;z-index:20;
       backdrop-filter:blur(10px);
-      box-shadow:0 10px 24px rgba(2,6,23,.06);
-      position:sticky;top:14px;z-index:30;
     }
-    .brand{display:flex;align-items:center;gap:12px;min-width:240px}
+    .brand{display:flex;align-items:center;gap:12px}
     .logo{
-      width:40px;height:40px;border-radius:14px;
-      background:linear-gradient(135deg, rgba(11,59,137,.14), rgba(29,78,216,.16));
-      border:1px solid rgba(29,78,216,.18);
+      width:44px;height:44px;border-radius:14px;
       display:flex;align-items:center;justify-content:center;
-      font-weight:900;color:var(--accent);user-select:none;
+      background:linear-gradient(135deg, rgba(37,99,235,.16), rgba(11,59,137,.12));
+      border:1px solid rgba(37,99,235,.18);
+      font-weight:900;color:var(--primary-dark);
     }
-    .brand h1{margin:0;font-size:16px;letter-spacing:.2px}
+    .brand h1{margin:0;font-size:16px}
     .brand p{margin:2px 0 0;font-size:12px;color:var(--muted)}
-
-    .right-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
-    .chip{
-      padding:8px 12px;border-radius:999px;border:1px solid var(--line);
-      background:var(--soft);font-size:13px;color:var(--muted);white-space:nowrap;
+    .top-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .pill{
+      padding:10px 14px;border-radius:999px;border:1px solid var(--line);
+      background:#fff;color:var(--muted);font-size:13px;
     }
     .btn{
-      display:inline-flex;align-items:center;justify-content:center;gap:10px;
-      padding:10px 14px;border-radius:14px;border:1px solid var(--line);
-      background:#fff;cursor:pointer;font-weight:800;font-size:14px;
-      transition:transform .06s ease, box-shadow .2s ease, border-color .2s ease;
-      user-select:none;white-space:nowrap;
+      border:1px solid var(--line);
+      background:#fff;
+      color:var(--text);
+      padding:10px 14px;
+      border-radius:14px;
+      cursor:pointer;
+      font-weight:700;
     }
-    .btn:hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(2,6,23,.08);border-color:#dbe2ea}
-    .btn.solid{
+    .btn:hover{box-shadow:0 10px 22px rgba(2,6,23,.08)}
+    .btn.primary{
       border-color:transparent;
-      background:linear-gradient(180deg, var(--accent2), var(--accent));
       color:#fff;
-      box-shadow:0 16px 40px rgba(29,78,216,.22);
+      background:linear-gradient(180deg, var(--primary), var(--primary-dark));
     }
-    .btn.solid:hover{box-shadow:0 18px 46px rgba(29,78,216,.26)}
-    .btn.sm{padding:9px 12px;border-radius:12px;font-size:13px}
-    .btn[disabled]{opacity:.55;cursor:not-allowed;transform:none;box-shadow:none}
-
     .layout{
       display:grid;
-      grid-template-columns:300px 1fr 360px;
+      grid-template-columns:310px 1fr 350px;
       gap:16px;
       margin-top:16px;
       align-items:start;
     }
-
-    .panel{
-      border:1px solid var(--line);
-      border-radius:var(--radius);
-      background:rgba(255,255,255,.88);
-      backdrop-filter:blur(10px);
-      box-shadow:var(--shadow);
-      padding:12px;
-    }
-
-    .leftCard{position:sticky;top:92px}
-    .welcomeRow{display:flex;align-items:center;gap:10px;padding:8px 8px 10px}
-    .avatar{
-      width:42px;height:42px;border-radius:16px;
-      background:linear-gradient(135deg, rgba(29,78,216,.20), rgba(11,59,137,.12));
-      border:1px solid rgba(29,78,216,.18);
-      display:flex;align-items:center;justify-content:center;
-      font-weight:900;color:var(--accent);user-select:none;flex:0 0 auto;
-    }
-    .welcomeMeta b{display:block;font-size:14px}
-    .welcomeMeta p{margin:2px 0 0;font-size:12px;color:var(--muted)}
-
-    .labelRow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 8px;margin-top:6px}
-    .labelRow span{font-size:12px;color:var(--muted);font-weight:700}
-    .labelRow b{font-size:12px;color:var(--accent)}
-
-    .bar{
-      height:10px;border-radius:999px;border:1px solid var(--line);
-      background:var(--soft);overflow:hidden;margin:8px 8px 10px;
-    }
-    .bar > div{
-      height:100%;width:0%;
-      background:linear-gradient(90deg, rgba(29,78,216,.35), rgba(11,59,137,.35));
-      transition:width .25s ease;
-    }
-
-    .leftActions{display:flex;gap:10px;padding:0 8px 10px}
-    .leftActions .btn{flex:1}
-
-    .navList{padding:4px 6px 6px}
-    .navItem{
-      display:flex;align-items:center;justify-content:space-between;
-      padding:12px;border-radius:14px;border:1px solid transparent;
-      cursor:pointer;font-weight:800;
-    }
-    .navItem:hover{background:var(--soft);border-color:#eef2f7}
-    .navItem.active{
-      background:linear-gradient(180deg,#fff,var(--soft2));
-      border-color:rgba(29,78,216,.22);
-      box-shadow:0 12px 28px rgba(2,6,23,.06);
-    }
-    .navItem small{color:var(--muted);font-weight:700}
-
-    .divider{height:1px;background:var(--line);margin:10px 8px}
-
-    .center{min-width:0;display:flex;flex-direction:column;gap:16px}
-    .hero{
-      border:1px solid var(--line);
-      border-radius:var(--radius);
-      background:linear-gradient(180deg, rgba(255,255,255,.92), rgba(248,250,252,.92));
-      box-shadow:var(--shadow);
-      padding:16px;
-      display:flex;gap:14px;align-items:flex-start;justify-content:space-between;
-    }
-    .hero h2{margin:0;font-size:18px}
-    .hero p{margin:8px 0 0;color:var(--muted);font-size:14px;line-height:1.55}
-    .heroRight{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
-
     .card{
+      background:var(--card);
       border:1px solid var(--line);
       border-radius:var(--radius);
-      background:var(--card);
       box-shadow:var(--shadow);
       padding:16px;
-      min-width:0;
     }
-    .head{
-      display:flex;align-items:center;justify-content:space-between;gap:10px;
-      margin-bottom:10px;
+    .sticky-left,.sticky-right{position:sticky;top:92px}
+    .profile-top{display:flex;gap:12px;align-items:center}
+    .avatar{
+      width:48px;height:48px;border-radius:16px;
+      display:flex;align-items:center;justify-content:center;
+      background:linear-gradient(135deg, rgba(37,99,235,.18), rgba(11,59,137,.12));
+      border:1px solid rgba(37,99,235,.18);
+      color:var(--primary-dark);font-weight:900;font-size:18px;
     }
-    .head h3{
-      margin:0;font-size:14px;letter-spacing:.18px;
-      text-transform:uppercase;color:var(--muted);
+    .profile-top h2{margin:0;font-size:15px}
+    .profile-top p{margin:3px 0 0;font-size:13px;color:var(--muted)}
+    .progress-row{
+      display:flex;justify-content:space-between;align-items:center;
+      margin-top:16px;font-size:13px;color:var(--muted);font-weight:700;
     }
-
-    .matchesSub{color:var(--muted);font-size:12px}
+    .bar{
+      margin-top:8px;height:10px;border-radius:999px;
+      background:#eef2f7;border:1px solid var(--line);overflow:hidden;
+    }
+    .bar-fill{
+      height:100%;width:0%;
+      background:linear-gradient(90deg, rgba(37,99,235,.45), rgba(11,59,137,.38));
+    }
+    .side-actions{display:flex;gap:10px;margin-top:14px}
+    .side-actions .btn{flex:1}
+    .nav{
+      margin-top:16px;padding-top:10px;border-top:1px solid var(--line);
+      display:flex;flex-direction:column;gap:6px;
+    }
+    .nav a,.nav button{
+      width:100%;display:flex;justify-content:space-between;align-items:center;
+      padding:12px;border-radius:14px;border:1px solid transparent;
+      background:transparent;text-align:left;cursor:pointer;font-weight:700;color:var(--text);
+    }
+    .nav a:hover,.nav button:hover{background:var(--soft);border-color:#e7edf5}
+    .hero{display:flex;justify-content:space-between;gap:14px;align-items:flex-start}
+    .hero h2{margin:0;font-size:18px}
+    .hero p{margin:8px 0 0;color:var(--muted);line-height:1.55}
+    .section-head{
+      display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px;
+    }
+    .section-head h3{
+      margin:0;font-size:14px;color:var(--muted);text-transform:uppercase;letter-spacing:.2px;
+    }
     .matches{
       display:grid;
-      grid-template-columns:repeat(2, minmax(0, 1fr));
+      grid-template-columns:repeat(2,minmax(0,1fr));
       gap:12px;
-      margin-top:12px;
     }
-    .mentorCard{
+    .mentor{
       border:1px solid var(--line);
       border-radius:16px;
       padding:12px;
       background:linear-gradient(180deg,#fff,var(--soft));
-      display:flex;flex-direction:column;gap:10px;min-width:0;
     }
-    .mentorTop{display:flex;align-items:center;gap:10px}
-    .mAvatar{
-      width:40px;height:40px;border-radius:14px;
-      background:linear-gradient(135deg, rgba(29,78,216,.20), rgba(11,59,137,.12));
-      border:1px solid rgba(29,78,216,.18);
+    .mentor-top{display:flex;gap:10px;align-items:flex-start}
+    .mentor-avatar{
+      width:42px;height:42px;border-radius:14px;
       display:flex;align-items:center;justify-content:center;
-      font-weight:900;color:var(--accent);flex:0 0 auto;user-select:none;
+      background:linear-gradient(135deg, rgba(37,99,235,.16), rgba(11,59,137,.12));
+      color:var(--primary-dark);font-weight:900;flex:0 0 auto;
     }
-    .mMeta{min-width:0}
-    .mMeta b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .mMeta span{display:block;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .mentor-meta{min-width:0}
+    .mentor-meta b{display:block;font-size:14px}
+    .mentor-meta span{
+      display:block;font-size:12px;color:var(--muted);
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    }
     .score{
-      margin-left:auto;padding:7px 10px;border-radius:999px;
-      border:1px solid rgba(29,78,216,.18);
-      background:rgba(29,78,216,.08);
-      color:var(--accent);font-weight:900;font-size:12px;white-space:nowrap;
+      margin-left:auto;
+      background:rgba(37,99,235,.08);
+      color:var(--primary-dark);
+      border:1px solid rgba(37,99,235,.18);
+      border-radius:999px;
+      padding:6px 10px;
+      font-size:12px;font-weight:800;
     }
-    .tags{display:flex;flex-wrap:wrap;gap:8px}
+    .tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
     .tag{
-      padding:7px 10px;border-radius:999px;border:1px solid var(--line);
-      background:#fff;font-size:12px;color:var(--muted);font-weight:700;
+      border:1px solid var(--line);
+      border-radius:999px;
+      padding:6px 10px;
+      font-size:12px;color:var(--muted);background:#fff;
     }
-    .actions{display:flex;gap:10px;flex-wrap:wrap}
-
+    .mentor-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
     .empty{
-      margin-top:12px;border:1px dashed #d7dee8;border-radius:16px;
-      padding:14px;background:linear-gradient(180deg,#fff,var(--soft));
+      border:1px dashed #d7dfeb;
+      border-radius:16px;
+      padding:14px;
+      background:linear-gradient(180deg,#fff,var(--soft));
+      color:var(--muted);
     }
-    .empty b{display:block;font-size:13px}
-    .empty p{margin:6px 0 0;color:var(--muted);font-size:13px;line-height:1.5}
-
-    .rightCard{position:sticky;top:92px}
-    .sectionTitle{
-      font-size:14px;letter-spacing:.18px;
-      text-transform:uppercase;color:var(--muted);font-weight:800;
+    .empty b{display:block;color:var(--text);margin-bottom:6px}
+    .list{display:flex;flex-direction:column;gap:10px}
+    .req{
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:12px;
+      background:#fff;
     }
-
+    .req-top{display:flex;justify-content:space-between;gap:10px;align-items:center}
+    .status{
+      border-radius:999px;
+      padding:6px 10px;
+      font-size:12px;font-weight:800;
+      border:1px solid var(--line);
+      background:var(--soft);
+      color:var(--muted);
+    }
+    .status.pending{background:rgba(234,179,8,.12);color:#92400e;border-color:rgba(234,179,8,.25)}
+    .status.accepted{background:rgba(34,197,94,.10);color:#166534;border-color:rgba(34,197,94,.25)}
+    .status.declined{background:rgba(239,68,68,.08);color:#b91c1c;border-color:rgba(239,68,68,.25)}
+    .muted{color:var(--muted)}
+    .small{font-size:12px}
     .toast{
-      position:fixed;bottom:18px;left:50%;transform:translateX(-50%);
+      position:fixed;left:50%;bottom:18px;transform:translateX(-50%);
       background:rgba(15,23,42,.92);color:#fff;padding:10px 12px;border-radius:14px;
-      box-shadow:0 18px 40px rgba(2,6,23,.18);font-size:13px;display:none;z-index:50;
+      display:none;z-index:50;
     }
     .toast.show{display:block}
-
-    .loading{
-      display:inline-flex;align-items:center;gap:8px;color:var(--muted);font-size:13px;
+    .modal-backdrop{
+      display:none;position:fixed;inset:0;background:rgba(2,6,23,.55);
+      z-index:60;align-items:center;justify-content:center;padding:18px;
     }
-    .dot{
-      width:8px;height:8px;border-radius:999px;background:rgba(29,78,216,.45);
-      animation:pulse 1.2s infinite ease-in-out;
+    .modal{
+      width:100%;max-width:560px;background:#fff;border:1px solid var(--line);
+      border-radius:18px;box-shadow:0 20px 50px rgba(2,6,23,.16);overflow:hidden;
     }
-    .dot:nth-child(2){animation-delay:.12s}
-    .dot:nth-child(3){animation-delay:.24s}
-    @keyframes pulse{
-      0%,100%{transform:translateY(0);opacity:.55}
-      50%{transform:translateY(-3px);opacity:1}
+    .modal-head,.modal-foot{padding:14px 16px}
+    .modal-head{
+      border-bottom:1px solid var(--line);
+      display:flex;justify-content:space-between;align-items:center;gap:10px;
     }
-
-    .muted{color:var(--muted)}
-
+    .modal-body{padding:16px}
+    .modal-foot{
+      border-top:1px solid var(--line);
+      background:var(--soft);
+      display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;
+    }
+    textarea{
+      width:100%;min-height:120px;padding:12px;border-radius:14px;
+      border:1px solid var(--line);resize:vertical;
+    }
     @media (max-width:1200px){
-      .layout{grid-template-columns:300px 1fr}
-      .rightCard{position:static}
-      .rightWrap{grid-column:1 / -1}
+      .layout{grid-template-columns:310px 1fr}
+      .sticky-right{position:static;grid-column:1 / -1}
     }
     @media (max-width:980px){
       .layout{grid-template-columns:1fr}
-      .leftCard,.rightCard{position:static}
+      .sticky-left,.sticky-right{position:static}
       .topbar{position:static}
       .matches{grid-template-columns:1fr}
     }
@@ -268,148 +251,129 @@
           <p>Mentee dashboard</p>
         </div>
       </div>
-
-      <div class="right-actions">
-        <span class="chip" id="envChip">Connecting…</span>
-        <a class="btn" id="browseBtn" href="mentor-directory.html">Browse mentors</a>
+      <div class="top-actions">
+        <span class="pill" id="envChip">Connecting...</span>
+        <a class="btn" href="mentor-directory.html">Browse mentors</a>
       </div>
     </header>
 
     <div class="layout">
-      <aside class="panel leftCard">
-        <div class="welcomeRow">
+      <aside class="card sticky-left">
+        <div class="profile-top">
           <div class="avatar" id="avatar">U</div>
-          <div class="welcomeMeta" style="min-width:0;">
-            <b id="welcomeName">Welcome</b>
-            <p id="welcomeSub">Loading profile…</p>
+          <div>
+            <h2 id="welcomeName">Welcome</h2>
+            <p id="welcomeSub">Loading profile...</p>
           </div>
         </div>
 
-        <div class="labelRow">
+        <div class="progress-row">
           <span>Profile completeness</span>
           <b id="completePct">—%</b>
         </div>
-        <div class="bar"><div id="completeBar"></div></div>
+        <div class="bar"><div class="bar-fill" id="completeBar"></div></div>
 
-        <div class="leftActions">
-          <a class="btn sm" href="mentee-onboarding.html">Edit profile</a>
-          <button class="btn sm" id="signOutBtn" type="button">Sign out</button>
+        <div class="side-actions">
+          <a class="btn" href="mentee-onboarding.html">Edit profile</a>
+          <button class="btn" id="signOutBtn" type="button">Sign out</button>
         </div>
 
-        <div class="divider"></div>
-
-        <div class="navList" aria-label="Navigation">
-          <div class="navItem active" data-scroll="dashboard">
-            <span>Dashboard</span>
-            <small>•</small>
-          </div>
-          <a class="navItem" href="mentor-directory.html"><span>Mentor directory</span><small id="matchCount">—</small></a>
-          <div class="navItem" data-scroll="activity">
-            <span>Requests</span>
-            <small id="reqCount">—</small>
-          </div>
-          <a class="navItem" href="messages.html"><span>Messages</span><small>Open</small></a>
+        <div class="nav">
+          <button type="button" onclick="scrollIntoViewById('journeyCard')">Dashboard <span>•</span></button>
+          <a href="mentor-directory.html">Mentor directory <span id="matchCount">—</span></a>
+          <button type="button" onclick="scrollIntoViewById('activityCard')">Requests <span id="reqCount">—</span></button>
+          <a href="messages.html">Messages <span>Open</span></a>
         </div>
       </aside>
 
-      <main class="center">
-        <section class="hero" id="dashboard">
-          <div>
-            <h2>Your mentoring journey</h2>
-            <p id="journeyText">Loading your matches…</p>
-          </div>
-          <div class="heroRight">
-            <button class="btn solid" id="refreshBtn" type="button">Refresh matches</button>
+      <main>
+        <section class="card" id="journeyCard">
+          <div class="hero">
+            <div>
+              <h2>Your mentoring journey</h2>
+              <p id="journeyText">Loading your matches...</p>
+            </div>
+            <button class="btn primary" id="refreshBtn" type="button">Refresh matches</button>
           </div>
         </section>
 
-        <section class="card" id="matchesSection">
-          <div class="head">
+        <section class="card" style="margin-top:16px">
+          <div class="section-head">
             <h3>Top mentor matches</h3>
-            <span class="chip">Matching: Tags • Field • Level • Timezone</span>
+            <span class="pill">Matching: Tags • Field • Level • Timezone</span>
           </div>
 
-          <div class="matchesSub" id="matchesSub">
-            <span class="loading"><span class="dot"></span><span class="dot"></span><span class="dot"></span>Loading mentors…</span>
-          </div>
+          <div class="muted small" id="matchesSub">Loading mentors...</div>
 
-          <div class="matches" id="matches"></div>
+          <div class="matches" id="matches" style="margin-top:12px"></div>
 
-          <div class="empty" id="emptyMatches" style="display:none;">
+          <div class="empty" id="emptyMatches" style="display:none;margin-top:12px">
             <b>No matches yet</b>
-            <p id="emptyMatchesText">Complete your onboarding and add mentors so we can recommend matches.</p>
-            <div class="actions" style="margin-top:10px;">
-              <a class="btn sm" href="mentee-onboarding.html">Complete onboarding</a>
-              <a class="btn sm" id="browseBtn2" href="mentor-directory.html">Browse mentors</a>
+            <div id="emptyMatchesText">Complete your onboarding and add mentors so we can recommend matches.</div>
+            <div class="mentor-actions" style="margin-top:10px">
+              <a class="btn" href="mentee-onboarding.html">Complete onboarding</a>
+              <a class="btn" href="mentor-directory.html">Browse mentors</a>
             </div>
           </div>
         </section>
       </main>
 
-      <aside class="panel rightCard rightWrap" id="activity">
-        <div class="head">
-          <h3 class="sectionTitle" style="margin:0;">My activity</h3>
-          <button class="btn sm" id="reloadReqBtn" type="button">Reload</button>
+      <aside class="card sticky-right" id="activityCard">
+        <div class="section-head">
+          <h3>My activity</h3>
+          <button class="btn" id="reloadReqBtn" type="button">Reload</button>
         </div>
 
-        <div class="divider"></div>
-
         <div>
-          <b style="font-size:13px;">Requests</b>
-          <div class="muted" style="margin-top:6px;font-size:13px;" id="reqSub">Loading…</div>
+          <b>Requests</b>
+          <div class="muted" id="reqSub" style="margin-top:8px">Loading...</div>
 
-          <div class="empty" style="margin-top:12px;" id="reqEmpty">
+          <div class="empty" id="reqEmpty" style="margin-top:12px">
             <b>No requests</b>
-            <p>Pick a mentor and send a short message about your goal.</p>
-            <div style="margin-top:10px;">
-              <a class="btn sm solid" id="goToMatchesBtn" href="mentor-directory.html">Go to matches</a>
+            <div>Pick a mentor and send a short message about your goal.</div>
+            <div class="mentor-actions" style="margin-top:10px">
+              <a class="btn primary" href="mentor-directory.html">Go to matches</a>
             </div>
           </div>
 
-          <div class="divider"></div>
+          <div class="list" id="reqList" style="display:none;margin-top:12px"></div>
+        </div>
 
-          <div>
-            <b style="font-size:13px;">Upcoming sessions</b>
-            <div class="muted" style="margin-top:6px;font-size:13px;">
-              Sessions will appear after a mentor accepts your request.
-            </div>
-
-            <div class="empty" style="margin-top:12px;">
-              <b>No sessions scheduled</b>
-              <p>After acceptance, you’ll be able to propose times based on timezone and availability.</p>
-              <div style="margin-top:10px;">
-                <a class="btn sm" href="sessions.html">Open sessions</a>
-              </div>
+        <div style="margin-top:18px;padding-top:18px;border-top:1px solid var(--line)">
+          <b>Upcoming sessions</b>
+          <div class="muted" style="margin-top:8px">Sessions will appear after a mentor accepts your request.</div>
+          <div class="empty" style="margin-top:12px">
+            <b>No sessions scheduled</b>
+            <div>After acceptance, you'll be able to propose times based on timezone and availability.</div>
+            <div class="mentor-actions" style="margin-top:10px">
+              <a class="btn" href="sessions.html">Open sessions</a>
             </div>
           </div>
-
-          <div id="reqList" style="margin-top:12px;display:none;"></div>
         </div>
       </aside>
     </div>
   </div>
 
-  <div id="requestBackdrop" role="dialog" aria-modal="true" aria-label="Request mentorship" style="display:none;position:fixed;inset:0;z-index:60;background:rgba(2,6,23,.55);align-items:center;justify-content:center;padding:18px;">
-    <div class="panel" style="width:100%;max-width:560px;padding:0;overflow:hidden;">
-      <div style="padding:14px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:10px;">
-        <strong id="requestModalTitle" style="font-size:14px;">Request mentorship</strong>
-        <button class="btn sm" id="closeRequestModalBtn" type="button">Close</button>
+  <div class="modal-backdrop" id="requestBackdrop">
+    <div class="modal">
+      <div class="modal-head">
+        <strong id="requestModalTitle">Request mentorship</strong>
+        <button class="btn" id="closeRequestModalBtn" type="button">Close</button>
       </div>
-      <div style="padding:16px;">
-        <label for="requestMessage" style="display:block;font-weight:800;font-size:13px;margin-bottom:8px;">Message to mentor</label>
-        <textarea id="requestMessage" style="width:100%;min-height:120px;padding:12px;border-radius:14px;border:1px solid var(--line);font-size:14px;resize:vertical;"></textarea>
-        <div class="muted" id="requestModalMeta" style="margin-top:10px;font-size:12px;color:var(--muted);"></div>
+      <div class="modal-body">
+        <label for="requestMessage" style="display:block;font-weight:700;margin-bottom:8px">Message to mentor</label>
+        <textarea id="requestMessage"></textarea>
+        <div class="muted small" id="requestModalMeta" style="margin-top:10px"></div>
       </div>
-      <div style="padding:14px 16px;border-top:1px solid var(--line);display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;background:var(--soft);">
-        <button class="btn sm" id="cancelRequestBtn" type="button">Cancel</button>
-        <button class="btn sm solid" id="sendRequestBtn" type="button">Send request</button>
+      <div class="modal-foot">
+        <button class="btn" id="cancelRequestBtn" type="button">Cancel</button>
+        <button class="btn primary" id="sendRequestBtn" type="button">Send request</button>
       </div>
     </div>
   </div>
 
   <div class="toast" id="toast"></div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     const SUPABASE_URL = "https://mscgaaaobxiuzqsukvjc.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y";
@@ -422,14 +386,14 @@
 
     const $ = (id) => document.getElementById(id);
 
-    let supabase = null;
-    let requestTarget = null;
+    let sb = null;
     let currentUser = null;
     let menteeProfile = null;
     let allMentors = [];
     let lastRequests = [];
+    let requestTarget = null;
 
-    function toast(msg){
+    function showToast(msg){
       const t = $("toast");
       t.textContent = msg;
       t.classList.add("show");
@@ -447,7 +411,7 @@
     }
 
     function esc(s){
-      return String(s ?? "").replace(/[&<>"']/g, (c) => ({
+      return String(s ?? "").replace(/[&<>"']/g, c => ({
         "&":"&amp;",
         "<":"&lt;",
         ">":"&gt;",
@@ -456,7 +420,7 @@
       }[c]));
     }
 
-    function initialsOf(name, fallback = "U"){
+    function initialsOf(name, fallback="U"){
       const ini = String(name || "")
         .split(" ")
         .filter(Boolean)
@@ -467,17 +431,32 @@
       return ini || fallback;
     }
 
+    function scrollIntoViewById(id){
+      document.getElementById(id)?.scrollIntoView({ behavior:"smooth", block:"start" });
+    }
+    window.scrollIntoViewById = scrollIntoViewById;
+
     function buildSupabaseClient(){
+      if (!window.supabase || typeof window.supabase.createClient !== "function") return null;
       try{
-        if (!window.supabase || typeof window.supabase.createClient !== "function"){
-          console.error("Supabase library not loaded.");
-          return null;
-        }
         return window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-      }catch(err){
-        console.error("Failed to create Supabase client:", err);
+      }catch(e){
+        console.error(e);
         return null;
       }
+    }
+
+    function calcCompleteness(mentee){
+      const fields = ["goal","level","field","tags","timezone","availability"];
+      let filled = 0;
+      for (const f of fields){
+        if (f === "tags"){
+          if (safeArr(mentee.tags).length >= 3) filled++;
+        } else if (mentee[f]) {
+          filled++;
+        }
+      }
+      return Math.round((filled / fields.length) * 100);
     }
 
     function scoreMentor(mentee, mentor){
@@ -509,21 +488,7 @@
         ? (normalize(mentee.availability) === normalize(mentor.availability) ? 1 : 0.6)
         : 0;
 
-      const total = (tagScore * 45) + (fieldScore * 20) + (levelFit * 15) + (tzScore * 10) + (availScore * 10);
-      return Math.round(Math.min(100, Math.max(0, total)));
-    }
-
-    function calcCompleteness(mentee){
-      const fields = ["goal", "level", "field", "tags", "timezone", "availability"];
-      let filled = 0;
-      for (const f of fields){
-        if (f === "tags"){
-          if (safeArr(mentee.tags).length >= 3) filled++;
-        } else if (mentee[f]) {
-          filled++;
-        }
-      }
-      return Math.round((filled / fields.length) * 100);
+      return Math.round((tagScore * 45) + (fieldScore * 20) + (levelFit * 15) + (tzScore * 10) + (availScore * 10));
     }
 
     function defaultRequestMessage(mentorName){
@@ -538,187 +503,30 @@ I’m focused on ${field} and I’d appreciate your guidance on the next steps a
 Thank you!`;
     }
 
-    function mentorCard(mentor, score){
-      const name = mentor.full_name || "Mentor";
-      const headline = mentor.headline || "Mentor";
-      const field = mentor.field || "—";
-      const tags = safeArr(mentor.tags).slice(0, 6);
-      const ini = initialsOf(name, "M");
-
-      const alreadyRequested = (lastRequests || []).some(
-        r => String(r.mentor_id) === String(mentor.user_id)
-      );
-
-      return `
-        <article class="mentorCard">
-          <div class="mentorTop">
-            <div class="mAvatar">${esc(ini)}</div>
-            <div class="mMeta">
-              <b title="${esc(name)}">${esc(name)}</b>
-              <span title="${esc(headline)} • ${esc(field)}">${esc(headline)} • ${esc(field)}</span>
-            </div>
-            <div class="score">${score}%</div>
-          </div>
-          <div class="tags">
-            ${tags.map(t => `<span class="tag">${esc(t)}</span>`).join("")}
-          </div>
-          <div class="actions">
-            <button
-              class="btn sm solid"
-              data-mentor="${mentor.user_id || ""}"
-              data-name="${esc(name)}"
-              type="button"
-              onclick="openRequest(this)"
-              ${alreadyRequested ? "disabled" : ""}
-            >
-              ${alreadyRequested ? "Requested" : "Request"}
-            </button>
-            <button class="btn sm" type="button" onclick="window.location.href='mentor-directory.html'">View profile</button>
-          </div>
-        </article>
-      `;
-    }
-
-    function openRequest(btn){
-      const mentorId = btn.getAttribute("data-mentor");
-      const mentorName = btn.getAttribute("data-name") || "Mentor";
-
-      if (!mentorId){
-        toast("Cannot send request: mentor profile missing user_id.");
-        return;
-      }
-
-      requestTarget = { mentorId, mentorName };
-      $("requestModalTitle").textContent = `Request mentorship — ${mentorName}`;
-      $("requestModalMeta").textContent = "Your request will appear in the mentor dashboard immediately.";
-      $("requestMessage").value = defaultRequestMessage(mentorName);
-      $("requestBackdrop").style.display = "flex";
-      $("requestMessage").focus();
-    }
-    window.openRequest = openRequest;
-
-    function closeRequestModal(){
-      requestTarget = null;
-      $("requestBackdrop").style.display = "none";
-    }
-
-    async function sendRequest(){
-      if (!requestTarget || !currentUser || !supabase){
-        toast("Not signed in.");
-        return;
-      }
-
-      const msg = $("requestMessage").value.trim();
-      if (msg.length < 10){
-        toast("Please write a short message.");
-        return;
-      }
-
-      const sendBtn = $("sendRequestBtn");
-
-      try{
-        sendBtn.disabled = true;
-        sendBtn.textContent = "Sending…";
-
-        const { data: existing, error: existingErr } = await supabase
-          .from(TABLES.requests)
-          .select("id,status")
-          .eq("mentee_id", currentUser.id)
-          .eq("mentor_id", requestTarget.mentorId)
-          .limit(1);
-
-        if (existingErr) throw existingErr;
-
-        if (existing && existing.length > 0){
-          toast("You already sent a request to this mentor.");
-          return;
-        }
-
-        const { data: mentorRow, error: mentorErr } = await supabase
-          .from(TABLES.mentors)
-          .select("active_slots")
-          .eq("user_id", requestTarget.mentorId)
-          .maybeSingle();
-
-        if (mentorErr) throw mentorErr;
-
-        const maxSlots = Number(mentorRow?.active_slots || 1);
-
-        const { count: acceptedCount, error: countErr } = await supabase
-          .from(TABLES.requests)
-          .select("*", { count: "exact", head: true })
-          .eq("mentor_id", requestTarget.mentorId)
-          .eq("status", "accepted");
-
-        if (countErr) throw countErr;
-
-        if ((acceptedCount || 0) >= maxSlots){
-          toast("This mentor has no open slots right now.");
-          return;
-        }
-
-        const { error } = await supabase.from(TABLES.requests).insert({
-          mentee_id: currentUser.id,
-          mentor_id: requestTarget.mentorId,
-          message: msg,
-          status: "pending"
-        });
-
-        if (error) throw error;
-
-        toast("Request sent ✅");
-        closeRequestModal();
-        await loadRequests();
-        updateJourneyText();
-        renderMatches();
-      }catch(e){
-        console.error(e);
-        toast("Could not send request. Check Supabase table / RLS.");
-      }finally{
-        sendBtn.disabled = false;
-        sendBtn.textContent = "Send request";
-      }
-    }
-
     async function guardAuth(){
       if (!supabase){
         $("envChip").textContent = "Supabase not configured";
         $("journeyText").textContent = "Supabase client could not be created.";
-        $("matchesSub").textContent = "Check the Supabase script and credentials.";
-        console.error("Supabase client not created.", {
-          hasWindowSupabase: !!window.supabase,
-          hasCreateClient: !!window.supabase?.createClient
-        });
+        $("matchesSub").textContent = "Check Supabase script and credentials.";
         return false;
       }
 
-      $("envChip").textContent = "Checking session…";
+      const { data: { session }, error } = await supabase.auth.getSession();
 
-      try{
-        const { data: { session }, error } = await supabase.auth.getSession();
-
-        if (error){
-          console.error("getSession error:", error);
-          $("envChip").textContent = "Session error";
-          $("journeyText").textContent = "Could not verify session.";
-          return false;
-        }
-
-        if (!session){
-          const returnTo = encodeURIComponent(window.location.pathname.split("/").pop() || "mentee-dashboard.html");
-          window.location.href = `auth.html?returnTo=${returnTo}`;
-          return false;
-        }
-
-        currentUser = session.user;
-        $("envChip").textContent = "Live";
-        return true;
-      }catch(err){
-        console.error("guardAuth crashed:", err);
-        $("envChip").textContent = "Auth error";
-        $("journeyText").textContent = "Authentication could not be completed.";
+      if (error){
+        console.error(error);
+        $("envChip").textContent = "Session error";
         return false;
       }
+
+      if (!session){
+        window.location.href = "auth.html";
+        return false;
+      }
+
+      currentUser = session.user;
+      $("envChip").textContent = "Live";
+      return true;
     }
 
     async function loadMenteeProfile(){
@@ -730,26 +538,6 @@ Thank you!`;
 
       if (error) console.error(error);
       menteeProfile = data || null;
-
-      if (!menteeProfile){
-        try{
-          const raw = localStorage.getItem("mentee_onboarding_draft");
-          if (raw){
-            const d = JSON.parse(raw);
-            menteeProfile = {
-              user_id: currentUser.id,
-              full_name: currentUser.user_metadata?.full_name || currentUser.email,
-              goal: d.goal,
-              level: d.level,
-              field: d.field,
-              tags: d.tags,
-              timezone: d.timezone,
-              availability: d.availability
-            };
-            toast("Using saved draft (not yet saved to Supabase).");
-          }
-        }catch(_){}
-      }
 
       const name = menteeProfile?.full_name || currentUser.user_metadata?.full_name || currentUser.email || "Welcome";
       $("welcomeName").textContent = "Welcome";
@@ -765,9 +553,9 @@ Thank you!`;
 
     function updateJourneyText(){
       const pct = menteeProfile ? calcCompleteness(menteeProfile) : 0;
-      const hasRequests = (lastRequests || []).length > 0;
-      const pending = (lastRequests || []).some(r => (r.status || "").toLowerCase() === "pending");
-      const accepted = (lastRequests || []).some(r => (r.status || "").toLowerCase() === "accepted");
+      const hasRequests = lastRequests.length > 0;
+      const pending = lastRequests.some(r => (r.status || "").toLowerCase() === "pending");
+      const accepted = lastRequests.some(r => (r.status || "").toLowerCase() === "accepted");
 
       if (!menteeProfile || pct < 60){
         $("journeyText").textContent = "Step 1: Complete onboarding to unlock accurate matches.";
@@ -789,13 +577,13 @@ Thank you!`;
     }
 
     async function loadMentors(){
-      $("matchesSub").innerHTML = "<span class='loading'><span class='dot'></span><span class='dot'></span><span class='dot'></span>Loading mentors…</span>";
+      $("matchesSub").textContent = "Loading mentors...";
 
       const { data, error } = await supabase
         .from(TABLES.mentors)
         .select("*")
         .order("created_at", { ascending:false })
-        .limit(200);
+        .limit(100);
 
       if (error){
         console.error(error);
@@ -805,13 +593,7 @@ Thank you!`;
 
       allMentors = data || [];
       $("matchCount").textContent = String(allMentors.length);
-
-      if (allMentors.length === 0){
-        $("matchesSub").textContent = "No mentors available yet.";
-        return;
-      }
-
-      $("matchesSub").textContent = `${allMentors.length} mentors loaded`;
+      $("matchesSub").textContent = allMentors.length ? `${allMentors.length} mentors loaded` : "No mentors available yet.";
     }
 
     function renderMatches(){
@@ -824,7 +606,7 @@ Thank you!`;
         return;
       }
 
-      if (allMentors.length === 0){
+      if (!allMentors.length){
         $("emptyMatches").style.display = "block";
         $("emptyMatchesText").textContent = "No mentors have completed onboarding yet.";
         return;
@@ -832,22 +614,57 @@ Thank you!`;
 
       const scored = allMentors
         .map(m => ({ m, score: scoreMentor(menteeProfile, m) }))
-        .sort((a,b) => b.score - a.score);
+        .sort((a,b) => b.score - a.score)
+        .slice(0, 8);
 
-      const top = scored.slice(0, 8);
-
-      if (top.length === 0){
+      if (!scored.length){
         $("emptyMatches").style.display = "block";
         $("emptyMatchesText").textContent = "No matches yet. Update your profile tags and field.";
         return;
       }
 
       $("emptyMatches").style.display = "none";
-      host.innerHTML = top.map(x => mentorCard(x.m, x.score)).join("");
+
+      host.innerHTML = scored.map(({m, score}) => {
+        const name = m.full_name || "Mentor";
+        const headline = m.headline || "Mentor";
+        const field = m.field || "—";
+        const tags = safeArr(m.tags).slice(0, 6);
+        const alreadyRequested = lastRequests.some(r => String(r.mentor_id) === String(m.user_id));
+
+        return `
+          <article class="mentor">
+            <div class="mentor-top">
+              <div class="mentor-avatar">${esc(initialsOf(name, "M"))}</div>
+              <div class="mentor-meta">
+                <b>${esc(name)}</b>
+                <span>${esc(headline)} • ${esc(field)}</span>
+              </div>
+              <div class="score">${score}%</div>
+            </div>
+
+            <div class="tags">
+              ${tags.map(t => `<span class="tag">${esc(t)}</span>`).join("")}
+            </div>
+
+            <div class="mentor-actions">
+              <button
+                class="btn primary"
+                type="button"
+                ${alreadyRequested ? "disabled" : ""}
+                onclick="openRequestModal('${esc(String(m.user_id || ""))}','${esc(name)}')"
+              >
+                ${alreadyRequested ? "Requested" : "Request"}
+              </button>
+              <a class="btn" href="mentor-directory.html">View profile</a>
+            </div>
+          </article>
+        `;
+      }).join("");
     }
 
     async function loadRequests(){
-      $("reqSub").textContent = "Loading…";
+      $("reqSub").textContent = "Loading...";
 
       const { data, error } = await supabase
         .from(TABLES.requests)
@@ -858,15 +675,14 @@ Thank you!`;
 
       if (error){
         console.error(error);
-        $("reqSub").textContent = "Could not load requests (check RLS).";
-        $("reqCount").textContent = "—";
+        $("reqSub").textContent = "Could not load requests.";
         return;
       }
 
       lastRequests = data || [];
       $("reqCount").textContent = String(lastRequests.length);
 
-      if (lastRequests.length === 0){
+      if (!lastRequests.length){
         $("reqSub").textContent = "No requests yet.";
         $("reqEmpty").style.display = "block";
         $("reqList").style.display = "none";
@@ -876,66 +692,140 @@ Thank you!`;
 
       $("reqSub").textContent = `${lastRequests.length} recent request(s)`;
       $("reqEmpty").style.display = "none";
-      $("reqList").style.display = "block";
+      $("reqList").style.display = "flex";
 
       $("reqList").innerHTML = lastRequests.map(r => `
-        <div class="mentorCard" style="background:#fff;">
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
-            <b style="font-size:13px;">Request</b>
-            <span class="chip">${esc(r.status || "pending")}</span>
+        <div class="req">
+          <div class="req-top">
+            <b>Request</b>
+            <span class="status ${(r.status || "pending").toLowerCase()}">${esc(r.status || "pending")}</span>
           </div>
-          <div class="muted" style="font-size:13px;line-height:1.5;margin-top:6px;">${esc(r.message || "")}</div>
-          <div class="muted" style="font-size:12px;margin-top:8px;">${new Date(r.created_at || Date.now()).toLocaleString()}</div>
+          <div class="muted" style="margin-top:8px;line-height:1.5">${esc(r.message || "")}</div>
+          <div class="small muted" style="margin-top:8px">${new Date(r.created_at || Date.now()).toLocaleString()}</div>
         </div>
       `).join("");
 
       updateJourneyText();
     }
 
-    function setActive(which){
-      document.querySelectorAll(".navItem").forEach(x => x.classList.remove("active"));
-      const el = document.querySelector(`.navItem[data-scroll="${which}"]`);
-      if (el) el.classList.add("active");
+    function openRequestModal(mentorId, mentorName){
+      if (!mentorId){
+        showToast("Mentor profile missing user ID.");
+        return;
+      }
+      requestTarget = { mentorId, mentorName };
+      $("requestModalTitle").textContent = `Request mentorship — ${mentorName}`;
+      $("requestModalMeta").textContent = "Your request will appear in the mentor dashboard immediately.";
+      $("requestMessage").value = defaultRequestMessage(mentorName);
+      $("requestBackdrop").style.display = "flex";
+    }
+    window.openRequestModal = openRequestModal;
+
+    function closeRequestModal(){
+      requestTarget = null;
+      $("requestBackdrop").style.display = "none";
     }
 
-    function scrollTo(which){
-      if (which === "dashboard") document.getElementById("dashboard")?.scrollIntoView({ behavior:"smooth", block:"start" });
-      if (which === "matches") document.getElementById("matchesSection")?.scrollIntoView({ behavior:"smooth", block:"start" });
-      if (which === "activity") document.getElementById("activity")?.scrollIntoView({ behavior:"smooth", block:"start" });
-      setActive(which);
+    async function sendRequest(){
+      if (!requestTarget || !currentUser || !supabase){
+        showToast("Not signed in.");
+        return;
+      }
+
+      const msg = $("requestMessage").value.trim();
+      if (msg.length < 10){
+        showToast("Please write a short message.");
+        return;
+      }
+
+      const btn = $("sendRequestBtn");
+      btn.disabled = true;
+      btn.textContent = "Sending...";
+
+      try{
+        const { data: existing, error: existingErr } = await supabase
+          .from(TABLES.requests)
+          .select("id,status")
+          .eq("mentee_id", currentUser.id)
+          .eq("mentor_id", requestTarget.mentorId)
+          .limit(1);
+
+        if (existingErr) throw existingErr;
+        if (existing && existing.length > 0){
+          showToast("You already sent a request to this mentor.");
+          return;
+        }
+
+        const { data: mentorRow, error: mentorErr } = await supabase
+          .from(TABLES.mentors)
+          .select("active_slots")
+          .eq("user_id", requestTarget.mentorId)
+          .maybeSingle();
+
+        if (mentorErr) throw mentorErr;
+
+        const maxSlots = Number(mentorRow?.active_slots || 1);
+
+        const { count: acceptedCount, error: countErr } = await supabase
+          .from(TABLES.requests)
+          .select("*", { count:"exact", head:true })
+          .eq("mentor_id", requestTarget.mentorId)
+          .eq("status", "accepted");
+
+        if (countErr) throw countErr;
+
+        if ((acceptedCount || 0) >= maxSlots){
+          showToast("This mentor has no open slots right now.");
+          return;
+        }
+
+        const { error } = await supabase
+          .from(TABLES.requests)
+          .insert({
+            mentee_id: currentUser.id,
+            mentor_id: requestTarget.mentorId,
+            message: msg,
+            status: "pending"
+          });
+
+        if (error) throw error;
+
+        showToast("Request sent ✅");
+        closeRequestModal();
+        await loadRequests();
+        renderMatches();
+      }catch(e){
+        console.error(e);
+        showToast("Could not send request.");
+      }finally{
+        btn.disabled = false;
+        btn.textContent = "Send request";
+      }
     }
-
-    document.querySelectorAll(".navItem[data-scroll]").forEach(item => {
-      item.addEventListener("click", () => scrollTo(item.getAttribute("data-scroll")));
-    });
-
-    $("browseBtn").addEventListener("click", (e) => { e.preventDefault(); scrollTo("matches"); });
-    $("browseBtn2").addEventListener("click", (e) => { e.preventDefault(); scrollTo("matches"); });
-    $("goToMatchesBtn").addEventListener("click", (e) => { e.preventDefault(); scrollTo("matches"); });
-
-    $("refreshBtn").addEventListener("click", async () => {
-      await loadMentors();
-      renderMatches();
-      toast("Matches refreshed");
-    });
-
-    $("reloadReqBtn").addEventListener("click", async () => {
-      await loadRequests();
-      renderMatches();
-      toast("Requests updated");
-    });
-
-    $("signOutBtn").addEventListener("click", async () => {
-      if (!supabase) return;
-      await supabase.auth.signOut();
-      window.location.href = "index.html";
-    });
 
     $("closeRequestModalBtn").addEventListener("click", closeRequestModal);
     $("cancelRequestBtn").addEventListener("click", closeRequestModal);
     $("sendRequestBtn").addEventListener("click", sendRequest);
     $("requestBackdrop").addEventListener("click", (e) => {
       if (e.target === $("requestBackdrop")) closeRequestModal();
+    });
+
+    $("refreshBtn").addEventListener("click", async () => {
+      await loadMentors();
+      renderMatches();
+      showToast("Matches refreshed");
+    });
+
+    $("reloadReqBtn").addEventListener("click", async () => {
+      await loadRequests();
+      renderMatches();
+      showToast("Requests updated");
+    });
+
+    $("signOutBtn").addEventListener("click", async () => {
+      if (!supabase) return;
+      await supabase.auth.signOut();
+      window.location.href = "index.html";
     });
 
     window.addEventListener("load", async () => {

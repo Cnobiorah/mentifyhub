@@ -374,471 +374,476 @@
 
   <div class="toast" id="toast"></div>
 
-  <script>
-    const SUPABASE_URL = "https://mscgaaaobxiuzqsukvjc.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y";
+ <script>
+  const SUPABASE_URL = "https://mscgaaaobxiuzqsukvjc.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y";
 
-    const TABLES = {
-      mentees: "mentees",
-      mentors: "mentors",
-      requests: "mentorship_requests"
-    };
+  const TABLES = {
+    mentees: "mentees",
+    mentors: "mentors",
+    requests: "mentorship_requests"
+  };
 
-    const $ = (id) => document.getElementById(id);
+  const $ = (id) => document.getElementById(id);
 
-    let sb = null;
-    let currentUser = null;
-    let menteeProfile = null;
-    let allMentors = [];
-    let lastRequests = [];
-    let requestTarget = null;
+  let sb = null;
+  let currentUser = null;
+  let menteeProfile = null;
+  let allMentors = [];
+  let lastRequests = [];
+  let requestTarget = null;
 
-    function showToast(msg){
-      const t = $("toast");
-      t.textContent = msg;
-      t.classList.add("show");
-      setTimeout(() => t.classList.remove("show"), 2600);
+  function showToast(msg){
+    const t = $("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    setTimeout(() => t.classList.remove("show"), 2600);
+  }
+
+  function safeArr(v){
+    if (Array.isArray(v)) return v;
+    if (typeof v === "string") return v.split(",").map(s => s.trim()).filter(Boolean);
+    return [];
+  }
+
+  function normalize(s){
+    return String(s || "").trim().toLowerCase();
+  }
+
+  function esc(s){
+    return String(s ?? "").replace(/[&<>"']/g, c => ({
+      "&":"&amp;",
+      "<":"&lt;",
+      ">":"&gt;",
+      '"':"&quot;",
+      "'":"&#39;"
+    }[c]));
+  }
+
+  function initialsOf(name, fallback = "U"){
+    const ini = String(name || "")
+      .split(" ")
+      .filter(Boolean)
+      .slice(0, 2)
+      .map(w => w[0])
+      .join("")
+      .toUpperCase();
+    return ini || fallback;
+  }
+
+  function scrollIntoViewById(id){
+    document.getElementById(id)?.scrollIntoView({ behavior:"smooth", block:"start" });
+  }
+  window.scrollIntoViewById = scrollIntoViewById;
+
+  function buildSupabaseClient(){
+    if (!window.supabase || typeof window.supabase.createClient !== "function") return null;
+    try{
+      return window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }catch(e){
+      console.error(e);
+      return null;
     }
+  }
 
-    function safeArr(v){
-      if (Array.isArray(v)) return v;
-      if (typeof v === "string") return v.split(",").map(s => s.trim()).filter(Boolean);
-      return [];
-    }
-
-    function normalize(s){
-      return String(s || "").trim().toLowerCase();
-    }
-
-    function esc(s){
-      return String(s ?? "").replace(/[&<>"']/g, c => ({
-        "&":"&amp;",
-        "<":"&lt;",
-        ">":"&gt;",
-        '"':"&quot;",
-        "'":"&#39;"
-      }[c]));
-    }
-
-    function initialsOf(name, fallback="U"){
-      const ini = String(name || "")
-        .split(" ")
-        .filter(Boolean)
-        .slice(0, 2)
-        .map(w => w[0])
-        .join("")
-        .toUpperCase();
-      return ini || fallback;
-    }
-
-    function scrollIntoViewById(id){
-      document.getElementById(id)?.scrollIntoView({ behavior:"smooth", block:"start" });
-    }
-    window.scrollIntoViewById = scrollIntoViewById;
-
-    function buildSupabaseClient(){
-      if (!window.supabase || typeof window.supabase.createClient !== "function") return null;
-      try{
-        return window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-      }catch(e){
-        console.error(e);
-        return null;
+  function calcCompleteness(mentee){
+    const fields = ["goal","level","field","tags","timezone","availability"];
+    let filled = 0;
+    for (const f of fields){
+      if (f === "tags"){
+        if (safeArr(mentee.tags).length >= 3) filled++;
+      } else if (mentee[f]) {
+        filled++;
       }
     }
+    return Math.round((filled / fields.length) * 100);
+  }
 
-    function calcCompleteness(mentee){
-      const fields = ["goal","level","field","tags","timezone","availability"];
-      let filled = 0;
-      for (const f of fields){
-        if (f === "tags"){
-          if (safeArr(mentee.tags).length >= 3) filled++;
-        } else if (mentee[f]) {
-          filled++;
-        }
-      }
-      return Math.round((filled / fields.length) * 100);
-    }
+  function scoreMentor(mentee, mentor){
+    const mTags = new Set(safeArr(mentee.tags).map(normalize));
+    const rTags = new Set(safeArr(mentor.tags).map(normalize));
+    const overlap = [...mTags].filter(t => rTags.has(t));
+    const tagScore = mTags.size ? (overlap.length / mTags.size) : 0;
 
-    function scoreMentor(mentee, mentor){
-      const mTags = new Set(safeArr(mentee.tags).map(normalize));
-      const rTags = new Set(safeArr(mentor.tags).map(normalize));
-      const overlap = [...mTags].filter(t => rTags.has(t));
-      const tagScore = mTags.size ? (overlap.length / mTags.size) : 0;
+    const fieldScore = mentee.field && mentor.field
+      ? (normalize(mentee.field) === normalize(mentor.field) ? 1 : 0)
+      : 0;
 
-      const fieldScore = mentee.field && mentor.field
-        ? (normalize(mentee.field) === normalize(mentor.field) ? 1 : 0)
-        : 0;
+    const levelMap = { beginner:1, intermediate:2, advanced:3 };
+    const menteeLevel = levelMap[normalize(mentee.level)] || 0;
 
-      const levelMap = { beginner:1, intermediate:2, advanced:3 };
-      const menteeLevel = levelMap[normalize(mentee.level)] || 0;
+    const exp = normalize(mentor.experience);
+    let mentorLevel = 0;
+    if (exp.includes("senior") || exp.includes("9")) mentorLevel = 3;
+    else if (exp.includes("mid") || exp.includes("4")) mentorLevel = 2;
+    else if (exp.includes("early") || exp.includes("1")) mentorLevel = 1;
 
-      const exp = normalize(mentor.experience);
-      let mentorLevel = 0;
-      if (exp.includes("senior") || exp.includes("9")) mentorLevel = 3;
-      else if (exp.includes("mid") || exp.includes("4")) mentorLevel = 2;
-      else if (exp.includes("early") || exp.includes("1")) mentorLevel = 1;
+    const levelFit = (menteeLevel && mentorLevel) ? (mentorLevel >= menteeLevel ? 1 : 0.3) : 0;
 
-      const levelFit = (menteeLevel && mentorLevel) ? (mentorLevel >= menteeLevel ? 1 : 0.3) : 0;
+    const tzScore = mentee.timezone && mentor.timezone
+      ? (normalize(mentee.timezone) === normalize(mentor.timezone) ? 1 : 0.5)
+      : 0;
 
-      const tzScore = mentee.timezone && mentor.timezone
-        ? (normalize(mentee.timezone) === normalize(mentor.timezone) ? 1 : 0.5)
-        : 0;
+    const availScore = mentee.availability && mentor.availability
+      ? (normalize(mentee.availability) === normalize(mentor.availability) ? 1 : 0.6)
+      : 0;
 
-      const availScore = mentee.availability && mentor.availability
-        ? (normalize(mentee.availability) === normalize(mentor.availability) ? 1 : 0.6)
-        : 0;
+    return Math.round((tagScore * 45) + (fieldScore * 20) + (levelFit * 15) + (tzScore * 10) + (availScore * 10));
+  }
 
-      return Math.round((tagScore * 45) + (fieldScore * 20) + (levelFit * 15) + (tzScore * 10) + (availScore * 10));
-    }
-
-    function defaultRequestMessage(mentorName){
-      const goal = menteeProfile?.goal || "my mentoring goals";
-      const field = menteeProfile?.field || "my field";
-      return `Hi ${mentorName},
+  function defaultRequestMessage(mentorName){
+    const goal = menteeProfile?.goal || "my mentoring goals";
+    const field = menteeProfile?.field || "my field";
+    return `Hi ${mentorName},
 
 I’m a mentee on MentifyHub and I’d love to request mentorship. My main goal is: ${goal}.
 
 I’m focused on ${field} and I’d appreciate your guidance on the next steps and how to build skill/experience.
 
 Thank you!`;
+  }
+
+  async function guardAuth(){
+    if (!sb){
+      $("envChip").textContent = "Supabase not configured";
+      $("journeyText").textContent = "Supabase client could not be created.";
+      $("matchesSub").textContent = "Check Supabase script and credentials.";
+      return false;
     }
 
-    async function guardAuth(){
-      if (!supabase){
-        $("envChip").textContent = "Supabase not configured";
-        $("journeyText").textContent = "Supabase client could not be created.";
-        $("matchesSub").textContent = "Check Supabase script and credentials.";
-        return false;
-      }
+    const { data: { session }, error } = await sb.auth.getSession();
 
-      const { data: { session }, error } = await supabase.auth.getSession();
-
-      if (error){
-        console.error(error);
-        $("envChip").textContent = "Session error";
-        return false;
-      }
-
-      if (!session){
-        window.location.href = "auth.html";
-        return false;
-      }
-
-      currentUser = session.user;
-      $("envChip").textContent = "Live";
-      return true;
+    if (error){
+      console.error(error);
+      $("envChip").textContent = "Session error";
+      return false;
     }
 
-    async function loadMenteeProfile(){
-      const { data, error } = await supabase
-        .from(TABLES.mentees)
-        .select("*")
-        .eq("user_id", currentUser.id)
+    if (!session){
+      window.location.href = "auth.html?mode=signin";
+      return false;
+    }
+
+    currentUser = session.user;
+    $("envChip").textContent = "Live";
+    return true;
+  }
+
+  async function loadMenteeProfile(){
+    const { data, error } = await sb
+      .from(TABLES.mentees)
+      .select("*")
+      .eq("user_id", currentUser.id)
+      .maybeSingle();
+
+    if (error) console.error(error);
+    menteeProfile = data || null;
+
+    const name = menteeProfile?.full_name || currentUser.user_metadata?.full_name || currentUser.email || "Welcome";
+    $("welcomeName").textContent = "Welcome";
+    $("welcomeSub").textContent = menteeProfile ? name : "Complete onboarding to load your profile";
+    $("avatar").textContent = initialsOf(name, "U");
+
+    const pct = menteeProfile ? calcCompleteness(menteeProfile) : 0;
+    $("completePct").textContent = pct + "%";
+    $("completeBar").style.width = pct + "%";
+
+    updateJourneyText();
+  }
+
+  function updateJourneyText(){
+    const pct = menteeProfile ? calcCompleteness(menteeProfile) : 0;
+    const hasRequests = lastRequests.length > 0;
+    const pending = lastRequests.some(r => (r.status || "").toLowerCase() === "pending");
+    const accepted = lastRequests.some(r => (r.status || "").toLowerCase() === "accepted");
+
+    if (!menteeProfile || pct < 60){
+      $("journeyText").textContent = "Step 1: Complete onboarding to unlock accurate matches.";
+      return;
+    }
+    if (!hasRequests){
+      $("journeyText").textContent = "Step 2: Review your top matches and send a mentorship request.";
+      return;
+    }
+    if (accepted){
+      $("journeyText").textContent = "Step 3: You have an accepted request — next: schedule your first session.";
+      return;
+    }
+    if (pending){
+      $("journeyText").textContent = "Step 3: Request sent — waiting for mentor acceptance.";
+      return;
+    }
+    $("journeyText").textContent = "You’re on track — review matches and manage your requests.";
+  }
+
+  async function loadMentors(){
+    $("matchesSub").textContent = "Loading mentors...";
+
+    const { data, error } = await sb
+      .from(TABLES.mentors)
+      .select("*")
+      .order("created_at", { ascending:false })
+      .limit(100);
+
+    if (error){
+      console.error(error);
+      $("matchesSub").textContent = "Could not load mentors (check RLS).";
+      return;
+    }
+
+    allMentors = data || [];
+    $("matchCount").textContent = String(allMentors.length);
+    $("matchesSub").textContent = allMentors.length ? `${allMentors.length} mentors loaded` : "No mentors available yet.";
+  }
+
+  function renderMatches(){
+    const host = $("matches");
+    host.innerHTML = "";
+
+    if (!menteeProfile){
+      $("emptyMatches").style.display = "block";
+      $("emptyMatchesText").textContent = "Complete onboarding first so we can recommend mentors.";
+      return;
+    }
+
+    if (!allMentors.length){
+      $("emptyMatches").style.display = "block";
+      $("emptyMatchesText").textContent = "No mentors have completed onboarding yet.";
+      return;
+    }
+
+    const scored = allMentors
+      .map(m => ({ m, score: scoreMentor(menteeProfile, m) }))
+      .sort((a,b) => b.score - a.score)
+      .slice(0, 8);
+
+    if (!scored.length){
+      $("emptyMatches").style.display = "block";
+      $("emptyMatchesText").textContent = "No matches yet. Update your profile tags and field.";
+      return;
+    }
+
+    $("emptyMatches").style.display = "none";
+
+    host.innerHTML = scored.map(({m, score}) => {
+      const name = m.full_name || "Mentor";
+      const headline = m.headline || "Mentor";
+      const field = m.field || "—";
+      const tags = safeArr(m.tags).slice(0, 6);
+      const alreadyRequested = lastRequests.some(r => String(r.mentor_id) === String(m.user_id));
+
+      return `
+        <article class="mentor">
+          <div class="mentor-top">
+            <div class="mentor-avatar">${esc(initialsOf(name, "M"))}</div>
+            <div class="mentor-meta">
+              <b>${esc(name)}</b>
+              <span>${esc(headline)} • ${esc(field)}</span>
+            </div>
+            <div class="score">${score}%</div>
+          </div>
+
+          <div class="tags">
+            ${tags.map(t => `<span class="tag">${esc(t)}</span>`).join("")}
+          </div>
+
+          <div class="mentor-actions">
+            <button
+              class="btn primary"
+              type="button"
+              ${alreadyRequested ? "disabled" : ""}
+              onclick="openRequestModal('${esc(String(m.user_id || ""))}','${esc(name)}')"
+            >
+              ${alreadyRequested ? "Requested" : "Request"}
+            </button>
+            <a class="btn" href="mentor-directory.html">View profile</a>
+          </div>
+        </article>
+      `;
+    }).join("");
+  }
+
+  async function loadRequests(){
+    $("reqSub").textContent = "Loading...";
+
+    const { data, error } = await sb
+      .from(TABLES.requests)
+      .select("*")
+      .eq("mentee_id", currentUser.id)
+      .order("created_at", { ascending:false })
+      .limit(10);
+
+    if (error){
+      console.error(error);
+      $("reqSub").textContent = "Could not load requests.";
+      return;
+    }
+
+    lastRequests = data || [];
+    $("reqCount").textContent = String(lastRequests.length);
+
+    if (!lastRequests.length){
+      $("reqSub").textContent = "No requests yet.";
+      $("reqEmpty").style.display = "block";
+      $("reqList").style.display = "none";
+      updateJourneyText();
+      return;
+    }
+
+    $("reqSub").textContent = `${lastRequests.length} recent request(s)`;
+    $("reqEmpty").style.display = "none";
+    $("reqList").style.display = "flex";
+
+    $("reqList").innerHTML = lastRequests.map(r => `
+      <div class="req">
+        <div class="req-top">
+          <b>Request</b>
+          <span class="status ${(r.status || "pending").toLowerCase()}">${esc(r.status || "pending")}</span>
+        </div>
+        <div class="muted" style="margin-top:8px;line-height:1.5">${esc(r.message || "")}</div>
+        <div class="small muted" style="margin-top:8px">${new Date(r.created_at || Date.now()).toLocaleString()}</div>
+      </div>
+    `).join("");
+
+    updateJourneyText();
+  }
+
+  function openRequestModal(mentorId, mentorName){
+    if (!mentorId){
+      showToast("Mentor profile missing user ID.");
+      return;
+    }
+    requestTarget = { mentorId, mentorName };
+    $("requestModalTitle").textContent = `Request mentorship — ${mentorName}`;
+    $("requestModalMeta").textContent = "Your request will appear in the mentor dashboard immediately.";
+    $("requestMessage").value = defaultRequestMessage(mentorName);
+    $("requestBackdrop").style.display = "flex";
+  }
+  window.openRequestModal = openRequestModal;
+
+  function closeRequestModal(){
+    requestTarget = null;
+    $("requestBackdrop").style.display = "none";
+  }
+
+  async function sendRequest(){
+    if (!requestTarget || !currentUser || !sb){
+      showToast("Not signed in.");
+      return;
+    }
+
+    const msg = $("requestMessage").value.trim();
+    if (msg.length < 10){
+      showToast("Please write a short message.");
+      return;
+    }
+
+    const btn = $("sendRequestBtn");
+    btn.disabled = true;
+    btn.textContent = "Sending...";
+
+    try{
+      const { data: existing, error: existingErr } = await sb
+        .from(TABLES.requests)
+        .select("id,status")
+        .eq("mentee_id", currentUser.id)
+        .eq("mentor_id", requestTarget.mentorId)
+        .limit(1);
+
+      if (existingErr) throw existingErr;
+      if (existing && existing.length > 0){
+        showToast("You already sent a request to this mentor.");
+        return;
+      }
+
+      const { data: mentorRow, error: mentorErr } = await sb
+        .from(TABLES.mentors)
+        .select("active_slots")
+        .eq("user_id", requestTarget.mentorId)
         .maybeSingle();
 
-      if (error) console.error(error);
-      menteeProfile = data || null;
+      if (mentorErr) throw mentorErr;
 
-      const name = menteeProfile?.full_name || currentUser.user_metadata?.full_name || currentUser.email || "Welcome";
-      $("welcomeName").textContent = "Welcome";
-      $("welcomeSub").textContent = menteeProfile ? name : "Complete onboarding to load your profile";
-      $("avatar").textContent = initialsOf(name, "U");
+      const maxSlots = Number(mentorRow?.active_slots || 1);
 
-      const pct = menteeProfile ? calcCompleteness(menteeProfile) : 0;
-      $("completePct").textContent = pct + "%";
-      $("completeBar").style.width = pct + "%";
-
-      updateJourneyText();
-    }
-
-    function updateJourneyText(){
-      const pct = menteeProfile ? calcCompleteness(menteeProfile) : 0;
-      const hasRequests = lastRequests.length > 0;
-      const pending = lastRequests.some(r => (r.status || "").toLowerCase() === "pending");
-      const accepted = lastRequests.some(r => (r.status || "").toLowerCase() === "accepted");
-
-      if (!menteeProfile || pct < 60){
-        $("journeyText").textContent = "Step 1: Complete onboarding to unlock accurate matches.";
-        return;
-      }
-      if (!hasRequests){
-        $("journeyText").textContent = "Step 2: Review your top matches and send a mentorship request.";
-        return;
-      }
-      if (accepted){
-        $("journeyText").textContent = "Step 3: You have an accepted request — next: schedule your first session.";
-        return;
-      }
-      if (pending){
-        $("journeyText").textContent = "Step 3: Request sent — waiting for mentor acceptance.";
-        return;
-      }
-      $("journeyText").textContent = "You’re on track — review matches and manage your requests.";
-    }
-
-    async function loadMentors(){
-      $("matchesSub").textContent = "Loading mentors...";
-
-      const { data, error } = await supabase
-        .from(TABLES.mentors)
-        .select("*")
-        .order("created_at", { ascending:false })
-        .limit(100);
-
-      if (error){
-        console.error(error);
-        $("matchesSub").textContent = "Could not load mentors (check RLS).";
-        return;
-      }
-
-      allMentors = data || [];
-      $("matchCount").textContent = String(allMentors.length);
-      $("matchesSub").textContent = allMentors.length ? `${allMentors.length} mentors loaded` : "No mentors available yet.";
-    }
-
-    function renderMatches(){
-      const host = $("matches");
-      host.innerHTML = "";
-
-      if (!menteeProfile){
-        $("emptyMatches").style.display = "block";
-        $("emptyMatchesText").textContent = "Complete onboarding first so we can recommend mentors.";
-        return;
-      }
-
-      if (!allMentors.length){
-        $("emptyMatches").style.display = "block";
-        $("emptyMatchesText").textContent = "No mentors have completed onboarding yet.";
-        return;
-      }
-
-      const scored = allMentors
-        .map(m => ({ m, score: scoreMentor(menteeProfile, m) }))
-        .sort((a,b) => b.score - a.score)
-        .slice(0, 8);
-
-      if (!scored.length){
-        $("emptyMatches").style.display = "block";
-        $("emptyMatchesText").textContent = "No matches yet. Update your profile tags and field.";
-        return;
-      }
-
-      $("emptyMatches").style.display = "none";
-
-      host.innerHTML = scored.map(({m, score}) => {
-        const name = m.full_name || "Mentor";
-        const headline = m.headline || "Mentor";
-        const field = m.field || "—";
-        const tags = safeArr(m.tags).slice(0, 6);
-        const alreadyRequested = lastRequests.some(r => String(r.mentor_id) === String(m.user_id));
-
-        return `
-          <article class="mentor">
-            <div class="mentor-top">
-              <div class="mentor-avatar">${esc(initialsOf(name, "M"))}</div>
-              <div class="mentor-meta">
-                <b>${esc(name)}</b>
-                <span>${esc(headline)} • ${esc(field)}</span>
-              </div>
-              <div class="score">${score}%</div>
-            </div>
-
-            <div class="tags">
-              ${tags.map(t => `<span class="tag">${esc(t)}</span>`).join("")}
-            </div>
-
-            <div class="mentor-actions">
-              <button
-                class="btn primary"
-                type="button"
-                ${alreadyRequested ? "disabled" : ""}
-                onclick="openRequestModal('${esc(String(m.user_id || ""))}','${esc(name)}')"
-              >
-                ${alreadyRequested ? "Requested" : "Request"}
-              </button>
-              <a class="btn" href="mentor-directory.html">View profile</a>
-            </div>
-          </article>
-        `;
-      }).join("");
-    }
-
-    async function loadRequests(){
-      $("reqSub").textContent = "Loading...";
-
-      const { data, error } = await supabase
+      const { count: acceptedCount, error: countErr } = await sb
         .from(TABLES.requests)
-        .select("*")
-        .eq("mentee_id", currentUser.id)
-        .order("created_at", { ascending:false })
-        .limit(10);
+        .select("*", { count:"exact", head:true })
+        .eq("mentor_id", requestTarget.mentorId)
+        .eq("status", "accepted");
 
-      if (error){
-        console.error(error);
-        $("reqSub").textContent = "Could not load requests.";
+      if (countErr) throw countErr;
+
+      if ((acceptedCount || 0) >= maxSlots){
+        showToast("This mentor has no open slots right now.");
         return;
       }
 
-      lastRequests = data || [];
-      $("reqCount").textContent = String(lastRequests.length);
+      const { error } = await sb
+        .from(TABLES.requests)
+        .insert({
+          mentee_id: currentUser.id,
+          mentor_id: requestTarget.mentorId,
+          message: msg,
+          status: "pending"
+        });
 
-      if (!lastRequests.length){
-        $("reqSub").textContent = "No requests yet.";
-        $("reqEmpty").style.display = "block";
-        $("reqList").style.display = "none";
-        updateJourneyText();
-        return;
-      }
+      if (error) throw error;
 
-      $("reqSub").textContent = `${lastRequests.length} recent request(s)`;
-      $("reqEmpty").style.display = "none";
-      $("reqList").style.display = "flex";
-
-      $("reqList").innerHTML = lastRequests.map(r => `
-        <div class="req">
-          <div class="req-top">
-            <b>Request</b>
-            <span class="status ${(r.status || "pending").toLowerCase()}">${esc(r.status || "pending")}</span>
-          </div>
-          <div class="muted" style="margin-top:8px;line-height:1.5">${esc(r.message || "")}</div>
-          <div class="small muted" style="margin-top:8px">${new Date(r.created_at || Date.now()).toLocaleString()}</div>
-        </div>
-      `).join("");
-
-      updateJourneyText();
-    }
-
-    function openRequestModal(mentorId, mentorName){
-      if (!mentorId){
-        showToast("Mentor profile missing user ID.");
-        return;
-      }
-      requestTarget = { mentorId, mentorName };
-      $("requestModalTitle").textContent = `Request mentorship — ${mentorName}`;
-      $("requestModalMeta").textContent = "Your request will appear in the mentor dashboard immediately.";
-      $("requestMessage").value = defaultRequestMessage(mentorName);
-      $("requestBackdrop").style.display = "flex";
-    }
-    window.openRequestModal = openRequestModal;
-
-    function closeRequestModal(){
-      requestTarget = null;
-      $("requestBackdrop").style.display = "none";
-    }
-
-    async function sendRequest(){
-      if (!requestTarget || !currentUser || !supabase){
-        showToast("Not signed in.");
-        return;
-      }
-
-      const msg = $("requestMessage").value.trim();
-      if (msg.length < 10){
-        showToast("Please write a short message.");
-        return;
-      }
-
-      const btn = $("sendRequestBtn");
-      btn.disabled = true;
-      btn.textContent = "Sending...";
-
-      try{
-        const { data: existing, error: existingErr } = await supabase
-          .from(TABLES.requests)
-          .select("id,status")
-          .eq("mentee_id", currentUser.id)
-          .eq("mentor_id", requestTarget.mentorId)
-          .limit(1);
-
-        if (existingErr) throw existingErr;
-        if (existing && existing.length > 0){
-          showToast("You already sent a request to this mentor.");
-          return;
-        }
-
-        const { data: mentorRow, error: mentorErr } = await supabase
-          .from(TABLES.mentors)
-          .select("active_slots")
-          .eq("user_id", requestTarget.mentorId)
-          .maybeSingle();
-
-        if (mentorErr) throw mentorErr;
-
-        const maxSlots = Number(mentorRow?.active_slots || 1);
-
-        const { count: acceptedCount, error: countErr } = await supabase
-          .from(TABLES.requests)
-          .select("*", { count:"exact", head:true })
-          .eq("mentor_id", requestTarget.mentorId)
-          .eq("status", "accepted");
-
-        if (countErr) throw countErr;
-
-        if ((acceptedCount || 0) >= maxSlots){
-          showToast("This mentor has no open slots right now.");
-          return;
-        }
-
-        const { error } = await supabase
-          .from(TABLES.requests)
-          .insert({
-            mentee_id: currentUser.id,
-            mentor_id: requestTarget.mentorId,
-            message: msg,
-            status: "pending"
-          });
-
-        if (error) throw error;
-
-        showToast("Request sent ✅");
-        closeRequestModal();
-        await loadRequests();
-        renderMatches();
-      }catch(e){
-        console.error(e);
-        showToast("Could not send request.");
-      }finally{
-        btn.disabled = false;
-        btn.textContent = "Send request";
-      }
-    }
-
-    $("closeRequestModalBtn").addEventListener("click", closeRequestModal);
-    $("cancelRequestBtn").addEventListener("click", closeRequestModal);
-    $("sendRequestBtn").addEventListener("click", sendRequest);
-    $("requestBackdrop").addEventListener("click", (e) => {
-      if (e.target === $("requestBackdrop")) closeRequestModal();
-    });
-
-    $("refreshBtn").addEventListener("click", async () => {
-      await loadMentors();
-      renderMatches();
-      showToast("Matches refreshed");
-    });
-
-    $("reloadReqBtn").addEventListener("click", async () => {
+      showToast("Request sent ✅");
+      closeRequestModal();
       await loadRequests();
       renderMatches();
-      showToast("Requests updated");
-    });
+    }catch(e){
+      console.error(e);
+      showToast("Could not send request.");
+    }finally{
+      btn.disabled = false;
+      btn.textContent = "Send request";
+    }
+  }
 
-    $("signOutBtn").addEventListener("click", async () => {
-  if (!sb) return;
-  await sb.auth.signOut();
-  window.location.href = "auth.html?mode=signin";
-});
+  $("closeRequestModalBtn").addEventListener("click", closeRequestModal);
+  $("cancelRequestBtn").addEventListener("click", closeRequestModal);
+  $("sendRequestBtn").addEventListener("click", sendRequest);
+  $("requestBackdrop").addEventListener("click", (e) => {
+    if (e.target === $("requestBackdrop")) closeRequestModal();
+  });
 
-    window.addEventListener("load", async () => {
-      supabase = buildSupabaseClient();
+  $("refreshBtn").addEventListener("click", async () => {
+    await loadMentors();
+    renderMatches();
+    showToast("Matches refreshed");
+  });
 
-      const ok = await guardAuth();
-      if (!ok) return;
+  $("reloadReqBtn").addEventListener("click", async () => {
+    await loadRequests();
+    renderMatches();
+    showToast("Requests updated");
+  });
 
-      await loadMenteeProfile();
-      await loadMentors();
-      await loadRequests();
-      renderMatches();
-    });
-  </script>
+  $("signOutBtn").addEventListener("click", async () => {
+    try{
+      if (!sb) return;
+      await sb.auth.signOut();
+      window.location.replace("auth.html?mode=signin");
+    }catch(err){
+      console.error("Logout error:", err);
+      showToast("Could not sign out");
+    }
+  });
+
+  window.addEventListener("load", async () => {
+    sb = buildSupabaseClient();
+
+    const ok = await guardAuth();
+    if (!ok) return;
+
+    await loadMenteeProfile();
+    await loadMentors();
+    await loadRequests();
+    renderMatches();
+  });
+</script>
 </body>
 </html>

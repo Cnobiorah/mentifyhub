@@ -447,17 +447,26 @@
   }
 
   function calcCompleteness(mentee){
-    const fields = ["goal","level","field","tags","timezone","availability"];
-    let filled = 0;
-    for (const f of fields){
-      if (f === "tags"){
-        if (safeArr(mentee.tags).length >= 3) filled++;
-      } else if (mentee[f]) {
-        filled++;
-      }
-    }
-    return Math.round((filled / fields.length) * 100);
-  }
+  const checks = [
+    !!mentee.goal,
+    !!mentee.level,
+    !!mentee.current_role,
+    !!mentee.field_experience_level,
+    !!mentee.preferred_language,
+    !!mentee.field,
+    safeArr(mentee.help_needed).length >= 1,
+    !!mentee.timeline,
+    !!mentee.preferred_session_type,
+    safeArr(mentee.tags).length >= 3,
+    !!mentee.country,
+    !!mentee.timezone,
+    !!mentee.availability,
+    !!mentee.communication
+  ];
+
+  const filled = checks.filter(Boolean).length;
+  return Math.round((filled / checks.length) * 100);
+}
 
   function scoreMentor(mentee, mentor){
     const mTags = new Set(safeArr(mentee.tags).map(normalize));

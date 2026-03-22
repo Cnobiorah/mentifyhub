@@ -105,7 +105,7 @@
     .stats{
       margin-top:14px;
       display:grid;
-      grid-template-columns:repeat(3,1fr);
+      grid-template-columns:repeat(4,1fr);
       gap:10px
     }
     .stat{
@@ -192,6 +192,7 @@
           <div class="stat"><b id="statAll">—</b><span>Total</span></div>
           <div class="stat"><b id="statPending">—</b><span>Pending</span></div>
           <div class="stat"><b id="statAccepted">—</b><span>Accepted</span></div>
+          <div class="stat"><b id="statProfile">—%</b><span>Profile completeness</span></div>
         </div>
 
         <div class="list" id="list">
@@ -242,6 +243,7 @@
       statAll: document.getElementById("statAll"),
       statPending: document.getElementById("statPending"),
       statAccepted: document.getElementById("statAccepted"),
+      statProfile: document.getElementById("statProfile"),
       signOutBtn: document.getElementById("signOutBtn")
     };
 
@@ -285,6 +287,40 @@
       }[m]));
     }
 
+    function safeArr(v){
+      if (Array.isArray(v)) return v;
+      if (typeof v === "string") return v.split(",").map(s => s.trim()).filter(Boolean);
+      return [];
+    }
+
+    function calcCompleteness(mentor){
+      const checks = [
+        !!mentor.headline,
+        !!mentor.current_title,
+        !!mentor.experience,
+        !!mentor.years_experience,
+        !!mentor.languages,
+        !!mentor.bio,
+        !!mentor.field,
+        safeArr(mentor.best_for).length >= 1,
+        safeArr(mentor.mentoring_areas).length >= 1,
+        safeArr(mentor.tags).length >= 3,
+        !!mentor.preferred_level,
+        !!mentor.mentorship_style,
+        !!mentor.preferred_session_type,
+        !!mentor.session_duration,
+        mentor.active_slots != null,
+        !!mentor.pricing_type,
+        !!mentor.communication,
+        !!mentor.country,
+        !!mentor.timezone,
+        !!mentor.availability
+      ];
+
+      const filled = checks.filter(Boolean).length;
+      return Math.round((filled / checks.length) * 100);
+    }
+
     async function requireAuth(){
       if(!sb){
         els.whoChip.textContent = "Add Supabase key";
@@ -308,7 +344,30 @@
       try{
         const { data, error } = await sb
           .from(TABLES.mentors)
-          .select("full_name, email, headline")
+          .select(`
+            full_name,
+            email,
+            headline,
+            current_title,
+            experience,
+            years_experience,
+            languages,
+            bio,
+            field,
+            best_for,
+            mentoring_areas,
+            tags,
+            preferred_level,
+            mentorship_style,
+            preferred_session_type,
+            session_duration,
+            active_slots,
+            pricing_type,
+            communication,
+            country,
+            timezone,
+            availability
+          `)
           .eq("user_id", user.id)
           .maybeSingle();
 
@@ -317,9 +376,13 @@
         const name = data?.full_name || user.user_metadata?.full_name || user.email || "Mentor";
         const headline = data?.headline ? ` • ${data.headline}` : "";
         els.whoChip.textContent = `${name}${headline}`;
+
+        const pct = data ? calcCompleteness(data) : 0;
+        els.statProfile.textContent = `${pct}%`;
       }catch(e){
         console.error(e);
         els.whoChip.textContent = user.email || "Mentor";
+        els.statProfile.textContent = "0%";
       }
     }
 

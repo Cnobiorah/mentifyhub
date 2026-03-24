@@ -134,6 +134,31 @@ color:var(--muted);
 text-align:center;
 }
 
+.top-actions{
+display:flex;
+gap:10px;
+align-items:center;
+flex-wrap:wrap;
+}
+
+.pill{
+padding:8px 14px;
+border-radius:999px;
+border:1px solid var(--line);
+background:#fff;
+color:var(--muted);
+font-size:13px;
+}
+
+.top-actions .btn{
+background:#fff;
+border:1px solid var(--line);
+}
+
+.top-actions .btn:hover{
+box-shadow:0 10px 20px rgba(2,6,23,.08);
+}
+
 </style>
 </head>
 
@@ -157,9 +182,9 @@ text-align:center;
 
 </div>
 
-<div style="display:flex;gap:10px">
+<div class="top-actions">
 
-<span id="whoChip"></span>
+<span class="pill" id="whoChip"></span>
 
 <a class="btn" href="messages.html">Messages</a>
 

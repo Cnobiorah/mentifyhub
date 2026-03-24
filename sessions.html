@@ -353,27 +353,56 @@ $("sessions").innerHTML=data.map(s=>`
 }
 
 async function saveSession(){
-await sb.from("sessions").insert({
 
-  request_id: selectedRequestId,
+if(!CURRENT){
+alert("Select a request first");
+return;
+}
 
-  mentor_id: user.id,
+const scheduledFor = $("scheduledFor").value;
+const durationMinutes = Number($("duration").value);
+const meetingLink = $("meetingLink").value;
+const notes = $("sessionNotes").value;
+const status = $("status").value;
 
-  mentee_id: selectedMenteeId,
+const { error } = await sb
+.from("sessions")
+.insert({
 
-  proposed_by: user.id,
+request_id: CURRENT.id,
 
-  scheduled_for: selectedDateTime,
+mentor_id: CURRENT.mentor_id,
 
-  duration_minutes: parseInt(selectedDuration),
+mentee_id: CURRENT.mentee_id,
 
-  meeting_link: meetingLink,
+proposed_by: USER.id,
 
-  notes: notes,
+scheduled_for: scheduledFor,
 
-  status: status
+duration_minutes: durationMinutes,
+
+meeting_link: meetingLink,
+
+notes: notes,
+
+status: status
+
 });
+
+if(error){
+
+console.error(error);
+
+alert("Error saving session");
+
+return;
+
+}
+
+alert("Session saved");
+
 loadSessions();
+
 }
 
 async function saveProgress(){

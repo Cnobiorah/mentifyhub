@@ -40,7 +40,7 @@ radial-gradient(900px 520px at 90% 10%, rgba(11,59,137,.08), transparent 55%),
 display:flex;
 justify-content:space-between;
 align-items:center;
-padding:14px;
+padding:14px 16px;
 border:1px solid var(--line);
 border-radius:22px;
 background:#fff;
@@ -63,12 +63,53 @@ border-radius:14px;
 border:1px solid var(--line);
 cursor:pointer;
 font-weight:600;
+background:#fff;
 }
 
 .btn.solid{
 background:linear-gradient(180deg,var(--accent2),var(--accent));
 color:#fff;
 border:none;
+}
+
+.btn.danger{
+border-color:rgba(239,68,68,.25);
+background:rgba(239,68,68,.08);
+color:#b91c1c;
+}
+
+.brand{
+display:flex;
+align-items:center;
+gap:12px;
+}
+
+.brand h1{
+margin:0;
+font-size:16px;
+}
+
+.brand p{
+margin:2px 0 0;
+font-size:12px;
+color:var(--muted);
+}
+
+.nav{
+display:flex;
+align-items:center;
+gap:10px;
+flex-wrap:wrap;
+justify-content:flex-end;
+}
+
+.chip{
+padding:9px 12px;
+border-radius:999px;
+border:1px solid var(--line);
+background:var(--soft);
+font-size:13px;
+color:var(--muted);
 }
 
 .layout{
@@ -134,69 +175,6 @@ color:var(--muted);
 text-align:center;
 }
 
-.top-actions{
-display:flex;
-gap:10px;
-align-items:center;
-flex-wrap:wrap;
-}
-
-.pill{
-padding:8px 14px;
-border-radius:999px;
-border:1px solid var(--line);
-background:#fff;
-color:var(--muted);
-font-size:13px;
-}
-
-.top-actions .btn{
-background:#fff;
-border:1px solid var(--line);
-}
-
-.top-actions .btn:hover{
-box-shadow:0 10px 20px rgba(2,6,23,.08);
-}
-.brand{
-display:flex;
-align-items:center;
-gap:12px;
-}
-
-.brand h1{
-margin:0;
-font-size:16px;
-}
-
-.brand p{
-margin:2px 0 0;
-font-size:12px;
-color:var(--muted);
-}
-
-.nav{
-display:flex;
-align-items:center;
-gap:10px;
-flex-wrap:wrap;
-justify-content:flex-end;
-}
-
-.chip{
-padding:9px 14px;
-border-radius:999px;
-border:1px solid var(--line);
-background:var(--soft);
-font-size:13px;
-color:var(--muted);
-}
-
-.btn.danger{
-border-color:rgba(239,68,68,.3);
-color:#b91c1c;
-background:#fff;
-}
 </style>
 </head>
 
@@ -207,88 +185,47 @@ background:#fff;
 <header class="topbar">
 
 <div class="brand">
-
 <div class="logo">M</div>
 
 <div>
-
 <h1>MentifyHub</h1>
-
 <p>Sessions</p>
-
+</div>
 </div>
 
-</div>
+<nav class="nav">
 
+<span class="chip" id="whoChip">Checking session…</span>
 
-<div class="nav">
+<a class="btn" href="mentor-directory.html">Directory</a>
 
-<span class="chip" id="whoChip">
-Checking session…
-</span>
+<a class="btn" href="messages.html">Messages</a>
 
+<a class="btn solid" href="sessions.html">Sessions</a>
 
-<a class="btn" href="mentor-directory.html">
-Directory
-</a>
+<a class="btn" href="mentor-onboarding.html">Edit profile</a>
 
+<button class="btn danger" id="signOutBtn">Sign out</button>
 
-<a class="btn" href="messages.html">
-Messages
-</a>
-
-
-<a class="btn solid" href="sessions.html">
-Sessions
-</a>
-
-
-<a class="btn" href="mentor-dashboard.html">
-Mentor dashboard
-</a>
-
-
-<a class="btn" href="mentee-dashboard.html">
-Mentee dashboard
-</a>
-
-
-<a class="btn" href="mentor-onboarding.html">
-Edit profile
-</a>
-
-
-<button class="btn danger" onclick="location.href='auth.html'">
-Sign out
-</button>
-
-
-</div>
+</nav>
 
 </header>
 
 <div class="layout">
 
 <aside class="card">
-
 <b>Accepted requests</b>
-
 <div id="requestList"></div>
-
 </aside>
 
 <main class="card">
 
 <div id="sessionHeader">
-
 <h3>Select request</h3>
-
 </div>
 
 <div id="sessionEmpty" class="empty">
-
 Choose accepted request
-
 </div>
 
 <div id="sessionPane" style="display:none">
@@ -298,13 +235,9 @@ Choose accepted request
 <input id="scheduledFor" type="datetime-local"/>
 
 <select id="duration">
-
 <option value="30">30 min</option>
-
 <option value="45" selected>45 min</option>
-
 <option value="60">60 min</option>
-
 </select>
 
 <input id="meetingLink" placeholder="Meeting link"/>
@@ -315,12 +248,7 @@ Choose accepted request
 
 </div>
 
-<button class="btn solid" id="saveBtn">
-
-Save session
-
-</button>
-
+<button class="btn solid" id="saveBtn">Save session</button>
 
 <hr style="margin:20px 0">
 
@@ -328,27 +256,13 @@ Save session
 
 <div class="formGrid">
 
-<input
-id="progressPercent"
-type="number"
-min="0"
-max="100"
-placeholder="Progress %"
-/>
+<input id="progressPercent" type="number" min="0" max="100" placeholder="Progress %"/>
 
-<textarea
-id="progressNotes"
-placeholder="Progress notes"
-></textarea>
+<textarea id="progressNotes" placeholder="Progress notes"></textarea>
 
 </div>
 
-<button class="btn solid" id="saveProgressBtn">
-
-Save progress
-
-</button>
-
+<button class="btn solid" id="saveProgressBtn">Save progress</button>
 
 <div id="sessions"></div>
 
@@ -360,189 +274,94 @@ Save progress
 
 </div>
 
-
 <script>
-
 const SUPABASE_URL="https://mscgaaaobxiuzqsukvjc.supabase.co";
-
 const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y";
 
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
-
 const $=id=>document.getElementById(id);
 
 let USER=null;
-
 let REQUESTS=[];
-
 let CURRENT=null;
 
-
-
 async function requireAuth(){
-
 const {data:{session}}=await sb.auth.getSession();
-
-if(!session){
-
-location.href="auth.html";
-
-return;
-
-}
-
+if(!session){location.href="auth.html";return;}
 USER=session.user;
-
 $("whoChip").textContent=USER.email;
-
 return USER;
-
 }
-
-
 
 async function loadRequests(){
-
 const {data}=await sb
-
 .from("mentorship_requests")
-
 .select("*")
-
 .eq("status","accepted")
-
 .or(`mentee_id.eq.${USER.id},mentor_id.eq.${USER.id}`);
 
 REQUESTS=data||[];
-
 renderRequests();
-
 }
-
-
 
 function renderRequests(){
-
 $("requestList").innerHTML=REQUESTS
-
 .map(r=>`<div class="threadItem" onclick="openRequest('${r.id}')">${r.id}</div>`)
-
 .join("");
-
 }
-
-
 
 function openRequest(id){
-
 CURRENT=REQUESTS.find(r=>r.id===id);
-
 $("sessionEmpty").style.display="none";
-
 $("sessionPane").style.display="block";
-
 loadSessions();
-
 }
 
-
-
 async function loadSessions(){
-
 const {data}=await sb
-
 .from("sessions")
-
 .select("*")
-
 .eq("request_id",CURRENT.id);
 
 $("sessions").innerHTML=data.map(s=>`
-
 <div class="session">
-
 <b>${new Date(s.scheduled_for).toLocaleString()}</b>
-
 </div>
-
 `).join("");
-
 }
-
-
 
 async function saveSession(){
-
-const payload={
-
+await sb.from("sessions").insert({
 request_id:CURRENT.id,
-
 mentor_id:CURRENT.mentor_id,
-
 mentee_id:CURRENT.mentee_id,
-
 scheduled_for:new Date($("scheduledFor").value).toISOString(),
-
 duration_minutes:Number($("duration").value),
-
 meeting_link:$("meetingLink").value,
-
 notes:$("sessionNotes").value,
-
 status:"proposed"
-
-};
-
-
-
-await sb.from("sessions").insert(payload);
-
+});
 loadSessions();
-
 }
-
-
 
 async function saveProgress(){
-
-const payload={
-
+await sb.from("mentorship_progress").insert({
 request_id:CURRENT.id,
-
 mentor_id:CURRENT.mentor_id,
-
 mentee_id:CURRENT.mentee_id,
-
 progress_percent:Number($("progressPercent").value),
-
 notes:$("progressNotes").value
-
-};
-
-
-
-await sb.from("mentorship_progress").insert(payload);
-
+});
 alert("progress saved");
-
 $("progressPercent").value="";
-
 $("progressNotes").value="";
-
 }
 
-
-
 $("saveBtn").onclick=saveSession;
-
 $("saveProgressBtn").onclick=saveProgress;
 
-
-
 requireAuth().then(loadRequests);
-
 </script>
 
 </body>
-
 </html>

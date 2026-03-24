@@ -868,14 +868,22 @@ Thank you!`;
     $("mentorshipBar").style.width = "0%";
 
     return;
-
   }
+  const avg = Math.round(
 
-  const latest = data[data.length - 1].progress_percent || 0;
+    data.reduce((sum,p)=>
 
-  $("mentorshipPct").textContent = latest + "%";
+      sum + (p.progress_percent || 0)
 
-  $("mentorshipBar").style.width = latest + "%";
+    ,0)
+
+    / data.length
+
+  );
+
+  $("mentorshipPct").textContent = avg + "%";
+
+  $("mentorshipBar").style.width = avg + "%";
 
 }
 

@@ -851,10 +851,35 @@ Thank you!`;
   });
   async function loadMentorshipProgress(){
 
+  /* get accepted mentorship request */
+
+  const { data: requests, error: reqError } = await sb
+    .from("mentorship_requests")
+    .select("id")
+    .eq("mentee_id", currentUser.id)
+    .eq("status","accepted");
+
+  if(reqError){
+    console.error(reqError);
+    return;
+  }
+
+  if(!requests || !requests.length){
+
+    $("mentorshipPct").textContent = "0%";
+    $("mentorshipBar").style.width = "0%";
+    return;
+
+  }
+
+  const requestIds = requests.map(r => r.id);
+
+  /* get progress linked to that request */
+
   const { data, error } = await sb
     .from("mentorship_progress")
     .select("progress_percent")
-    .eq("mentee_id", currentUser.id);
+    .in("request_id", requestIds);
 
   if(error){
     console.error(error);
@@ -864,11 +889,13 @@ Thank you!`;
   if(!data || !data.length){
 
     $("mentorshipPct").textContent = "0%";
-
     $("mentorshipBar").style.width = "0%";
-
     return;
+
   }
+
+  /* calculate average progress */
+
   const avg = Math.round(
 
     data.reduce((sum,p)=>
@@ -882,7 +909,6 @@ Thank you!`;
   );
 
   $("mentorshipPct").textContent = avg + "%";
-
   $("mentorshipBar").style.width = avg + "%";
 
 }

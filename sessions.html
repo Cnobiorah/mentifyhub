@@ -158,7 +158,45 @@ border:1px solid var(--line);
 .top-actions .btn:hover{
 box-shadow:0 10px 20px rgba(2,6,23,.08);
 }
+.brand{
+display:flex;
+align-items:center;
+gap:12px;
+}
 
+.brand h1{
+margin:0;
+font-size:16px;
+}
+
+.brand p{
+margin:2px 0 0;
+font-size:12px;
+color:var(--muted);
+}
+
+.nav{
+display:flex;
+align-items:center;
+gap:10px;
+flex-wrap:wrap;
+justify-content:flex-end;
+}
+
+.chip{
+padding:9px 14px;
+border-radius:999px;
+border:1px solid var(--line);
+background:var(--soft);
+font-size:13px;
+color:var(--muted);
+}
+
+.btn.danger{
+border-color:rgba(239,68,68,.3);
+color:#b91c1c;
+background:#fff;
+}
 </style>
 </head>
 
@@ -168,29 +206,62 @@ box-shadow:0 10px 20px rgba(2,6,23,.08);
 
 <header class="topbar">
 
-<div style="display:flex;align-items:center;gap:10px">
+<div class="brand">
 
 <div class="logo">M</div>
 
 <div>
 
-<b>MentifyHub</b>
+<h1>MentifyHub</h1>
 
-<div style="font-size:12px;color:var(--muted)">Sessions</div>
-
-</div>
+<p>Sessions</p>
 
 </div>
 
-<div class="top-actions">
+</div>
 
-<span class="pill" id="whoChip"></span>
 
-<a class="btn" href="messages.html">Messages</a>
+<div class="nav">
 
-<a class="btn" href="mentor-dashboard.html">Mentor dashboard</a>
+<span class="chip" id="whoChip">
+Checking session…
+</span>
 
-<a class="btn" href="mentee-dashboard.html">Mentee dashboard</a>
+
+<a class="btn" href="mentor-directory.html">
+Directory
+</a>
+
+
+<a class="btn" href="messages.html">
+Messages
+</a>
+
+
+<a class="btn solid" href="sessions.html">
+Sessions
+</a>
+
+
+<a class="btn" href="mentor-dashboard.html">
+Mentor dashboard
+</a>
+
+
+<a class="btn" href="mentee-dashboard.html">
+Mentee dashboard
+</a>
+
+
+<a class="btn" href="mentor-onboarding.html">
+Edit profile
+</a>
+
+
+<button class="btn danger" onclick="location.href='auth.html'">
+Sign out
+</button>
+
 
 </div>
 

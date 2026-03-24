@@ -38,12 +38,18 @@ radial-gradient(900px 520px at 90% 10%, rgba(11,59,137,.08), transparent 55%),
 
 .topbar{
 display:flex;
-justify-content:space-between;
 align-items:center;
+justify-content:space-between;
+gap:16px;
 padding:14px 16px;
 border:1px solid var(--line);
 border-radius:22px;
-background:#fff;
+background:rgba(255,255,255,.82);
+backdrop-filter:blur(10px);
+box-shadow:0 10px 24px rgba(2,6,23,.06);
+position:sticky;
+top:14px;
+z-index:20;
 }
 
 .logo{
@@ -58,26 +64,42 @@ font-weight:800;
 }
 
 .btn{
+display:inline-flex;
+align-items:center;
+justify-content:center;
+gap:10px;
 padding:10px 14px;
 border-radius:14px;
 border:1px solid var(--line);
-cursor:pointer;
-font-weight:600;
 background:#fff;
+cursor:pointer;
+font-weight:700;
+font-size:14px;
+color:var(--text);
+text-decoration:none;
+transition:transform .06s ease, box-shadow .2s ease, border-color .2s ease;
+user-select:none;
+}
+
+.btn:hover{
+transform:translateY(-1px);
+box-shadow:0 10px 24px rgba(2,6,23,.08);
+border-color:#dbe2ea;
 }
 
 .btn.solid{
-background:linear-gradient(180deg,var(--accent2),var(--accent));
+border-color:transparent;
+background:linear-gradient(180deg, var(--accent2), var(--accent));
 color:#fff;
-border:none;
+box-shadow:0 16px 40px rgba(29,78,216,.22);
 }
+
 
 .btn.danger{
 border-color:rgba(239,68,68,.25);
-background:rgba(239,68,68,.08);
+background:linear-gradient(180deg, rgba(239,68,68,.08), rgba(239,68,68,.05));
 color:#b91c1c;
 }
-
 .brand{
 display:flex;
 align-items:center;

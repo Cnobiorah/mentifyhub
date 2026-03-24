@@ -50,7 +50,7 @@ box-shadow:0 10px 24px rgba(2,6,23,.06);
 position:sticky;
 top:14px;
 z-index:20;
-}
+}    
 
 .logo{
 width:40px;
@@ -354,14 +354,24 @@ $("sessions").innerHTML=data.map(s=>`
 
 async function saveSession(){
 await sb.from("sessions").insert({
-request_id:CURRENT.id,
-mentor_id:CURRENT.mentor_id,
-mentee_id:CURRENT.mentee_id,
-scheduled_for:new Date($("scheduledFor").value).toISOString(),
-duration_minutes:Number($("duration").value),
-meeting_link:$("meetingLink").value,
-notes:$("sessionNotes").value,
-status:"proposed"
+
+  request_id: selectedRequestId,
+
+  mentor_id: user.id,
+
+  mentee_id: selectedMenteeId,
+
+  proposed_by: user.id,
+
+  scheduled_for: selectedDateTime,
+
+  duration_minutes: parseInt(selectedDuration),
+
+  meeting_link: meetingLink,
+
+  notes: notes,
+
+  status: status
 });
 loadSessions();
 }

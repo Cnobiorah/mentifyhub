@@ -193,6 +193,10 @@
           <div class="stat"><b id="statPending">—</b><span>Pending</span></div>
           <div class="stat"><b id="statAccepted">—</b><span>Accepted</span></div>
           <div class="stat"><b id="statProfile">—%</b><span>Profile completeness</span></div>
+          <div class="stat">
+  <b id="statProgress">—%</b>
+  <span>Avg mentee progress</span>
+</div>
         </div>
 
         <div class="list" id="list">
@@ -244,6 +248,7 @@
       statPending: document.getElementById("statPending"),
       statAccepted: document.getElementById("statAccepted"),
       statProfile: document.getElementById("statProfile"),
+      statProgress: document.getElementById("statProgress"),
       signOutBtn: document.getElementById("signOutBtn")
     };
 
@@ -519,6 +524,42 @@
       }
     }
 
+    async function loadProgress(user){
+
+  const { data, error } = await sb
+    .from("mentorship_progress")
+    .select("progress_percent")
+    .eq("mentor_id", user.id);
+
+  if(error){
+    console.error(error);
+    return;
+  }
+
+  if(!data || !data.length){
+
+    els.statProgress.textContent = "0%";
+
+    return;
+
+  }
+
+  const avg = Math.round(
+
+    data.reduce((sum,p)=>
+
+      sum + (p.progress_percent || 0)
+
+    ,0)
+
+    / data.length
+
+  );
+
+  els.statProgress.textContent = avg + "%";
+
+}
+
     els.signOutBtn.addEventListener("click", async () => {
       if(!sb) return;
       await sb.auth.signOut();
@@ -531,6 +572,7 @@
 
       await loadMentorDisplayName(user);
       await loadRequests(user);
+      await loadProgress(user);
     })();
   </script>
 </body>

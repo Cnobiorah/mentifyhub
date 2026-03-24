@@ -272,6 +272,14 @@
           <b id="completePct">—%</b>
         </div>
         <div class="bar"><div class="bar-fill" id="completeBar"></div></div>
+        <div class="progress-row">
+  <span>Mentorship progress</span>
+  <b id="mentorshipPct">—%</b>
+</div>
+
+<div class="bar">
+  <div class="bar-fill" id="mentorshipBar"></div>
+</div>
 
         <div class="side-actions">
           <a class="btn" href="mentee-onboarding.html">Edit profile</a>
@@ -841,18 +849,52 @@ Thank you!`;
       showToast("Could not sign out");
     }
   });
+  async function loadMentorshipProgress(){
+
+  const { data, error } = await sb
+    .from("mentorship_progress")
+    .select("progress_percent")
+    .eq("mentee_id", currentUser.id);
+
+  if(error){
+    console.error(error);
+    return;
+  }
+
+  if(!data || !data.length){
+
+    $("mentorshipPct").textContent = "0%";
+
+    $("mentorshipBar").style.width = "0%";
+
+    return;
+
+  }
+
+  const latest = data[data.length - 1].progress_percent || 0;
+
+  $("mentorshipPct").textContent = latest + "%";
+
+  $("mentorshipBar").style.width = latest + "%";
+
+}
 
   window.addEventListener("load", async () => {
-    sb = buildSupabaseClient();
 
-    const ok = await guardAuth();
-    if (!ok) return;
+  sb = buildSupabaseClient();
 
-    await loadMenteeProfile();
-    await loadMentors();
-    await loadRequests();
-    renderMatches();
-  });
+  const ok = await guardAuth();
+  if (!ok) return;
+
+  await loadMenteeProfile();
+  await loadMentors();
+  await loadRequests();
+
+  await loadMentorshipProgress();
+
+  renderMatches();
+
+});
 </script>
 </body>
 </html>

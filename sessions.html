@@ -1,15 +1,452 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><title>MentifyHub — Sessions</title><meta name="description" content="MentifyHub session scheduling."/><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><style>
-:root{--bg:#fff;--card:#fff;--text:#0f172a;--muted:#475569;--line:#e5e7eb;--soft:#f8fafc;--accent:#0b3b89;--accent2:#1d4ed8;--radius:18px;--shadow:0 20px 50px rgba(2,6,23,.08)}*{box-sizing:border-box}body{margin:0;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;color:var(--text);background:radial-gradient(900px 520px at 15% 5%, rgba(29,78,216,.10), transparent 55%),radial-gradient(900px 520px at 90% 10%, rgba(11,59,137,.08), transparent 55%),#fff}a{color:inherit;text-decoration:none}.container{max-width:1100px;margin:0 auto;padding:22px}.topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 16px;border:1px solid var(--line);border-radius:22px;background:rgba(255,255,255,.82);backdrop-filter:blur(10px);box-shadow:0 10px 24px rgba(2,6,23,.06);position:sticky;top:14px;z-index:20}.brand{display:flex;align-items:center;gap:12px}.logo{width:40px;height:40px;border-radius:14px;background:linear-gradient(135deg, rgba(11,59,137,.14), rgba(29,78,216,.16));border:1px solid rgba(29,78,216,.18);display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--accent)}.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:10px 14px;border-radius:14px;border:1px solid var(--line);background:#fff;cursor:pointer;font-weight:700;font-size:14px}.btn.solid{border-color:transparent;background:linear-gradient(180deg, var(--accent2), var(--accent));color:#fff}.chip{padding:9px 12px;border-radius:999px;border:1px solid var(--line);background:var(--soft);font-size:13px;color:var(--muted)}.layout{margin-top:16px;display:grid;grid-template-columns:320px 1fr;gap:16px}.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}.side,.main{padding:16px}.threadItem{padding:12px;border:1px solid var(--line);border-radius:14px;background:#fff;cursor:pointer;margin-top:10px}.threadItem.active{border-color:rgba(29,78,216,.28);background:var(--soft)}.muted{color:var(--muted);font-size:13px}.empty{padding:18px;border:1px dashed var(--line);border-radius:16px;background:#fff;color:var(--muted);text-align:center}.session{padding:14px;border:1px solid var(--line);border-radius:16px;background:#fff;margin-top:10px}.formGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.formGrid input,.formGrid select,.formGrid textarea{width:100%;padding:12px 14px;border-radius:14px;border:1px solid var(--line);font-size:14px}.formGrid textarea{grid-column:1/-1;min-height:90px}.meta{font-size:12px;color:var(--muted);margin-top:4px}@media (max-width:980px){.layout{grid-template-columns:1fr}.topbar{position:static}.formGrid{grid-template-columns:1fr}}</style></head><body><div class="container"><header class="topbar"><div class="brand"><div class="logo">M</div><div><h1 style="margin:0;font-size:16px;letter-spacing:.2px">MentifyHub</h1><p style="margin:2px 0 0;font-size:12px;color:var(--muted)">Sessions</p></div></div><nav style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="chip" id="whoChip">Checking session…</span><a class="btn" href="messages.html">Messages</a><a class="btn" href="mentor-dashboard.html">Mentor dashboard</a><a class="btn" href="mentee-dashboard.html">Mentee dashboard</a></nav></header><div class="layout"><aside class="card side"><h3 style="margin:0;font-size:14px">Accepted requests</h3><div class="muted" style="margin-top:6px">Sessions are grouped by mentorship request.</div><div id="requestList"></div></aside><main class="card main"><div id="sessionHeader"><h2 style="margin:0;font-size:18px">Select a request</h2><div class="muted" style="margin-top:6px">Only accepted requests should schedule sessions.</div></div><div id="sessionEmpty" class="empty" style="margin-top:14px">Choose an accepted request on the left.</div><div id="sessionPane" style="display:none"><div class="formGrid" style="margin-top:14px"><input id="scheduledFor" type="datetime-local"/><select id="duration"><option value="30">30 minutes</option><option value="45" selected>45 minutes</option><option value="60">60 minutes</option></select><input id="meetingLink" placeholder="Meeting link (Zoom / Meet)"/><input id="status" value="proposed" readonly/><textarea id="sessionNotes" placeholder="Agenda or preparation notes"></textarea></div><div style="margin-top:12px"><button class="btn solid" id="saveBtn" type="button">Save session</button></div><div id="sessions" style="margin-top:16px"></div></div></main></div></div><script>
-const SUPABASE_URL="https://mscgaaaobxiuzqsukvjc.supabase.co"; const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y"; const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY); const params=new URLSearchParams(location.search); let USER=null,REQUESTS=[],CURRENT=null,PROFILE_CACHE={};
-const $=id=>document.getElementById(id); function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
-async function requireAuth(){const {data:{session}}=await sb.auth.getSession(); if(!session){window.location.href=`auth.html?mode=signin&returnTo=${encodeURIComponent('sessions.html')}`; return null;} USER=session.user; $('whoChip').textContent=(USER.user_metadata?.full_name||USER.email||'Signed in'); return USER;}
-async function hydrateNames(){const ids=[...new Set(REQUESTS.flatMap(t=>[t.mentee_id,t.mentor_id]).filter(Boolean))]; const {data:mentees}=await sb.from('mentees').select('user_id,full_name').in('user_id',ids); const {data:mentors}=await sb.from('mentors').select('user_id,full_name').in('user_id',ids); [...(mentees||[]),...(mentors||[])].forEach(r=>PROFILE_CACHE[r.user_id]=r.full_name); }
-function reqLabel(t){const other=t.mentee_id===USER.id?t.mentor_id:t.mentee_id; return PROFILE_CACHE[other]||'MentifyHub user';}
-async function loadRequests(){const {data,error}=await sb.from('mentorship_requests').select('*').eq('status','accepted').or(`mentee_id.eq.${USER.id},mentor_id.eq.${USER.id}`).order('created_at',{ascending:false}); if(error){$('requestList').innerHTML=`<div class="empty" style="margin-top:12px">${esc(error.message)}</div>`; return;} REQUESTS=data||[]; if(!REQUESTS.length){$('requestList').innerHTML='<div class="empty" style="margin-top:12px">No accepted requests yet.</div>'; return;} await hydrateNames(); renderRequestList(); const requested=params.get('request'); const first=REQUESTS.find(t=>t.id===requested)||REQUESTS[0]; if(first) openRequest(first.id); }
-function renderRequestList(){ $('requestList').innerHTML=REQUESTS.map(t=>`<div class="threadItem ${CURRENT&&CURRENT.id===t.id?'active':''}" data-id="${t.id}"><b style="font-size:13px">${esc(reqLabel(t))}</b><div class="meta">accepted • ${new Date(t.created_at).toLocaleDateString()}</div></div>`).join(''); document.querySelectorAll('.threadItem').forEach(el=>el.onclick=()=>openRequest(el.dataset.id)); }
-async function openRequest(id){CURRENT=REQUESTS.find(t=>t.id===id)||null; renderRequestList(); if(!CURRENT) return; $('sessionHeader').innerHTML=`<h2 style="margin:0;font-size:18px">${esc(reqLabel(CURRENT))}</h2><div class="muted" style="margin-top:6px">Accepted request ready for scheduling.</div>`; $('sessionEmpty').style.display='none'; $('sessionPane').style.display='block'; await loadSessions(); }
-async function loadSessions(){const {data,error}=await sb.from('sessions').select('*').eq('request_id',CURRENT.id).order('scheduled_for',{ascending:true}); if(error){$('sessions').innerHTML=`<div class="empty">${esc(error.message)}</div>`; return;} const rows=data||[]; if(!rows.length){$('sessions').innerHTML='<div class="empty">No sessions saved yet. Use the form above to propose one.</div>'; return;} $('sessions').innerHTML=rows.map(s=>`<div class="session"><b>${new Date(s.scheduled_for).toLocaleString()}</b><div class="meta">${esc((s.duration_minutes||45)+' minutes')} • ${esc(s.status||'proposed')}</div>${s.meeting_link?`<div class="meta"><a href="${esc(s.meeting_link)}" target="_blank">Open meeting link</a></div>`:''}${s.notes?`<div style="margin-top:8px">${esc(s.notes)}</div>`:''}</div>`).join(''); }
-async function saveSession(){ if(!CURRENT) return; const scheduled_for=$('scheduledFor').value; if(!scheduled_for){ alert('Pick a date and time'); return; } const payload={request_id:CURRENT.id, mentor_id:CURRENT.mentor_id, mentee_id:CURRENT.mentee_id, proposed_by:USER.id, scheduled_for:new Date(scheduled_for).toISOString(), duration_minutes:Number($('duration').value||45), meeting_link:$('meetingLink').value.trim()||null, notes:$('sessionNotes').value.trim()||null, status:'proposed'}; const btn=$('saveBtn'); btn.disabled=true; btn.textContent='Saving…'; try{ const {error}=await sb.from('sessions').insert(payload); if(error) throw error; $('meetingLink').value=''; $('sessionNotes').value=''; await loadSessions(); }catch(e){ alert(e.message||'Could not save session'); } finally{btn.disabled=false; btn.textContent='Save session'; } }
-$('saveBtn').onclick=saveSession; requireAuth().then(u=>u&&loadRequests());
-</script></body></html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>MentifyHub — Sessions</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+
+:root{
+--bg:#fff;
+--card:#fff;
+--text:#0f172a;
+--muted:#475569;
+--line:#e5e7eb;
+--soft:#f8fafc;
+--accent:#0b3b89;
+--accent2:#1d4ed8;
+--radius:18px;
+--shadow:0 20px 50px rgba(2,6,23,.08)
+}
+
+*{box-sizing:border-box}
+
+body{
+margin:0;
+font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+color:var(--text);
+background:
+radial-gradient(900px 520px at 15% 5%, rgba(29,78,216,.10), transparent 55%),
+radial-gradient(900px 520px at 90% 10%, rgba(11,59,137,.08), transparent 55%),
+#fff
+}
+
+.container{max-width:1100px;margin:0 auto;padding:22px}
+
+.topbar{
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:14px;
+border:1px solid var(--line);
+border-radius:22px;
+background:#fff;
+}
+
+.logo{
+width:40px;
+height:40px;
+border-radius:14px;
+background:linear-gradient(135deg,#dbeafe,#bfdbfe);
+display:flex;
+align-items:center;
+justify-content:center;
+font-weight:800;
+}
+
+.btn{
+padding:10px 14px;
+border-radius:14px;
+border:1px solid var(--line);
+cursor:pointer;
+font-weight:600;
+}
+
+.btn.solid{
+background:linear-gradient(180deg,var(--accent2),var(--accent));
+color:#fff;
+border:none;
+}
+
+.layout{
+display:grid;
+grid-template-columns:320px 1fr;
+gap:16px;
+margin-top:16px;
+}
+
+.card{
+background:#fff;
+border:1px solid var(--line);
+border-radius:18px;
+padding:16px;
+}
+
+.threadItem{
+padding:12px;
+border:1px solid var(--line);
+border-radius:12px;
+margin-top:10px;
+cursor:pointer;
+}
+
+.threadItem.active{
+background:#f1f5f9;
+}
+
+.formGrid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:10px;
+margin-top:12px;
+}
+
+.formGrid input,
+.formGrid textarea,
+.formGrid select{
+padding:12px;
+border-radius:12px;
+border:1px solid var(--line);
+width:100%;
+}
+
+.formGrid textarea{
+grid-column:1/-1;
+min-height:80px;
+}
+
+.session{
+margin-top:12px;
+padding:12px;
+border:1px solid var(--line);
+border-radius:12px;
+}
+
+.empty{
+margin-top:12px;
+padding:16px;
+border:1px dashed var(--line);
+border-radius:12px;
+color:var(--muted);
+text-align:center;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<header class="topbar">
+
+<div style="display:flex;align-items:center;gap:10px">
+
+<div class="logo">M</div>
+
+<div>
+
+<b>MentifyHub</b>
+
+<div style="font-size:12px;color:var(--muted)">Sessions</div>
+
+</div>
+
+</div>
+
+<div style="display:flex;gap:10px">
+
+<span id="whoChip"></span>
+
+<a class="btn" href="messages.html">Messages</a>
+
+<a class="btn" href="mentor-dashboard.html">Mentor dashboard</a>
+
+<a class="btn" href="mentee-dashboard.html">Mentee dashboard</a>
+
+</div>
+
+</header>
+
+<div class="layout">
+
+<aside class="card">
+
+<b>Accepted requests</b>
+
+<div id="requestList"></div>
+
+</aside>
+
+<main class="card">
+
+<div id="sessionHeader">
+
+<h3>Select request</h3>
+
+</div>
+
+<div id="sessionEmpty" class="empty">
+
+Choose accepted request
+
+</div>
+
+<div id="sessionPane" style="display:none">
+
+<div class="formGrid">
+
+<input id="scheduledFor" type="datetime-local"/>
+
+<select id="duration">
+
+<option value="30">30 min</option>
+
+<option value="45" selected>45 min</option>
+
+<option value="60">60 min</option>
+
+</select>
+
+<input id="meetingLink" placeholder="Meeting link"/>
+
+<input id="status" value="proposed" readonly/>
+
+<textarea id="sessionNotes" placeholder="Agenda"></textarea>
+
+</div>
+
+<button class="btn solid" id="saveBtn">
+
+Save session
+
+</button>
+
+
+<hr style="margin:20px 0">
+
+<h3>Update progress</h3>
+
+<div class="formGrid">
+
+<input
+id="progressPercent"
+type="number"
+min="0"
+max="100"
+placeholder="Progress %"
+/>
+
+<textarea
+id="progressNotes"
+placeholder="Progress notes"
+></textarea>
+
+</div>
+
+<button class="btn solid" id="saveProgressBtn">
+
+Save progress
+
+</button>
+
+
+<div id="sessions"></div>
+
+</div>
+
+</main>
+
+</div>
+
+</div>
+
+
+<script>
+
+const SUPABASE_URL="https://mscgaaaobxiuzqsukvjc.supabase.co";
+
+const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y";
+
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+
+const $=id=>document.getElementById(id);
+
+let USER=null;
+
+let REQUESTS=[];
+
+let CURRENT=null;
+
+
+
+async function requireAuth(){
+
+const {data:{session}}=await sb.auth.getSession();
+
+if(!session){
+
+location.href="auth.html";
+
+return;
+
+}
+
+USER=session.user;
+
+$("whoChip").textContent=USER.email;
+
+return USER;
+
+}
+
+
+
+async function loadRequests(){
+
+const {data}=await sb
+
+.from("mentorship_requests")
+
+.select("*")
+
+.eq("status","accepted")
+
+.or(`mentee_id.eq.${USER.id},mentor_id.eq.${USER.id}`);
+
+REQUESTS=data||[];
+
+renderRequests();
+
+}
+
+
+
+function renderRequests(){
+
+$("requestList").innerHTML=REQUESTS
+
+.map(r=>`<div class="threadItem" onclick="openRequest('${r.id}')">${r.id}</div>`)
+
+.join("");
+
+}
+
+
+
+function openRequest(id){
+
+CURRENT=REQUESTS.find(r=>r.id===id);
+
+$("sessionEmpty").style.display="none";
+
+$("sessionPane").style.display="block";
+
+loadSessions();
+
+}
+
+
+
+async function loadSessions(){
+
+const {data}=await sb
+
+.from("sessions")
+
+.select("*")
+
+.eq("request_id",CURRENT.id);
+
+$("sessions").innerHTML=data.map(s=>`
+
+<div class="session">
+
+<b>${new Date(s.scheduled_for).toLocaleString()}</b>
+
+</div>
+
+`).join("");
+
+}
+
+
+
+async function saveSession(){
+
+const payload={
+
+request_id:CURRENT.id,
+
+mentor_id:CURRENT.mentor_id,
+
+mentee_id:CURRENT.mentee_id,
+
+scheduled_for:new Date($("scheduledFor").value).toISOString(),
+
+duration_minutes:Number($("duration").value),
+
+meeting_link:$("meetingLink").value,
+
+notes:$("sessionNotes").value,
+
+status:"proposed"
+
+};
+
+
+
+await sb.from("sessions").insert(payload);
+
+loadSessions();
+
+}
+
+
+
+async function saveProgress(){
+
+const payload={
+
+request_id:CURRENT.id,
+
+mentor_id:CURRENT.mentor_id,
+
+mentee_id:CURRENT.mentee_id,
+
+progress_percent:Number($("progressPercent").value),
+
+notes:$("progressNotes").value
+
+};
+
+
+
+await sb.from("mentorship_progress").insert(payload);
+
+alert("progress saved");
+
+$("progressPercent").value="";
+
+$("progressNotes").value="";
+
+}
+
+
+
+$("saveBtn").onclick=saveSession;
+
+$("saveProgressBtn").onclick=saveProgress;
+
+
+
+requireAuth().then(loadRequests);
+
+</script>
+
+</body>
+
+</html>

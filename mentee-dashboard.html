@@ -54,9 +54,13 @@
     .brand p{margin:2px 0 0;font-size:12px;color:var(--muted)}
     .top-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
     .pill{
-      padding:10px 14px;border-radius:999px;border:1px solid var(--line);
-      background:#fff;color:var(--muted);font-size:13px;
-    }
+  padding:8px 12px;
+  border-radius:999px;
+  border:1px solid #e5e7eb;
+  background:#f8fafc;
+  font-size:12px;
+  color:#475569;
+}
     .btn{
       border:1px solid var(--line);
       background:#fff;
@@ -68,10 +72,11 @@
     }
     .btn:hover{box-shadow:0 10px 22px rgba(2,6,23,.08)}
     .btn.primary{
-      border-color:transparent;
-      color:#fff;
-      background:linear-gradient(180deg, var(--primary), var(--primary-dark));
-    }
+  border-color:transparent;
+  color:#fff;
+  background:linear-gradient(180deg,#1d4ed8,#0b3b89);
+  box-shadow:0 16px 40px rgba(29,78,216,.25);
+}
     .layout{
       display:grid;
       grid-template-columns:310px 1fr 350px;
@@ -80,12 +85,12 @@
       align-items:start;
     }
     .card{
-      background:var(--card);
-      border:1px solid var(--line);
-      border-radius:var(--radius);
-      box-shadow:var(--shadow);
-      padding:16px;
-    }
+  background:#fff;
+  border:1px solid #e5e7eb;
+  border-radius:18px;
+  padding:16px;
+  box-shadow:0 20px 50px rgba(2,6,23,.08);
+}
     .sticky-left,.sticky-right{position:sticky;top:92px}
     .profile-top{display:flex;gap:12px;align-items:center}
     .avatar{
@@ -98,9 +103,14 @@
     .profile-top h2{margin:0;font-size:15px}
     .profile-top p{margin:3px 0 0;font-size:13px;color:var(--muted)}
     .progress-row{
-      display:flex;justify-content:space-between;align-items:center;
-      margin-top:16px;font-size:13px;color:var(--muted);font-weight:700;
-    }
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-top:16px;
+  font-size:13px;
+  color:#475569;
+  font-weight:600;
+}
     .bar{
       margin-top:8px;height:10px;border-radius:999px;
       background:#eef2f7;border:1px solid var(--line);overflow:hidden;
@@ -136,11 +146,11 @@
       gap:12px;
     }
     .mentor{
-      border:1px solid var(--line);
-      border-radius:16px;
-      padding:12px;
-      background:linear-gradient(180deg,#fff,var(--soft));
-    }
+  border:1px solid #e5e7eb;
+  border-radius:16px;
+  padding:14px;
+  background:#fff;
+}
     .mentor-top{display:flex;gap:10px;align-items:flex-start}
     .mentor-avatar{
       width:42px;height:42px;border-radius:14px;
@@ -849,9 +859,9 @@ Thank you!`;
       showToast("Could not sign out");
     }
   });
-  async function loadMentorshipProgress(){
+async function loadMentorshipProgress(){
 
-  /* get accepted mentorship request */
+  /* get ALL accepted requests for this mentee */
 
   const { data: requests, error: reqError } = await sb
     .from("mentorship_requests")
@@ -864,7 +874,7 @@ Thank you!`;
     return;
   }
 
-  if(!requests || !requests.length){
+  if(!requests || requests.length === 0){
 
     $("mentorshipPct").textContent = "0%";
     $("mentorshipBar").style.width = "0%";
@@ -872,13 +882,15 @@ Thank you!`;
 
   }
 
+  /* collect request ids */
+
   const requestIds = requests.map(r => r.id);
 
-  /* get progress linked to that request */
+  /* fetch progress linked to those requests */
 
-  const { data, error } = await sb
+  const { data: progressRows, error } = await sb
     .from("mentorship_progress")
-    .select("progress_percent")
+    .select("progress_percent, request_id")
     .in("request_id", requestIds);
 
   if(error){
@@ -886,7 +898,9 @@ Thank you!`;
     return;
   }
 
-  if(!data || !data.length){
+  console.log("progress rows", progressRows); // debug
+
+  if(!progressRows || progressRows.length === 0){
 
     $("mentorshipPct").textContent = "0%";
     $("mentorshipBar").style.width = "0%";
@@ -898,13 +912,13 @@ Thank you!`;
 
   const avg = Math.round(
 
-    data.reduce((sum,p)=>
+    progressRows.reduce((sum,row)=>
 
-      sum + (p.progress_percent || 0)
+      sum + (row.progress_percent || 0)
 
     ,0)
 
-    / data.length
+    / progressRows.length
 
   );
 

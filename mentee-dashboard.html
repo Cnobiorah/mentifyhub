@@ -976,16 +976,21 @@ ${new Date(next.scheduled_for).toLocaleString()}
 Duration: ${next.duration_minutes} minutes
 </div>
 
-<div style="margin-top:14px">
+<div style="
+margin-top:16px;
+display:flex;
+gap:10px;
+flex-wrap:wrap;
+">
+
 <a class="btn solid" href="${next.meeting_link}" target="_blank">
 Join meeting
 </a>
-</div>
 
-<div style="margin-top:12px">
 <a class="btn" href="sessions.html">
 Open sessions
 </a>
+
 </div>
 
 </div>

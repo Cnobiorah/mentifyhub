@@ -359,18 +359,24 @@
 
         <div style="margin-top:18px;padding-top:18px;border-top:1px solid var(--line)">
           <b>Upcoming sessions</b>
-          <div class="muted" style="margin-top:8px">Sessions will appear after a mentor accepts your request.</div>
-          <div class="empty" style="margin-top:12px">
-            <b>No sessions scheduled</b>
-            <div>After acceptance, you'll be able to propose times based on timezone and availability.</div>
-            <div class="mentor-actions" style="margin-top:10px">
-              <a class="btn" href="sessions.html">Open sessions</a>
-            </div>
-          </div>
-        </div>
-      </aside>
-    </div>
-  </div>
+
+<div class="muted" style="margin-top:8px">
+Sessions will appear after a mentor accepts your request.
+</div>
+
+<div id="upcomingSessions" class="empty" style="margin-top:12px">
+
+<b>No sessions scheduled</b>
+
+<div>
+After acceptance, you'll be able to propose times based on timezone and availability.
+</div>
+
+<div class="mentor-actions" style="margin-top:10px">
+<a class="btn" href="sessions.html">Open sessions</a>
+</div>
+
+</div>
 
   <div class="modal-backdrop" id="requestBackdrop">
     <div class="modal">
@@ -949,7 +955,7 @@ async function loadSessions(){
 
   const next = data[0];
 
-  const box = document.querySelector("#activityCard .empty");
+  const box = document.getElementById("upcomingSessions");
 
   if(!box) return;
 

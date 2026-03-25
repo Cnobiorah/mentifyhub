@@ -974,12 +974,14 @@ async function loadSessions(){
   </div>
 
   ${next.meeting_link ? `
-  <div style="margin-top:8px">
-    <a class="btn" href="${next.meeting_link}" target="_blank">
-      Join meeting
-    </a>
-  </div>
-  ` : ``}
+<a class="btn" href="${next.meeting_link}" target="_blank">
+Join meeting
+</a>
+` : `
+<div class="muted small" style="margin-top:8px">
+Meeting link not added yet
+</div>
+`}
 
 </div>
 

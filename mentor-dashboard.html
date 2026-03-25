@@ -195,7 +195,7 @@
           <div class="stat"><b id="statProfile">—%</b><span>Profile completeness</span></div>
           <div class="stat">
   <b id="statProgress">—%</b>
-  <span>Avg mentee progress</span>
+  <span>Current progress</span>
 </div>
         </div>
 
@@ -529,34 +529,21 @@
   const { data, error } = await sb
     .from("mentorship_progress")
     .select("progress_percent")
-    .eq("mentor_id", user.id);
+    .eq("mentor_id", user.id)
+    .order("updated_at", { ascending:false })
+    .limit(1);
 
   if(error){
     console.error(error);
     return;
   }
 
-  if(!data || !data.length){
+  const progress =
+    data && data.length
+      ? data[0].progress_percent
+      : 0;
 
-    els.statProgress.textContent = "0%";
-
-    return;
-
-  }
-
-  const avg = Math.round(
-
-    data.reduce((sum,p)=>
-
-      sum + (p.progress_percent || 0)
-
-    ,0)
-
-    / data.length
-
-  );
-
-  els.statProgress.textContent = avg + "%";
+  els.statProgress.textContent = progress + "%";
 
 }
 

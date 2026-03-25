@@ -942,10 +942,10 @@ async function loadSessions(){
     .from("sessions")
     .select("*")
     .eq("mentee_id", currentUser.id)
-    .order("scheduled_for",{ascending:true});
+    .order("scheduled_for",{ascending:false}); // FIXED
 
   if(error){
-    console.error("session error", error);
+    console.error(error);
     return;
   }
 
@@ -957,9 +957,7 @@ async function loadSessions(){
 
   const box = document.getElementById("upcomingSessions");
 
-  if(!box) return;
-
- box.innerHTML = `
+  box.innerHTML = `
 
 <div style="
 border:1px solid #e5e7eb;
@@ -978,17 +976,11 @@ ${new Date(next.scheduled_for).toLocaleString()}
 Duration: ${next.duration_minutes} minutes
 </div>
 
-${next.meeting_link ? `
 <div style="margin-top:14px">
 <a class="btn solid" href="${next.meeting_link}" target="_blank">
 Join meeting
 </a>
 </div>
-` : `
-<div class="muted small" style="margin-top:14px">
-Meeting link will appear once mentor adds it
-</div>
-`}
 
 <div style="margin-top:12px">
 <a class="btn" href="sessions.html">

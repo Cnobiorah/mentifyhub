@@ -898,7 +898,7 @@ async function loadMentorshipProgress(){
     return;
   }
 
-  console.log("progress rows", progressRows); // debug
+  console.log("progress rows", progressRows);
 
   if(!progressRows || progressRows.length === 0){
 
@@ -927,7 +927,56 @@ async function loadMentorshipProgress(){
 
 }
 
-  window.addEventListener("load", async () => {
+
+/* ---------------- NEW FUNCTION ADDED ---------------- */
+
+async function loadSessions(){
+
+  const { data, error } = await sb
+    .from("sessions")
+    .select("*")
+    .eq("mentee_id", currentUser.id)
+    .order("scheduled_for",{ascending:true});
+
+  if(error){
+    console.error("session error", error);
+    return;
+  }
+
+  if(!data || data.length === 0){
+    return;
+  }
+
+  const next = data[0];
+
+  const box = document.querySelector("#activityCard .empty");
+
+  if(!box) return;
+
+  box.innerHTML = `
+
+    <b>Next session</b>
+
+    <div style="margin-top:6px">
+      ${new Date(next.scheduled_for).toLocaleString()}
+    </div>
+
+    <div style="margin-top:6px">
+      Duration: ${next.duration_minutes} min
+    </div>
+
+    <a class="btn" href="${next.meeting_link}" target="_blank" style="margin-top:10px">
+      Join meeting
+    </a>
+
+  `;
+
+}
+
+
+/* ---------------- ONLY 1 LINE ADDED BELOW ---------------- */
+
+window.addEventListener("load", async () => {
 
   sb = buildSupabaseClient();
 
@@ -939,6 +988,8 @@ async function loadMentorshipProgress(){
   await loadRequests();
 
   await loadMentorshipProgress();
+
+  await loadSessions();   // NEW LINE ADDED
 
   renderMatches();
 

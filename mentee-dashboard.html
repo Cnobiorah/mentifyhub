@@ -961,27 +961,36 @@ async function loadSessions(){
 
   box.innerHTML = `
 
-<div style="display:flex;flex-direction:column;gap:6px">
+<div style="
+border:1px solid #e5e7eb;
+border-radius:14px;
+padding:12px;
+background:#fff;
+">
 
-  <b>Next session</b>
+<b>Next session</b>
 
-  <div class="muted">
-    ${new Date(next.scheduled_for).toLocaleString()}
-  </div>
+<div class="muted" style="margin-top:4px">
+${new Date(next.scheduled_for).toLocaleString()}
+</div>
 
-  <div class="muted small">
-    Duration: ${next.duration_minutes} minutes
-  </div>
+<div class="muted small" style="margin-top:4px">
+Duration: ${next.duration_minutes} minutes
+</div>
 
-  ${next.meeting_link ? `
+${next.meeting_link ? `
+<div style="margin-top:10px">
 <a class="btn" href="${next.meeting_link}" target="_blank">
 Join meeting
 </a>
-` : `
-<div class="muted small" style="margin-top:8px">
-Meeting link not added yet
 </div>
-`}
+` : ""}
+
+<div style="margin-top:10px">
+<a class="btn" href="sessions.html">
+Open sessions
+</a>
+</div>
 
 </div>
 

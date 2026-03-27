@@ -535,6 +535,30 @@
       }
     }
 
+    /* ---------- ADD THIS FUNCTION ---------- */
+
+async function ensureMentorProfile(user){
+
+ const { data, error } = await sb
+   .from(TABLES.mentors)
+   .select("user_id")
+   .eq("user_id", user.id)
+   .maybeSingle();
+
+ if(error){
+   console.error(error);
+   return;
+ }
+
+ if(!data){
+
+   window.location.href = "mentor-onboarding.html";
+
+   return;
+
+ }
+
+}
     async function loadProgress(user){
 
   const { data, error } = await sb
@@ -565,13 +589,20 @@
     });
 
     (async function init(){
-      const user = await requireAuth();
-      if(!user) return;
 
-      await loadMentorDisplayName(user);
-      await loadRequests(user);
-      await loadProgress(user);
-    })();
+ const user = await requireAuth();
+
+ if(!user) return;
+
+ await ensureMentorProfile(user);   // ADD THIS LINE
+
+ await loadMentorDisplayName(user);
+
+ await loadRequests(user);
+
+ await loadProgress(user);
+
+})();
   </script>
 </body>
 </html>

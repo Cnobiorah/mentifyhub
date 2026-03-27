@@ -428,6 +428,29 @@ After acceptance, you'll be able to propose times based on timezone and availabi
   let lastRequests = [];
   let requestTarget = null;
 
+  async function ensureMenteeProfile(){
+
+  const { data, error } = await sb
+    .from(TABLES.mentees)
+    .select("*")
+    .eq("user_id", currentUser.id)
+    .maybeSingle();
+
+  if(error){
+    console.error(error);
+    return;
+  }
+
+  if(!data){
+
+    window.location.href = "mentee-onboarding.html";
+
+    return;
+
+  }
+
+}
+
   function showToast(msg){
     const t = $("toast");
     t.textContent = msg;

@@ -241,6 +241,47 @@
   margin:0 auto;
   padding:14px 18px;
 }
+
+.topbar{
+display:flex;
+align-items:center;
+justify-content:space-between;
+gap:16px;
+padding:14px 16px;
+border:1px solid #e5e7eb;
+border-radius:22px;
+background:rgba(255,255,255,.82);
+backdrop-filter:blur(10px);
+box-shadow:0 10px 24px rgba(2,6,23,.06);
+position:sticky;
+top:14px;
+z-index:20;
+}
+
+.brand{
+display:flex;
+align-items:center;
+gap:12px;
+}
+
+.brand h1{
+margin:0;
+font-size:16px;
+}
+
+.brand p{
+margin:2px 0 0;
+font-size:12px;
+color:#475569;
+}
+
+.nav-right{
+display:flex;
+align-items:center;
+gap:10px;
+flex-wrap:wrap;
+justify-content:flex-end;
+}
   </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>

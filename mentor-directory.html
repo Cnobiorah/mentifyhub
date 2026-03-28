@@ -281,34 +281,29 @@ const SUPABASE_URL="https://mscgaaaobxiuzqsukvjc.supabase.co";
 
 const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y";
 
-const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+const sb = supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 
-const list=document.getElementById("list");
-
-const search=document.getElementById("search");
-
-const field=document.getElementById("field");
+const list = document.getElementById("list");
+const search = document.getElementById("search");
+const field = document.getElementById("field");
 
 async function requireUser(){
 
 const { data:{ user } } = await sb.auth.getUser();
 
 if(!user){
-
 window.location.href="auth.html";
-
 return null;
-
 }
 
 return user;
 
 }
 
+
 async function loadMentors(){
 
 const user = await requireUser();
-
 if(!user) return;
 
 const { data, error } = await sb
@@ -319,16 +314,15 @@ const { data, error } = await sb
 if(error){
 
 list.innerHTML="Error loading mentors";
-
 return;
 
 }
 
 renderMentors(data);
-
 fillFields(data);
 
 }
+
 
 function renderMentors(data){
 
@@ -338,7 +332,7 @@ data
 .filter(m=>{
 
 if(search.value &&
-!m.full_name?.toLowerCase().includes(search.value.toLowerCase()))
+!JSON.stringify(m).toLowerCase().includes(search.value.toLowerCase()))
 return false;
 
 if(field.value && m.field!==field.value)
@@ -349,31 +343,59 @@ return true;
 })
 .forEach(m=>{
 
-const div=document.createElement("div");
+const div = document.createElement("div");
 
 div.className="item";
 
-div.innerHTML=`
-
+div.innerHTML = `
 <div>
 
 <b>${m.full_name || "Mentor"}</b>
+
 <br>
-<small>${m.field || ""}</small>
+
+<small>
+${m.headline || ""}
+${m.current_title ? " • " + m.current_title : ""}
+</small>
+
+<br>
+
+<small>
+${m.field || ""}
+${m.years_experience ? " • " + m.years_experience + " yrs experience" : ""}
+</small>
+
+<br>
+
+<small>
+${m.preferred_session_type || ""}
+${m.communication ? " • " + m.communication : ""}
+</small>
+
+<br>
+
+<small>
+${m.bio || ""}
+</small>
 
 </div>
 
-<button class="btn solid">
-Request
+<button class="btn solid requestBtn">
+Request mentorship
 </button>
-
 `;
+
+const btn = div.querySelector(".requestBtn");
+
+btn.onclick = () => sendRequest(m.user_id, btn);
 
 list.appendChild(div);
 
 });
 
 }
+
 
 function fillFields(data){
 
@@ -386,7 +408,6 @@ fields.forEach(f=>{
 const opt=document.createElement("option");
 
 opt.value=f;
-
 opt.textContent=f;
 
 field.appendChild(opt);
@@ -395,17 +416,47 @@ field.appendChild(opt);
 
 }
 
-search.oninput=loadMentors;
 
-field.onchange=loadMentors;
+async function sendRequest(mentor_id, btn){
 
-document.getElementById("clear").onclick=()=>{
+const { data:{ user } } = await sb.auth.getUser();
+
+btn.textContent="Sending...";
+btn.disabled=true;
+
+const { error } = await sb
+.from("mentorship_requests")
+.insert({
+
+mentor_id: mentor_id,
+mentee_id: user.id,
+status:"pending"
+
+});
+
+if(error){
+
+alert(error.message);
+
+btn.textContent="Request mentorship";
+btn.disabled=false;
+
+return;
+
+}
+
+btn.textContent="Requested";
+
+}
+search.oninput = loadMentors;
+field.onchange = loadMentors;
+
+document.getElementById("clear").onclick = ()=>{
 
 search.value="";
 field.value="";
 
 loadMentors();
-
 };
 
 loadMentors();

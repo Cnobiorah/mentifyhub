@@ -207,22 +207,11 @@ text-align:center;
 <header class="topbar">
 
 <a href="index.html" class="brand">
-
-<img
-  src="logo.png"
-  alt="MentifyHub logo"
-  style="
-    width:42px;
-    height:42px;
-    object-fit:contain;
-  "
->
-
-<div>
-  <h1>MentifyHub</h1>
-  <p>Mentor onboarding</p>
-</div>
-
+  <img src="logo.png" alt="MentifyHub logo" class="logo">
+  <div>
+    <h1>MentifyHub</h1>
+    <p>Green Skills Mentorship</p>
+  </div>
 </a>
 
 <nav class="nav">
@@ -338,7 +327,14 @@ renderRequests();
 
 function renderRequests(){
 $("requestList").innerHTML=REQUESTS
-.map(r=>`<div class="threadItem" onclick="openRequest('${r.id}')">${r.id}</div>`)
+.map(r=> `
+<div class="threadItem"
+onclick="openRequest('${r.id}')">
+
+Request ${r.id.substring(0,6)}
+
+</div>
+`)
 .join("");
 }
 
@@ -350,16 +346,37 @@ loadSessions();
 }
 
 async function loadSessions(){
-const {data}=await sb
+
+const {data,error}=await sb
 .from("sessions")
 .select("*")
 .eq("request_id",CURRENT.id);
 
+if(error){
+console.error(error);
+return;
+}
+
+if(!data || data.length===0){
+
+$("sessions").innerHTML=
+`<div class="empty">No sessions yet</div>`;
+
+return;
+}
+
 $("sessions").innerHTML=data.map(s=>`
 <div class="session">
+
 <b>${new Date(s.scheduled_for).toLocaleString()}</b>
+
+<div class="muted">
+${s.duration_minutes} minutes
+</div>
+
 </div>
 `).join("");
+
 }
 
 async function saveSession(){
@@ -370,6 +387,13 @@ return;
 }
 
 const scheduledFor = $("scheduledFor").value;
+if(!scheduledFor){
+
+alert("Select date and time");
+
+return;
+
+}
 const durationMinutes = Number($("duration").value);
 const meetingLink = $("meetingLink").value;
 const notes = $("sessionNotes").value;

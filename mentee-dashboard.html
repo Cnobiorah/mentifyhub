@@ -414,21 +414,25 @@ After acceptance, you'll be able to propose times based on timezone and availabi
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y";
 
   const TABLES = {
-    mentees: "mentees",
-    mentors: "mentors",
-    requests: "mentorship_requests"
-  };
+ mentees: "mentees",
+ mentors: "mentors",
+ requests: "mentorship_requests"
+};
 
-  const $ = (id) => document.getElementById(id);
+const sb = supabase.createClient(
+ SUPABASE_URL,
+ SUPABASE_ANON_KEY
+);
 
-  let sb = null;
-  let currentUser = null;
-  let menteeProfile = null;
-  let allMentors = [];
-  let lastRequests = [];
-  let requestTarget = null;
+const $ = (id) => document.getElementById(id);
 
-  async function ensureMenteeProfile(){
+let currentUser = null;
+let menteeProfile = null;
+let allMentors = [];
+let lastRequests = [];
+let requestTarget = null;
+
+async function ensureMenteeProfile(){
 
   const { data, error } = await sb
     .from(TABLES.mentees)
@@ -1037,8 +1041,6 @@ Open sessions
 /* ---------------- ONLY 1 LINE ADDED BELOW ---------------- */
 
 window.addEventListener("load", async () => {
-
-  sb = buildSupabaseClient();
 
   const ok = await guardAuth();
   if (!ok) return;

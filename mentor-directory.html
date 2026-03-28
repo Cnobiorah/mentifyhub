@@ -289,26 +289,56 @@ const search=document.getElementById("search");
 
 const field=document.getElementById("field");
 
-async function load(){
+async function requireUser(){
 
-const {data}=await sb
+const { data:{ user } } = await sb.auth.getUser();
+
+if(!user){
+
+window.location.href="auth.html";
+
+return null;
+
+}
+
+return user;
+
+}
+
+async function loadMentors(){
+
+const user = await requireUser();
+
+if(!user) return;
+
+const { data, error } = await sb
 .from("mentors")
 .select("*")
 .order("updated_at",{ascending:false});
 
-render(data);
+if(error){
+
+list.innerHTML="Error loading mentors";
+
+return;
+
+}
+
+renderMentors(data);
+
 fillFields(data);
 
 }
 
-function render(data){
+function renderMentors(data){
 
 list.innerHTML="";
 
 data
 .filter(m=>{
 
-if(search.value && !m.full_name?.toLowerCase().includes(search.value.toLowerCase()))
+if(search.value &&
+!m.full_name?.toLowerCase().includes(search.value.toLowerCase()))
 return false;
 
 if(field.value && m.field!==field.value)
@@ -327,11 +357,9 @@ div.innerHTML=`
 
 <div>
 
-<b>${m.full_name||"Mentor"}</b>
-
+<b>${m.full_name || "Mentor"}</b>
 <br>
-
-<small>${m.field||""}</small>
+<small>${m.field || ""}</small>
 
 </div>
 
@@ -351,6 +379,8 @@ function fillFields(data){
 
 const fields=[...new Set(data.map(m=>m.field).filter(Boolean))];
 
+field.innerHTML='<option value="">All fields</option>';
+
 fields.forEach(f=>{
 
 const opt=document.createElement("option");
@@ -365,19 +395,20 @@ field.appendChild(opt);
 
 }
 
-search.oninput=load;
+search.oninput=loadMentors;
 
-field.onchange=load;
+field.onchange=loadMentors;
 
 document.getElementById("clear").onclick=()=>{
 
 search.value="";
 field.value="";
-load();
+
+loadMentors();
 
 };
 
-load();
+loadMentors();
 
 </script>
 

@@ -518,7 +518,7 @@ justify-content:flex-end;
       const tags = safeArr(m.tags).slice(0, 10);
 
       const already = REQUESTED.has(m.user_id);
-      const btnLabel = already ? "Requested" : "Request mentorship";
+      const btnLabel = "View profile";
 
       const reasons = why.slice(0, 3);
       const whyText = reasons.length ? `Why matched: ${reasons.join(", ")}` : "Why matched: profile overlap";
@@ -551,9 +551,14 @@ justify-content:flex-end;
       `;
 
       const btn = el.querySelector("button[data-mentor]");
-      if(btn && !already){
-        btn.addEventListener("click", () => openModal(m));
-      }
+     if(btn){
+  btn.addEventListener("click", () => {
+
+    window.location.href =
+    `mentor-profile.html?id=${m.user_id}`;
+
+  });
+}
       return el;
     }
 

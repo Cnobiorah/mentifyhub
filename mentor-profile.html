@@ -299,7 +299,7 @@ window.location.search
 async function loadProfile(){
 
 const { data, error } =
-await supabase
+await supabaseClient
 .from("mentors")
 .select("*")
 .eq("user_id", id)

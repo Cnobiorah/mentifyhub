@@ -543,12 +543,28 @@ justify-content:flex-end;
           ${tags.map(t => `<span class="pill">${escapeHtml(t)}</span>`).join("")}
         </div>
         ${score != null ? `<div class="why">${escapeHtml(whyText)}</div>` : ``}
-        <div class="divider"></div>
-        <div class="row">
-          <button class="btn ${already ? "" : "primary"}" ${already ? "disabled" : ""} data-mentor="${m.user_id}">${btnLabel}</button>
-          <span class="meta">Updated: ${formatDate(m.updated_at || m.created_at)}</span>
-        </div>
-      `;
+      <div class="divider"></div>
+
+<div class="row">
+
+<button class="btn primary"
+${already ? "disabled" : ""}
+onclick="openRequestModal('${m.user_id}','${name}')">
+
+${already ? "Requested" : "Request"}
+
+</button>
+
+<button class="btn"
+onclick="window.location.href='mentor-profile.html?id=${m.user_id}'">
+
+View profile
+
+</button>
+
+</div>
+
+`;
 
       const btn = el.querySelector("button[data-mentor]");
      if(btn){

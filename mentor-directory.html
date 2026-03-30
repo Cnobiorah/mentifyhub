@@ -282,6 +282,21 @@ gap:10px;
 flex-wrap:wrap;
 justify-content:flex-end;
 }
+.avatar{
+
+width:48px;
+
+height:48px;
+
+border-radius:50%;
+
+object-fit:cover;
+
+margin-right:10px;
+
+border:1px solid #e5e7eb;
+
+}
   </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -533,6 +548,10 @@ justify-content:flex-end;
       el.className = "card";
       el.innerHTML = `
         <div class="row">
+          <img
+src="${m.photo_url || 'logo.png'}"
+class="avatar"
+/>
           <div class="name">${escapeHtml(name)}</div>
           ${score != null ? `<div class="score">${score}% match</div>` : ``}
         </div>

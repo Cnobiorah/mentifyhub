@@ -283,12 +283,17 @@ Certifications / links
 
 <script>
 
-const supabaseClient =
-supabase.createClient(
-"https://mscgaaaobxiuzqsukvjc.supabase.co",
-"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y"
-);
+const SUPABASE_URL =
+"https://mscgaaaobxiuzqsukvjc.supabase.co";
 
+const SUPABASE_KEY =
+"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y";
+
+const sb =
+window.supabase.createClient(
+SUPABASE_URL,
+SUPABASE_KEY
+);
 
 const id =
 new URLSearchParams(
@@ -299,7 +304,7 @@ window.location.search
 async function loadProfile(){
 
 const { data, error } =
-await supabaseClient
+await sb
 .from("mentors")
 .select("*")
 .eq("user_id", id)
@@ -316,15 +321,15 @@ return;
 
 /* header */
 
-document.getElementById("name")
-.innerText = data.full_name;
+document.getElementById("name").innerText =
+data.full_name;
 
-document.getElementById("headline")
-.innerText = data.headline;
+document.getElementById("headline").innerText =
+data.headline;
 
-document.getElementById("meta")
-.innerText =
-`${data.field} • ${data.years_experience}`;
+document.getElementById("meta").innerText =
+`${data.field || ""} • ${data.years_experience || ""}`;
+
 
 
 /* avatar */
@@ -362,32 +367,34 @@ tagsBox.appendChild(el);
 
 /* expertise */
 
-document.getElementById("expertise")
-.innerText =
-(data.mentoring_areas || [])
-.join(", ");
+document.getElementById("certifications").innerText =
+data.certifications || "";
+
+if(data.profile_link){
+
+document.getElementById("link").innerHTML =
+`<a href="${data.profile_link}" target="_blank">
+View external profile
+</a>`;
+
+}
 
 
 /* mentorship */
 
-document.getElementById("level")
-.innerText =
+document.getElementById("level").innerText =
 data.preferred_level;
 
-document.getElementById("style")
-.innerText =
+document.getElementById("style").innerText =
 data.mentorship_style;
 
-document.getElementById("duration")
-.innerText =
+document.getElementById("duration").innerText =
 data.session_duration;
 
-document.getElementById("communication")
-.innerText =
+document.getElementById("communication").innerText =
 data.communication;
 
-document.getElementById("pricing")
-.innerText =
+document.getElementById("pricing").innerText =
 data.pricing_type;
 
 

@@ -718,17 +718,27 @@ Thank you!`;
             ${tags.map(t => `<span class="tag">${esc(t)}</span>`).join("")}
           </div>
 
-          <div class="mentor-actions">
-            <button
-              class="btn primary"
-              type="button"
-              ${alreadyRequested ? "disabled" : ""}
-              onclick="openRequestModal('${esc(String(m.user_id || ""))}','${esc(name)}')"
-            >
-              ${alreadyRequested ? "Requested" : "Request"}
-            </button>
-            <a class="btn" href="mentor-directory.html">View profile</a>
-          </div>
+        <div class="mentor-actions">
+
+<button
+class="btn primary"
+type="button"
+${alreadyRequested ? "disabled" : ""}
+onclick="openRequestModal('${m.user_id}','${name}')">
+
+${alreadyRequested ? "Requested" : "Request"}
+
+</button>
+
+<button
+class="btn"
+onclick="event.stopPropagation(); window.location.href='mentor-profile.html?id=${m.user_id}'">
+
+View profile
+
+</button>
+
+</div>
         </article>
       `;
     }).join("");

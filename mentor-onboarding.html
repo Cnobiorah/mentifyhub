@@ -1141,7 +1141,7 @@ document.getElementById("photo")?.files?.[0];
 if(file){
 
 const fileName =
-`${user.id}-${Date.now()}`;
+`${user.id}-${Date.now()}-${file.name}`;
 
 const { error: uploadError } =
 await sb.storage
@@ -1161,8 +1161,8 @@ photo_url = urlData.publicUrl;
 
 }
     const payload = {
-      user_id: user.id,
-      photo_url: photo_url,
+  user_id: user.id,
+  profile_image: photo_url || undefined,
       full_name: (user.user_metadata && user.user_metadata.full_name)
         ? user.user_metadata.full_name
         : (user.email || ""),

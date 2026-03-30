@@ -336,6 +336,8 @@ return;
 
 
 /* header */
+document.getElementById("photo").src =
+data.profile_image || "logo.png";
 
 document.getElementById("name").innerText =
 data.full_name;
@@ -350,9 +352,7 @@ document.getElementById("meta").innerText =
 
 /* avatar */
 
-document.getElementById("avatar")
-.innerText =
-data.full_name.charAt(0);
+
 
 
 /* bio */

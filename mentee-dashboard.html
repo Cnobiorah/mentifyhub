@@ -434,24 +434,17 @@ let requestTarget = null;
 
 async function ensureMenteeProfile(){
 
-  const { data, error } = await sb
-    .from(TABLES.mentees)
-    .select("*")
-    .eq("user_id", currentUser.id)
-    .maybeSingle();
+const { data, error } = await sb
+.from(TABLES.mentees)
+.select("*")
+.eq("user_id", currentUser.id)
+.maybeSingle();
 
-  if(error){
-    console.error(error);
-    return;
-  }
+if(error){
+console.error(error);
+}
 
-  if(!data){
-
-    window.location.href = "mentee-onboarding.html";
-
-    return;
-
-  }
+return data || null;
 
 }
 
@@ -1052,18 +1045,20 @@ Open sessions
 
 window.addEventListener("load", async () => {
 
-  const ok = await guardAuth();
-  if (!ok) return;
+const ok = await guardAuth();
+if (!ok) return;
 
-  await loadMenteeProfile();
-  await loadMentors();
-  await loadRequests();
+menteeProfile = await ensureMenteeProfile();
 
-  await loadMentorshipProgress();
+await loadMenteeProfile();
+await loadMentors();
+await loadRequests();
 
-  await loadSessions();   // NEW LINE ADDED
+await loadMentorshipProgress();
 
-  renderMatches();
+await loadSessions();
+
+renderMatches();
 
 });
 </script>

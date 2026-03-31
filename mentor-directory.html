@@ -738,22 +738,25 @@ View profile
       const { data: { session } } = await sb.auth.getSession();
       if(!session){
         const returnTo = encodeURIComponent("mentor-directory.html");
-        window.location.href = `auth.html?mode=signin&role=mentee&returnTo=${returnTo}`;
+        window.location.href =
+`auth.html?mode=signin&returnTo=${returnTo}`;
         return;
       }
       USER = session.user;
 
-      // load mentee profile (required)
-      const { data: mentee, error: meErr } = await sb
-        .from(TABLES.mentees).select("*").eq("user_id", USER.id).maybeSingle();
+      // load mentee profile (optional)
+const { data: mentee, error: meErr } = await sb
+.from(TABLES.mentees)
+.select("*")
+.eq("user_id", USER.id)
+.maybeSingle();
 
-      if(meErr){ console.error(meErr); }
-      if(!mentee){
-        // mentee has not completed onboarding
-        window.location.href = "mentee-onboarding.html";
-        return;
-      }
-      MENTEE = mentee;
+if(meErr){
+console.error(meErr);
+}
+
+// allow mentors to continue without mentee profile
+MENTEE = mentee || null;
 
       // chip
       const nm = USER.user_metadata?.full_name || mentee.full_name || USER.email || "Signed in";

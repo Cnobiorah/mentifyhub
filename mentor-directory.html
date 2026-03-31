@@ -326,7 +326,7 @@ border:1px solid #e5e7eb;
 
   <a class="btn" href="mentor-dashboard.html">Requests</a>
 
-  <a class="btn" href="mentee-dashboard.html">Dashboard</a>
+  <a class="btn" id="dashboardLink">Dashboard</a>
 
   <button class="btn danger" id="signOutBtn">Sign out</button>
 </div>
@@ -764,7 +764,23 @@ USER.user_metadata?.full_name
 || MENTEE?.full_name
 || USER.email
 || "Signed in";
-      els.whoChip.textContent = `${nm} • Mentee`;
+const { data: mentorProfile } = await sb
+.from("mentors")
+.select("user_id")
+.eq("user_id", USER.id)
+.maybeSingle();
+
+els.whoChip.textContent =
+mentorProfile
+? `${nm} • Mentor`
+: `${nm} • Mentee`;
+const dash =
+document.getElementById("dashboardLink");
+
+dash.href =
+mentorProfile
+? "mentor-dashboard.html"
+: "mentee-dashboard.html";
 
       // load mentors
       const { data: mentors, error: moErr } = await sb

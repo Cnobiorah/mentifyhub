@@ -759,7 +759,11 @@ console.error(meErr);
 MENTEE = mentee || null;
 
       // chip
-      const nm = USER.user_metadata?.full_name || mentee.full_name || USER.email || "Signed in";
+      const nm =
+USER.user_metadata?.full_name
+|| MENTEE?.full_name
+|| USER.email
+|| "Signed in";
       els.whoChip.textContent = `${nm} • Mentee`;
 
       // load mentors
@@ -788,14 +792,58 @@ MENTEE = mentee || null;
       REQUESTED = new Set((reqs || []).map(r => r.mentor_id));
 
       // compute match
-      SCORED = MENTORS.map(m => {
-        const match = computeScore(MENTEE, m);
-        return { ...m, _match: match };
-      }).sort((a,b) => (b._match.score - a._match.score) || safeStr(a.full_name).localeCompare(safeStr(b.full_name)));
+      // compute match safely for mentees AND mentors
 
-      // top hint text
-      const focus = [MENTEE.field, (safeArr(MENTEE.tags)[0] || null)].filter(Boolean).join(" • ");
-      els.topHint.textContent = focus ? `Based on: ${focus}` : "Based on your profile.";
+if(MENTEE){
+
+SCORED = MENTORS.map(m => {
+
+const match = computeScore(MENTEE, m);
+
+return {
+...m,
+_match: match
+};
+
+})
+.sort((a,b)=>
+(b._match.score - a._match.score) ||
+safeStr(a.full_name).localeCompare(safeStr(b.full_name))
+);
+
+}else{
+
+// mentors browsing directory → just show all mentors
+SCORED = MENTORS.map(m => ({
+...m,
+_match: null
+}));
+
+}
+
+      // top hint text (safe for mentors)
+let focus = "";
+
+if(MENTEE){
+
+focus = [
+MENTEE.field,
+(safeArr(MENTEE.tags)[0] || null)
+]
+.filter(Boolean)
+.join(" • ");
+
+els.topHint.textContent =
+focus
+? `Based on: ${focus}`
+: "Based on your profile.";
+
+}else{
+
+els.topHint.textContent =
+"Browse mentors freely.";
+
+}
 
       fillFilters();
       render();

@@ -1048,16 +1048,21 @@ window.addEventListener("load", async () => {
 const ok = await guardAuth();
 if (!ok) return;
 
+/* ensure profile exists first */
 menteeProfile = await ensureMenteeProfile();
 
 await loadMenteeProfile();
+
+/* small delay helps Supabase finish syncing */
+await new Promise(r => setTimeout(r,120));
+
 await loadMentors();
 await loadRequests();
 
 await loadMentorshipProgress();
-
 await loadSessions();
 
+/* NOW render */
 renderMatches();
 
 });

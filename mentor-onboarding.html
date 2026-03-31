@@ -1162,7 +1162,7 @@ photo_url = urlData.publicUrl;
 }
     const payload = {
   user_id: user.id,
-  profile_image: photo_url || undefined,
+  ...(photo_url && { profile_image: photo_url }),
       full_name: (user.user_metadata && user.user_metadata.full_name)
         ? user.user_metadata.full_name
         : (user.email || ""),

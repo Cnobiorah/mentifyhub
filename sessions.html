@@ -218,6 +218,8 @@ text-align:center;
 
 <span class="chip" id="whoChip">Checking session…</span>
 
+<a class="btn" id="dashboardLink">Dashboard</a>
+
 <a class="btn" href="mentor-directory.html">Directory</a>
 
 <a class="btn" href="messages.html">Messages</a>
@@ -310,7 +312,26 @@ async function requireAuth(){
 const {data:{session}}=await sb.auth.getSession();
 if(!session){location.href="auth.html";return;}
 USER=session.user;
-$("whoChip").textContent=USER.email;
+const dash =
+document.getElementById("dashboardLink");
+
+const { data: mentorProfile } = await sb
+.from("mentors")
+.select("user_id")
+.eq("user_id", USER.id)
+.maybeSingle();
+
+dash.href =
+mentorProfile
+? "mentor-dashboard.html"
+: "mentee-dashboard.html";
+
+/* update header label */
+
+$("whoChip").textContent =
+mentorProfile
+? USER.email + " • Mentor"
+: USER.email + " • Mentee";
 return USER;
 }
 

@@ -434,6 +434,11 @@ let requestTarget = null;
 
 async function ensureMenteeProfile(){
 
+let tries = 0;
+let profile = null;
+
+while(!profile && tries < 5){
+
 const { data, error } = await sb
 .from(TABLES.mentees)
 .select("*")
@@ -444,7 +449,19 @@ if(error){
 console.error(error);
 }
 
-return data || null;
+profile = data || null;
+
+/* wait before trying again */
+if(!profile){
+await new Promise(r => setTimeout(r,200));
+}
+
+tries++;
+
+}
+
+return profile;
+
 
 }
 

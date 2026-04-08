@@ -2,1109 +2,386 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>ZöD Studio</title>
-  <meta name="description" content="ZöD Studio is a digital-first architectural practice delivering modern, efficient building designs for homeowners and developers." />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
-
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MentifyHub — Green Skills Mentorship</title>
+  <meta name="description" content="MentifyHub connects mentees and mentors for green skills and built-environment growth." />
   <style>
     :root{
-      --bg: #F7F7F5;
-      --ink: #111111;
-      --muted: rgba(17,17,17,.68);
-      --line: rgba(17,17,17,.12);
-      --card: rgba(255,255,255,.70);
-      --shadow: 0 18px 50px rgba(0,0,0,.07);
-
-      --accent: #6E7268;
-      --sans: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      --display: "Space Grotesk", "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-
-      --max: 1140px;
-      --r: 14px;
+      --bg:#ffffff;
+      --card:#ffffff;
+      --text:#0f172a;
+      --muted:#475569;
+      --line:#e5e7eb;
+      --soft:#f8fafc;
+      --soft2:#f1f5f9;
+      --accent:#0b3b89;
+      --accent2:#1d4ed8;
+      --radius:18px;
+      --shadow: 0 16px 40px rgba(2,6,23,.08);
     }
-
     *{ box-sizing:border-box; }
     html,body{ height:100%; }
     body{
       margin:0;
-      background: radial-gradient(1200px 800px at 12% 6%, rgba(110,114,104,.10), transparent 60%),
-                  radial-gradient(900px 700px at 92% 18%, rgba(17,17,17,.05), transparent 55%),
-                  var(--bg);
-      color:var(--ink);
-      font-family:var(--sans);
-      line-height:1.55;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color:var(--text);
+      background:
+        radial-gradient(900px 520px at 18% 10%, rgba(29,78,216,.10), transparent 55%),
+        radial-gradient(900px 520px at 86% 18%, rgba(11,59,137,.08), transparent 55%),
+        linear-gradient(180deg, #ffffff, #ffffff);
     }
-
     a{ color:inherit; text-decoration:none; }
-    a:hover{ text-decoration:underline; }
-
-    .container{ width:min(var(--max), calc(100% - 48px)); margin:0 auto; }
-
-    header{
-      position:sticky; top:0; z-index:30;
-      background: color-mix(in oklab, var(--bg) 78%, white 22%);
-      backdrop-filter: blur(12px);
-      border-bottom:1px solid var(--line);
+    .container{ max-width:1180px; margin:0 auto; padding:22px; }
+    .topbar{
+      display:flex; align-items:center; justify-content:space-between; gap:16px;
+      padding:14px 16px;
+      border:1px solid var(--line);
+      border-radius: 22px;
+      background: rgba(255,255,255,.78);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 10px 24px rgba(2,6,23,.06);
+      position: sticky; top: 14px; z-index: 20;
     }
+    .brand{ display:flex; align-items:center; gap:12px; min-width: 220px; }
+    .logo{
+      width:40px; height:40px; border-radius: 14px;
+      background: linear-gradient(135deg, rgba(11,59,137,.14), rgba(29,78,216,.16));
+      border: 1px solid rgba(29,78,216,.18);
+      display:flex; align-items:center; justify-content:center;
+      font-weight:800; color: var(--accent);
+    }
+    .brand h1{ margin:0; font-size:16px; letter-spacing:.2px; }
+    .brand p{ margin:2px 0 0; font-size:12px; color:var(--muted); }
     .nav{
-      display:flex; justify-content:space-between; align-items:center; gap:18px;
-      padding:14px 0;
+      display:flex; align-items:center; gap:10px;
     }
-
-    .brand{ display:flex; align-items:center; gap:12px; user-select:none; }
-    .mark{
-      width:34px; height:34px; border-radius:10px;
+    .chip{
+      padding:9px 12px;
+      border-radius: 999px;
       border:1px solid var(--line);
-      background: linear-gradient(180deg, rgba(255,255,255,.85), rgba(255,255,255,.55));
-      box-shadow: 0 10px 24px rgba(0,0,0,.06);
-      display:grid; place-items:center;
-      position:relative; overflow:hidden;
-    }
-    .mark:before{
-      content:"";
-      position:absolute; inset:-40%;
-      background: radial-gradient(circle at 30% 30%, rgba(110,114,104,.35), transparent 55%);
-      transform: rotate(20deg);
-      opacity:.55;
-    }
-    .mark span{
-      position:relative;
-      font-family:var(--display);
-      font-weight:600;
-      letter-spacing:-.04em;
-      font-size:16px;
-    }
-    .brandtext{ line-height:1.05; }
-    .wordmark{ font-family:var(--display); font-weight:600; font-size:16px; letter-spacing:-.02em; }
-    .submark{
-      font-size:11px; letter-spacing:0.16em; text-transform:uppercase;
-      color:var(--muted); margin-top:2px;
-    }
-
-    nav ul{
-      display:flex; list-style:none; padding:0; margin:0;
-      gap:6px; align-items:center; flex-wrap:wrap; justify-content:flex-end;
-    }
-    nav a{
-      display:inline-flex; align-items:center; gap:8px;
-      padding:9px 11px;
-      border-radius:999px;
-      font-size:14px;
-      color:var(--muted);
-      border:1px solid transparent;
-    }
-    nav a:hover{
-      text-decoration:none;
-      color:var(--ink);
-      background: rgba(255,255,255,.65);
-      border-color: var(--line);
-    }
-    nav a.active{
-      color:var(--ink);
-      background: rgba(255,255,255,.75);
-      border-color: var(--line);
-    }
-
-    .pill{
-      border:1px solid var(--line);
-      background: rgba(17,17,17,.92);
-      color: var(--bg);
-      box-shadow: 0 10px 26px rgba(0,0,0,.18);
-      font-weight:600;
-    }
-    .pill:hover{ background: rgba(17,17,17,.86); text-decoration:none; }
-
-    .hero{ padding:72px 0 44px; }
-    .hero-grid{
-      display:grid;
-      grid-template-columns: 1.12fr .88fr;
-      gap:20px;
-      align-items:stretch;
-    }
-
-    .kicker{
-      margin:0 0 12px;
+      background: #fff;
+      font-size: 13px;
       color: var(--muted);
-      letter-spacing:0.14em;
-      text-transform:uppercase;
-      font-size:12px;
     }
-    h1{
-      font-family:var(--display);
-      font-weight:600;
-      font-size: clamp(38px, 4.8vw, 58px);
-      line-height:1.04;
-      margin:0 0 14px;
-      letter-spacing:-.03em;
-    }
-    .lead{
-      margin:0 0 22px;
-      color:var(--muted);
-      font-size:16px;
-      max-width:68ch;
-    }
-    .actions{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
-
     .btn{
       display:inline-flex; align-items:center; justify-content:center; gap:10px;
-      padding:12px 14px;
-      border-radius:12px;
-      border:1px solid var(--line);
-      background: rgba(255,255,255,.70);
-      font-size:14px; font-weight:600;
-      cursor:pointer;
-      transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
-    }
-    .btn:hover{ text-decoration:none; transform: translateY(-1px); background:white; box-shadow: 0 10px 22px rgba(0,0,0,.08); }
-    .btn.primary{ background: rgba(17,17,17,.92); color:var(--bg); border-color: rgba(17,17,17,.25); }
-    .btn.primary:hover{ background: rgba(17,17,17,.86); }
-
-    .media{
-      border-radius: var(--r);
-      border:1px solid var(--line);
-      background: linear-gradient(180deg, rgba(255,255,255,.78), rgba(255,255,255,.50));
-      box-shadow: var(--shadow);
-      overflow:hidden;
-      position:relative;
-      min-height: 330px;
-    }
-    .media:before{
-      content:"";
-      position:absolute; inset:0;
-      background:
-        radial-gradient(800px 500px at 20% 20%, rgba(110,114,104,.22), transparent 60%),
-        radial-gradient(700px 520px at 80% 60%, rgba(17,17,17,.08), transparent 60%),
-        repeating-linear-gradient(90deg, rgba(17,17,17,.06) 0 1px, transparent 1px 22px);
-      opacity:.75;
-      transform: translate3d(0,0,0);
-      animation: drift 16s ease-in-out infinite alternate;
-    }
-    .media:after{
-      content:"";
-      position:absolute; inset:0;
-      background:
-        repeating-linear-gradient(0deg, rgba(17,17,17,.06) 0 1px, transparent 1px 22px);
-      opacity:.20;
-      pointer-events:none;
-    }
-    @keyframes drift {
-      from { transform: translate(-10px, -6px); }
-      to   { transform: translate(10px, 6px); }
-    }
-
-    .media-inner{
-      position:relative;
-      height:100%;
-      padding:18px;
-      display:flex;
-      flex-direction:column;
-      justify-content:space-between;
-      gap:14px;
-    }
-
-    .media-top{
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
-      gap:10px;
-      flex-wrap:wrap;
-    }
-
-    .chip{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding:8px 10px;
-      border-radius:999px;
-      border:1px solid var(--line);
-      background: rgba(255,255,255,.72);
-      color:var(--muted);
-      font-size:12px;
-      letter-spacing:.08em;
-      text-transform:uppercase;
-    }
-
-    .stats{
-      display:grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap:10px;
-    }
-    .stat{
-      border:1px solid var(--line);
-      background: rgba(255,255,255,.70);
-      border-radius: 12px;
-      padding:12px;
-      transition: transform .18s ease, box-shadow .18s ease;
-    }
-    .stat:hover{ transform: translateY(-1px); box-shadow: 0 10px 22px rgba(0,0,0,.08); }
-    .stat b{ display:block; font-size:14px; letter-spacing:-.01em; }
-    .stat span{ display:block; margin-top:4px; font-size:12px; color:var(--muted); }
-
-    section.block{ padding:56px 0; border-top:1px solid var(--line); }
-    .head{
-      display:grid; grid-template-columns: .9fr 1.1fr;
-      gap:18px; align-items:start; margin-bottom:18px;
-    }
-    h2{
-      font-family:var(--display);
-      font-weight:600;
-      margin:0;
-      font-size: 28px;
-      line-height:1.12;
-      letter-spacing:-.02em;
-    }
-    .head p{ margin:6px 0 0; color:var(--muted); font-size:15px; max-width:72ch; }
-
-    .cards{ display:grid; grid-template-columns: repeat(3, 1fr); gap:14px; }
-    .card{
-      border:1px solid var(--line);
-      border-radius: var(--r);
-      background: rgba(255,255,255,.72);
-      box-shadow: var(--shadow);
-      padding:16px;
-      min-height: 200px;
-      transition: transform .18s ease, box-shadow .18s ease;
-    }
-    .card:hover{ transform: translateY(-2px); box-shadow: 0 20px 54px rgba(0,0,0,.10); }
-    .card h3{
-      font-family:var(--display);
-      font-weight:600;
-      margin:0 0 8px;
-      font-size:16px;
-      letter-spacing:-.01em;
-      display:flex;
-      align-items:center;
-      gap:10px;
-    }
-    .card p{ margin:0 0 12px; color:var(--muted); font-size:14px; }
-    .card ul{ margin:0; padding-left:18px; color:var(--muted); font-size:14px; }
-
-    .icon{ width:18px; height:18px; flex:0 0 auto; color: var(--accent); }
-
-    .steps{ display:grid; grid-template-columns: repeat(4, 1fr); gap:12px; }
-    .step{
-      border:1px solid var(--line);
-      border-radius: 14px;
-      background: rgba(255,255,255,.65);
-      padding:14px;
-      transition: transform .18s ease, box-shadow .18s ease;
-    }
-    .step:hover{ transform: translateY(-1px); box-shadow: 0 14px 30px rgba(0,0,0,.08); }
-    .step .n{
-      font-size:12px;
-      letter-spacing:0.14em;
-      text-transform:uppercase;
-      color:var(--muted);
-      display:flex; align-items:center; gap:8px;
-    }
-    .step b{ display:block; margin:10px 0 6px; font-size:14px; }
-    .step p{ margin:0; font-size:13px; color:var(--muted); }
-
-    .workgrid{ display:grid; grid-template-columns: repeat(3, 1fr); gap:12px; }
-    .tile{
-      border:1px solid var(--line);
-      border-radius: var(--r);
-      background: linear-gradient(180deg, rgba(255,255,255,.82), rgba(255,255,255,.55));
-      box-shadow: var(--shadow);
-      height: 190px;
-      position:relative;
-      overflow:hidden;
-      transition: transform .18s ease, box-shadow .18s ease;
-    }
-    .tile:hover{ transform: translateY(-2px); box-shadow: 0 20px 54px rgba(0,0,0,.10); }
-    .tile:before{
-      content:"";
-      position:absolute; inset:0;
-      background:
-        radial-gradient(circle at 20% 20%, rgba(110,114,104,.22), transparent 55%),
-        radial-gradient(circle at 80% 70%, rgba(17,17,17,.08), transparent 58%),
-        repeating-linear-gradient(90deg, rgba(17,17,17,.06) 0 1px, transparent 1px 28px);
-      opacity:.55;
-    }
-    .cap{
-      position:absolute; left:14px; right:14px; bottom:12px;
-      display:flex; justify-content:space-between; gap:10px;
-      font-size:12px; letter-spacing:0.10em; text-transform:uppercase;
-      color:var(--muted);
-    }
-    .tag{ color: var(--accent); font-weight:700; }
-
-    /* Selected work (clickable tiles) */
-    .workgrid{ gap:14px; }
-    .work-actions{ margin-top:14px; }
-
-    .work-tile{
-      position:relative;
-      display:block;
-      height:220px;
-      border-radius:14px;
-      overflow:hidden;
-      border:1px solid var(--line);
-      background: rgba(255,255,255,.55);
-      box-shadow: var(--shadow);
-      transform: translateY(0);
-      transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
-    }
-
-    .work-media{
-      position:absolute;
-      inset:0;
-      background-size:cover;
-      background-position:center;
-      transform: scale(1.02);
-      transition: transform .4s ease;
-      filter: saturate(.95) contrast(1.02);
-    }
-
-    .work-overlay{
-      position:absolute;
-      inset:0;
-      background: linear-gradient(
-        180deg,
-        rgba(0,0,0,.05) 0%,
-        rgba(0,0,0,.22) 55%,
-        rgba(0,0,0,.55) 100%
-      );
-    }
-
-    .work-meta{
-      position:absolute;
-      left:16px;
-      right:16px;
-      bottom:14px;
-      color:#fff;
-    }
-
-    .work-title{
-      font-size:15px;
-      font-weight:600;
-      letter-spacing:.01em;
-    }
-
-    .work-sub{
-      margin-top:8px;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:12px;
-      font-size:12px;
-    }
-
-    .work-tag{
-      padding:6px 10px;
-      border-radius:999px;
-      background: rgba(255,255,255,.16);
-      border:1px solid rgba(255,255,255,.24);
-      letter-spacing:.06em;
-      text-transform:uppercase;
-      backdrop-filter: blur(8px);
-    }
-
-    .work-cta{ opacity:.9; }
-
-    .work-tile:hover{
-      transform: translateY(-4px);
-      box-shadow: 0 22px 60px rgba(0,0,0,.15);
-      border-color: rgba(31,31,31,.22);
-      text-decoration:none;
-    }
-    .work-tile:hover .work-media{ transform: scale(1.08); }
-
-    @media (max-width: 980px){
-      .work-tile{ height:200px; }
-    }
-
-    .contact{ display:grid; grid-template-columns: 1fr 1fr; gap:14px; align-items:start; }
-    form{
-      border:1px solid var(--line);
-      border-radius: var(--r);
-      background: rgba(255,255,255,.72);
-      box-shadow: var(--shadow);
-      padding:16px;
-    }
-    label{ display:block; font-size:13px; color:var(--muted); margin:10px 0 6px; }
-    input, textarea{
-      width:100%;
-      padding:12px 12px;
-      border-radius: 12px;
-      border:1px solid var(--line);
-      background: rgba(255,255,255,.88);
-      font-family: var(--sans);
-      font-size:14px;
-      outline:none;
-    }
-    input:focus, textarea:focus{ border-color: rgba(17,17,17,.35); background:white; }
-    textarea{ min-height:120px; resize:vertical; }
-
-    select{
-      width:100%;
-      padding:12px 12px;
-      border-radius: 12px;
-      border:1px solid var(--line);
-      background: rgba(255,255,255,.88);
-      font-family: var(--sans);
-      font-size:14px;
-      outline:none;
-    }
-    select:focus{ border-color: rgba(17,17,17,.35); background:white; }
-    .who-for{
-      margin: 12px 0 18px;
-      padding: 12px 14px;
+      padding: 10px 14px;
       border-radius: 14px;
       border: 1px solid var(--line);
-      background: rgba(255,255,255,.65);
-      color: var(--muted);
-      font-size: 14px;
-      max-width: 70ch;
-    }
-    .who-for b{ color: var(--ink); font-weight: 650; }
-
-
-    .panel{
-      border:1px solid var(--line);
-      border-radius: var(--r);
-      background: rgba(255,255,255,.60);
-      padding:16px;
-      box-shadow: var(--shadow);
-    }
-    .panel h3{ font-family:var(--display); font-weight:600; margin:0 0 8px; font-size:16px; }
-    .panel p{ margin:0; color:var(--muted); font-size:14px; }
-
-    .details{
-      margin-top:12px; padding-top:12px; border-top:1px solid var(--line);
-      display:grid; gap:10px;
-      color:var(--muted); font-size:13px;
-    }
-    .detail{ display:flex; align-items:flex-start; gap:10px; }
-    .detail svg{ width:18px; height:18px; color:var(--accent); margin-top:1px; flex:0 0 auto; }
-
-    footer{ padding:28px 0 44px; color:var(--muted); font-size:13px; }
-    .foot{ display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; }
-    .foot a{ color:var(--muted); }
-    .foot a:hover{ color:var(--ink); }
-
-    .reveal{ opacity:0; transform: translateY(10px); transition: opacity .55s ease, transform .55s ease; }
-    .reveal.in{ opacity:1; transform:none; }
-
-    @media (max-width: 980px){
-      .hero-grid{ grid-template-columns: 1fr; }
-      .head{ grid-template-columns: 1fr; }
-      .cards{ grid-template-columns: 1fr; }
-      .steps{ grid-template-columns: 1fr 1fr; }
-      .workgrid{ grid-template-columns: 1fr; }
-      .contact{ grid-template-columns: 1fr; }
-    }
-  
-/* ===== LOGO (FINAL – stacked text) ===== */
-.brand{
-  display:flex;
-  flex-direction:column;
-  align-items:flex-start;
-  text-decoration:none;
-  line-height:1;
-}
-
-.logo-main{
-  font-family: "DM Serif Display", serif;
-  font-size: 34px;
-  font-weight: 400;
-  letter-spacing: 0;
-  color:#111;
-}
-
-.logo-sub{
-  margin-top:6px;
-  font-family: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-  font-size:11px;
-  letter-spacing:0.35em;
-  text-transform:uppercase;
-  color:rgba(17,17,17,.65);
-}
-
-
-    /* =========================
-       PROJECT CAROUSEL (INDEX)
-       ========================= */
-    .work-carousel{
-      position:relative;
-      margin-top:18px;
-    }
-
-    .car-viewport{
-      overflow:hidden;
-      border-radius: var(--r);
-    }
-
-    .car-track{
-      display:flex;
-      gap:16px;
-      padding:4px;
-      transition: transform .45s ease;
-      will-change: transform;
-    }
-
-    .proj-card{
-      position:relative;
-      flex: 0 0 calc((100% - 32px) / 3); /* 3 visible on desktop */
-      height: 220px;
-      border-radius: 16px;
-      overflow:hidden;
-      border:1px solid var(--line);
-      background: rgba(255,255,255,.6);
-      box-shadow: var(--shadow);
-      text-decoration:none;
-    }
-
-    .proj-media{
-      position:absolute;
-      inset:0;
-      background:#eaeaea;
-      background-size:cover;
-      background-position:center;
-    }
-
-    .proj-overlay{
-      position:absolute;
-      inset:0;
-      background: linear-gradient(180deg, rgba(0,0,0,.04), rgba(0,0,0,.55));
-    }
-
-    .proj-meta{
-      position:absolute;
-      left:16px;
-      right:16px;
-      bottom:14px;
-      color:#fff;
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-end;
-      gap:14px;
-    }
-
-    .proj-title{
-      font-weight:650;
-      font-size:16px;
-      line-height:1.2;
-      max-width: 72%;
-    }
-
-    .proj-cta{
-      font-size:13px;
-      opacity:.95;
-      white-space:nowrap;
-    }
-
-    .proj-card:hover .proj-overlay{
-      background: linear-gradient(180deg, rgba(0,0,0,.06), rgba(0,0,0,.62));
-    }
-
-    .car-btn{
-      position:absolute;
-      top:50%;
-      transform: translateY(-50%);
-      width:42px;
-      height:42px;
-      border-radius:999px;
-      border:1px solid var(--line);
-      background: rgba(255,255,255,.75);
-      box-shadow: 0 10px 30px rgba(0,0,0,.10);
-      color: var(--ink);
-      display:grid;
-      place-items:center;
+      background: #fff;
       cursor:pointer;
+      font-weight: 650;
+      font-size: 14px;
+      transition: transform .06s ease, box-shadow .2s ease, border-color .2s ease, background .2s ease;
       user-select:none;
     }
-
-    .car-btn:hover{ background:#fff; }
-    .car-btn.prev{ left:-10px; }
-    .car-btn.next{ right:-10px; }
-
+    .btn:hover{ transform: translateY(-1px); box-shadow: 0 10px 24px rgba(2,6,23,.08); border-color: #dbe2ea; }
+    .btn.primary{
+      border-color: rgba(29,78,216,.25);
+      background: linear-gradient(180deg, rgba(29,78,216,.10), rgba(11,59,137,.08));
+      color: var(--accent);
+    }
+    .btn.solid{
+      border-color: transparent;
+      background: linear-gradient(180deg, var(--accent2), var(--accent));
+      color: #fff;
+      box-shadow: 0 16px 40px rgba(29,78,216,.22);
+    }
+    .btn.solid:hover{ box-shadow: 0 18px 46px rgba(29,78,216,.26); }
+    .hero{
+      display:grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap: 18px;
+      align-items: stretch;
+      padding: 26px 0 10px;
+    }
+    .card{
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .hero-left{ padding: 26px; }
+    .kicker{
+      display:inline-flex; align-items:center; gap:10px;
+      font-size: 12px; color: var(--muted);
+      background: var(--soft);
+      border:1px solid var(--line);
+      padding: 8px 12px;
+      border-radius: 999px;
+    }
+    .dot{
+      width:8px; height:8px; border-radius: 99px;
+      background: var(--accent2);
+      box-shadow: 0 0 0 6px rgba(29,78,216,.12);
+    }
+    .hero h2{
+      margin: 14px 0 10px;
+      font-size: clamp(30px, 3.4vw, 44px);
+      line-height: 1.08;
+      letter-spacing: -0.4px;
+    }
+    .hero p{
+      margin: 0;
+      font-size: 15px;
+      line-height: 1.6;
+      color: var(--muted);
+      max-width: 58ch;
+    }
+    .cta-row{
+      display:flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+      align-items:center;
+    }
+    .mini{
+      margin-top: 12px;
+      display:flex; gap:10px; flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .mini span{
+      padding: 8px 10px;
+      border:1px solid var(--line);
+      border-radius: 999px;
+      background: #fff;
+    }
+    .hero-right{ padding: 18px; display:flex; flex-direction: column; gap: 12px; }
+    .choice{
+      padding: 16px;
+      border-radius: 16px;
+      border:1px solid var(--line);
+      background: linear-gradient(180deg, var(--soft), #fff);
+    }
+    .choice h3{ margin:0; font-size: 15px; }
+    .choice p{ margin: 8px 0 12px; font-size: 13px; color: var(--muted); line-height: 1.5; }
+    .choice .btn{ width: 100%; }
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 14px;
+      margin-top: 18px;
+    }
+    .col-4{ grid-column: span 4; }
+    .col-6{ grid-column: span 6; }
+    .col-12{ grid-column: span 12; }
+    .feature{
+      padding: 18px;
+      background: linear-gradient(180deg, #fff, var(--soft));
+    }
+    .feature h4{ margin: 10px 0 6px; font-size: 14px; }
+    .feature p{ margin:0; color: var(--muted); font-size: 13px; line-height: 1.55; }
+    .icon{
+      width: 40px; height: 40px;
+      border-radius: 14px;
+      display:flex; align-items:center; justify-content:center;
+      background: rgba(29,78,216,.08);
+      border: 1px solid rgba(29,78,216,.14);
+      color: var(--accent);
+      font-weight: 800;
+    }
+    .section-title{
+      margin: 22px 0 10px;
+      display:flex; align-items:flex-end; justify-content:space-between; gap: 10px;
+    }
+    .section-title h3{ margin:0; font-size: 16px; letter-spacing: .2px; }
+    .section-title p{ margin:0; font-size: 13px; color: var(--muted); }
+    .steps{ padding: 18px; background: #fff; }
+    .step{
+      display:flex; gap: 12px; padding: 12px;
+      border:1px solid var(--line);
+      border-radius: 16px;
+      background: linear-gradient(180deg, #fff, var(--soft));
+      margin-top: 10px;
+    }
+    .num{
+      width: 30px; height: 30px; border-radius: 12px;
+      display:flex; align-items:center; justify-content:center;
+      background: rgba(11,59,137,.08);
+      border:1px solid rgba(11,59,137,.14);
+      color: var(--accent);
+      font-weight: 800;
+      flex: 0 0 30px;
+    }
+    .step b{ display:block; font-size: 13px; }
+    .step span{ display:block; margin-top: 4px; color: var(--muted); font-size: 13px; line-height: 1.5; }
+    footer{
+      margin-top: 22px;
+      padding: 18px;
+      border:1px solid var(--line);
+      border-radius: 22px;
+      background: rgba(255,255,255,.78);
+      backdrop-filter: blur(10px);
+      display:flex;
+      justify-content:space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .links{ display:flex; gap: 12px; flex-wrap: wrap; }
+    .links a{ text-decoration: underline; text-underline-offset: 3px; }
     @media (max-width: 980px){
-      .proj-card{ flex-basis: calc((100% - 16px) / 2); } /* 2 visible */
-      .car-btn.prev{ left:6px; }
-      .car-btn.next{ right:6px; }
+      .hero{ grid-template-columns: 1fr; }
+      .topbar{ position: static; }
+    }
+    @media (max-width: 720px){
+      .nav .chip{ display:none; }
+    }
+  
+    /* Hero right image replacement */
+    .hero-right.hero-image{
+      padding: 0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      overflow:hidden;
+    }
+    .hero-right.hero-image .image-wrap{
+      width:100%;
+      height:100%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+    }
+    .hero-right.hero-image img{
+      width:100%;
+      height:100%;
+      object-fit:contain;
     }
 
-    @media (max-width: 640px){
-      .proj-card{ flex-basis: 85%; } /* 1 visible-ish */
-      .car-btn{ display:none; }
-    }
-	
-/* === HERO IMAGE (replace placeholder) === */
-.media{
-  background-image: url("hero-render.png");
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-}
-
-/* remove placeholder grid */
-.media::before,
-.media::after{
-  display:none;
-}
-
-</style>
-  <link rel="stylesheet" href="styles.css">
-
-  <link rel="icon" href="favicon.ico">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  </style>
 </head>
-
 <body>
-  <header>
-    <div class="container">
-      <div class="nav">
-        <a class="brand" href="index.html" aria-label="ZöD Studio Home">
-  <span class="logo-main">ZöD</span>
-  <span class="logo-sub">STUDIO</span>
-</a>
-<!-- MOBILE MENU BUTTON -->
-  <button class="menu-toggle">Menu</button>
- <!-- NAVIGATION -->
-  <nav class="mobile-nav" aria-label="Primary navigation">
+  <div class="container">
+    <header class="topbar">
+     <a href="index.html" class="brand">
 
-          <ul>
-            <li><a href="#services" data-nav>Services</a></li>
-            <li><a href="#approach" data-nav>Approach</a></li>
-            <li><a href="#work" data-nav>Projects</a></li>
-            <li><a href="about.html">About</a></li>
-            <li><a class="pill" href="#contact">Contact</a></li>
-            <li><a class="pill" href="https://outlook.office.com/book/ZDStudio@zodstudio.com/" target="_blank" rel="noopener">Book a design conversation</a></li>
-          </ul>
-        </nav>
+<img
+  src="logo.png"
+  alt="MentifyHub logo"
+  style="
+    width:40px;
+    height:40px;
+    border-radius:10px;
+    object-fit:contain;
+  "
+>
+
+<div>
+  <h1>MentifyHub</h1>
+  <p>Green skills mentorship for built environment professionals.</p>
+</div>
+
+</a>
+
+      <nav class="nav">
+        <span class="chip">Mentorship • Research • Impact</span>
+        <a class="btn" href="auth.html?mode=signup">Explore</a>
+        <a class="btn solid" href="auth.html?mode=signin">Sign in</a>
+      </nav>
+    </header>
+
+    <section class="hero">
+      <div class="card hero-left">
+        <div class="kicker"><span class="dot"></span> Build skills. Find guidance. Grow your impact.</div>
+        <h2>A clean, focused mentorship platform for green skills.</h2>
+        <p>
+          MentifyHub helps learners and professionals connect with mentors across sustainability, energy,
+          green buildings, and the built environment — with structured requests, tracking, and real outcomes.
+        </p>
+
+        <div class="cta-row">
+          <a class="btn solid" href="auth.html?role=mentee">Get started as a mentee</a>
+          <a class="btn primary" href="auth.html?role=mentor">Become a mentor</a>
+        </div>
+
+        <div class="mini">
+          <span>Fast onboarding</span>
+          <span>Smart matching</span>
+          <span>Request tracking</span>
+          <span>Admin-quality control</span>
+        </div>
+      </div>
+
+      
+      <div class="card hero-right hero-image">
+        <div class="image-wrap">
+          <!-- Replace src with your illustration/image -->
+          <img src="mentoring.svg" alt="MentifyHub illustration" />
+        </div>
+      </div>
+
+    </section>
+
+    <div class="section-title">
+      <div>
+        <h3>What you can do on MentifyHub</h3>
+        <p>Simple workflow — no noise, just progress.</p>
       </div>
     </div>
-  </header>
 
-  <main id="top" class="container">
-    <section class="hero reveal" aria-label="Hero">
-      <div class="hero-grid">
-        <div>
-          <p class="kicker">Digital-first architectural practice</p>
-          <h1>Architectural design and digital visualisation for early-stage projects — before construction begins.</h1>
-          <p class="lead">
-            ZöD Studio helps homeowners, developers, and design teams explore ideas, test layouts, and visualise proposals so they can make informed decisions before moving into detailed technical drawings or building work.
-          </p>
-
-
-          <div class="who-for" aria-label="Who we work with">
-            <b>Who it’s for:</b>
-            Homeowners, developers, and architects who need clear design thinking and compelling digital visualisation.
-          </div>
-          <div class="actions">
-            <a class="btn" href="#work">View projects</a>
-            <a class="btn primary" href="#contact">Contact ZöD Studio</a>
-          
-            <a class="btn primary" href="https://outlook.office.com/book/ZDStudio@zodstudio.com/" target="_blank" rel="noopener">Book a design conversation</a>
-</div>
-        </div>
-
-        <aside class="media reveal" aria-label="Hero media">
-          <div class="media-inner">
-            <div class="media-top">
-              <div class="chip">
-                <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M4 7h16M7 4v6M17 4v6M6 11h12M6 15h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-              
-              </div>
-              <div class="chip">
-                <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M12 3v18M3 12h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-              
-              </div>
-            </div>
-
-            <div class="stats" role="list" aria-label="Studio principles">
-              <div class="stat" role="listitem"><b>Clarity</b><span>decisions documented</span></div>
-              <div class="stat" role="listitem"><b>Balance</b><span>considered design</span></div>
-              <div class="stat" role="listitem"><b>Delivery</b><span>digital-first workflow</span></div>
-            </div>
-          </div>
-        </aside>
+    <section class="grid">
+      <div class="card feature col-4">
+        <div class="icon">1</div>
+        <h4>Set your goal</h4>
+        <p>Define what you want to achieve — exams, career transitions, portfolios, research direction, or skills growth.</p>
       </div>
-    </section>
-
-    <section id="services" class="block reveal" aria-label="Services">
-      <div class="head">
-        <h2>Services</h2>
-        <p>
-          ZöD Studio provides clear, professional architectural services — focused on spatial efficiency,
-          buildable solutions, and modern digital delivery.
-        </p>
+      <div class="card feature col-4">
+        <div class="icon">2</div>
+        <h4>Get matched</h4>
+        <p>Find mentors by field, region, timezone, availability, and expertise tags.</p>
+      </div>
+      <div class="card feature col-4">
+        <div class="icon">3</div>
+        <h4>Request & track</h4>
+        <p>Send a mentorship request with context, and track responses (pending / accepted / declined).</p>
       </div>
 
-      <div class="cards">
-        <article class="card">
-          <h3>
-            <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M4 20V8l8-4 8 4v12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 20v-7h6v7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            Concept & Spatial Design
-          </h3>
-          <p>Early-stage design direction for new builds and renovations.</p>
-          <ul>
-            <li>Brief review and scope clarity</li>
-            <li>Spatial planning and layout studies</li>
-            <li>Concept design development</li>
-            <li>Early visuals (2D/3D)</li>
-          </ul>
-        </article>
-
-        <article class="card">
-          <h3>
-            <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M4 7h16v10H4z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M8 11h8M8 14h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-            Digital Design & Visualisation
-          </h3>
-          <p>Clear digital representation for approvals and presentations.</p>
-          <ul>
-            <li>3D architectural modelling</li>
-            <li>High-quality renders and perspectives</li>
-            <li>Walkthrough visuals (optional)</li>
-            <li>Presentation-ready packs</li>
-          </ul>
-        </article>
-
-        <article class="card">
-          <h3>
-            <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M6 3h12v18H6z" stroke="currentColor" stroke-width="2"/><path d="M9 7h6M9 11h6M9 15h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-            Architectural Design Development
-          </h3>
-          <p>Refinement and coordination as your project moves forward.</p>
-          <ul>
-            <li>Developed plans and layouts</li>
-            <li>Design coordination and refinement</li>
-            <li>Drawing package support</li>
-            <li>Preparation for next-stage delivery</li>
-          </ul>
-        </article>
-      </div>
-    </section>
-
-    <section id="approach" class="block reveal" aria-label="Approach">
-      <div class="head">
-        <h2>How we work</h2>
-        <p>
-          A calm, structured process that respects time, budget, and decision-making. Digital-first delivery keeps communication clear and consistent.
-        </p>
-      </div>
-
-      <div class="steps">
-        <div class="step">
-          <div class="n">
-            <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M6 4h12v16H6z" stroke="currentColor" stroke-width="2"/><path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-            Step 01
-          </div>
-          <b>Clear brief</b>
-          <p>Define scope, constraints, timeline, and deliverables upfront.</p>
+      <div class="card steps col-12">
+        <div class="section-title" style="margin:0 0 6px;">
+          <h3>How it works</h3>
+          <p>Three steps to start strong.</p>
         </div>
 
         <div class="step">
-          <div class="n">
-            <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M4 12h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M12 4v16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-            Step 02
+          <div class="num">1</div>
+          <div>
+            <b>Create an account</b>
+            <span>Choose mentee or mentor and set up your profile in minutes.</span>
           </div>
-          <b>Concept direction</b>
-          <p>Explore options, agree the strongest path, and document decisions.</p>
         </div>
-
         <div class="step">
-          <div class="n">
-            <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M7 17l10-10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M7 7h10v10H7z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
-            Step 03
+          <div class="num">2</div>
+          <div>
+            <b>Connect with purpose</b>
+            <span>Browse mentors, send requests, and set clear goals from day one.</span>
           </div>
-          <b>Digital development</b>
-          <p>Translate intent into coordinated models and outputs.</p>
         </div>
-
         <div class="step">
-          <div class="n">
-            <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M4 20h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M7 17V7l10 10V7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            Step 04
+          <div class="num">3</div>
+          <div>
+            <b>Build outcomes</b>
+            <span>Track requests, keep your learning organized, and grow your green skills portfolio.</span>
           </div>
-          <b>Refine</b>
-          <p>Iterate with purpose, aligning design, buildability, and goals.</p>
         </div>
       </div>
     </section>
 
-    <section id="work" class="block reveal" aria-label="Projects">
-
-      <div class="head">
-        <h2>Selected work</h2>
-        <p>
-          Hover to pause. Click “View project” to open the full project page with more images and details.
-        </p>
-      </div>
-
-      <div class="work-carousel" id="workCarousel" aria-label="Project carousel">
-        <button class="car-btn prev" type="button" aria-label="Previous projects">‹</button>
-
-        <div class="car-viewport">
-          <div class="car-track" id="workTrack">
-            <!-- Edit titles, links, and image filenames anytime -->
-            <a class="proj-card" href="project.html?id=p1" aria-label="View Residential Concept Study">
-              <div class="proj-media" style="background-image:url('work1.jpg')"></div>
-              <div class="proj-overlay"></div>
-              <div class="proj-meta">
-                <div class="proj-title">4 Bedroom Duplex</div>
-				
-                <div class="proj-cta">View project →</div>
-              </div>
-            </a>
-
-            <a class="proj-card" href="project.html?id=p2" aria-label="View Exterior Visualisation Package">
-              <div class="proj-media" style="background-image:url('work2.jpg')"></div>
-              <div class="proj-overlay"></div>
-              <div class="proj-meta">
-                <div class="proj-title">3 Bedroom Terrace Apartment</div>
-                <div class="proj-cta">View project →</div>
-              </div>
-            </a>
-
-            <a class="proj-card" href="project.html?id=p3" aria-label="View Housing Development Study">
-              <div class="proj-media" style="background-image:url('work3.jpg')"></div>
-              <div class="proj-overlay"></div>
-              <div class="proj-meta">
-                <div class="proj-title">Mobile House</div>
-                <div class="proj-cta">View project →</div>
-              </div>
-            </a>
-
-            <a class="proj-card" href="project.html?id=p4" aria-label="View Interior Visual Study">
-              <div class="proj-media" style="background-image:url('work4.jpg')"></div>
-              <div class="proj-overlay"></div>
-              <div class="proj-meta">
-                <div class="proj-title">3 Bedroom Duplex</div>
-                <div class="proj-cta">View project →</div>
-              </div>
-            </a>
-
-            <a class="proj-card" href="project.html?id=p5" aria-label="View Site Planning Study">
-              <div class="proj-media" style="background-image:url('work5.jpg')"></div>
-              <div class="proj-overlay"></div>
-              <div class="proj-meta">
-                <div class="proj-title">Interior of a bedroom</div>
-                <div class="proj-cta">View project →</div>
-              </div>
-            </a>
-			
-
-            <a class="proj-card" href="project.html?id=p6" aria-label="View Mixed-use Massing Study">
-              <div class="proj-media" style="background-image:url('work6.jpg')"></div>
-              <div class="proj-overlay"></div>
-              <div class="proj-meta">
-                <div class="proj-title">4 Bedroom Duplex</div>
-                <div class="proj-cta">View project →</div>
-              </div>
-            </a>
-          
-            <a class="proj-card" href="project.html?id=p7" aria-label="View Site Planning Study">
-              <div class="proj-media" style="background-image:url('work7.jpg')"></div>
-              <div class="proj-overlay"></div>
-              <div class="proj-meta">
-                <div class="proj-title">3 Bedroom Duplex</div>
-                <div class="proj-cta">View project →</div>
-              </div>
-            </a>
-			</div>
-        </div>
-		</a>
-		
-        <button class="car-btn next" type="button" aria-label="Next projects">›</button>
-      </div>
-
-      <div class="work-actions">
-        <a class="btn secondary" href="projects.html">View all projects</a>
-      </div>
-    </section>
-
-    <section id="contact" class="block reveal" aria-label="Contact">
-      <div class="head">
-        <h2>Contact</h2>
-        <p>
-          Have a project in mind? Share the basics and we’ll respond with a clear next step.
-        </p>
-      </div>
-
-      <div class="contact">
-        <form onsubmit="event.preventDefault(); alert('Thanks — connect this form to an email backend next.');">
-          <label for="name">Name</label>
-          <input id="name" name="name" placeholder="Your name" required>
-
-          <label for="email">Email</label>
-          <input id="email" name="email" type="email" placeholder="you@example.com" required>
-
-          <label for="ptype">Project type</label>
-          <input id="ptype" name="ptype" placeholder="New build / Renovation / Development / Visualisation">
-          <label for="location">Project location</label>
-          <input id="location" name="location" placeholder="City / Country (or postcode)">
-
-          <label for="stage">Project stage</label>
-          <select id="stage" name="stage">
-            <option value="">Select a stage</option>
-            <option>Concept / Idea</option>
-            <option>Planning / Approval</option>
-            <option>Design development</option>
-            <option>Marketing / Visualisation</option>
-          </select>
-
-          <label for="timeline">Timeline</label>
-          <input id="timeline" name="timeline" placeholder="e.g., 2–4 weeks / ASAP / Specific date">
-
-
-          <label for="msg">Message</label>
-          <textarea id="msg" name="msg" placeholder="Location, timeline, and what you need." required></textarea>
-
-          <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap;">
-            <button class="btn primary" type="submit">Send message</button>
-            <a class="btn" href="mailto:hello@zodstudio.com">Email instead</a>
-          </div>
-        </form>
-
-        <aside class="panel">
-          <h3>Details</h3>
-          <p>Minimal, modern, and credible — consistent with the studio tone.</p>
-
-          <div class="details">
-            <div class="detail">
-              <svg viewBox="0 0 24 24" fill="none"><path d="M4 6h16v12H4z" stroke="currentColor" stroke-width="2"/><path d="M4 7l8 6 8-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              <div><b>Email:</b> admin@zodstudio.com</div>
-            </div>
-            <div class="detail">
-              <svg viewBox="0 0 24 24" fill="none"><path d="M12 21s7-5.3 7-12a7 7 0 1 0-14 0c0 6.7 7 12 7 12z" stroke="currentColor" stroke-width="2"/><path d="M12 11a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" stroke="currentColor" stroke-width="2"/></svg>
-              <div><b>Delivery:</b> Remote / Hybrid</div>
-            </div>
-            <div class="detail">
-              <svg viewBox="0 0 24 24" fill="none"><path d="M3 11h18v10H3z" stroke="currentColor" stroke-width="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-              <div><b>Focus:</b> Homeowners & Developers</div>
-            </div>
-          </div>
-
-          <div style="margin-top:14px; padding-top:12px; border-top:1px solid var(--line); color:var(--muted); font-size:13px;">
-            <a href="https://outlook.office.com/book/ZDStudio@zodstudio.com/"
-   target="_blank"
-   class="btn primary">
-  Book a consultation
-</a>
-
-          </div>
-        </aside>
-      </div>
-    </section>
-
-    <footer class="reveal">
-      <div class="foot">
-        <div>© <span id="y"></span> ZöD Studio. All rights reserved.</div>
-        <div style="display:flex; gap:14px; flex-wrap:wrap;">
-          <a href="#services">Services</a>
-          <a href="about.html">About</a>
-          <a href="#contact">Contact</a>
-          <a href="#top">Back to top</a>
-        </div>
+    <footer>
+      <div>© <span id="y"></span> MentifyHub. All rights reserved.</div>
+      <div class="links">
+        <a href="#" onclick="return false;">Privacy</a>
+        <a href="#" onclick="return false;">Terms</a>
+        <a href="#" onclick="return false;">Contact</a>
       </div>
     </footer>
-  </main>
+  </div>
 
   <script>
-    document.getElementById("y").textContent = new Date().getFullYear();
-
-    // Reveal on scroll
-    const els = document.querySelectorAll(".reveal");
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add("in"); });
-    }, { threshold: 0.12 });
-    els.forEach(el => io.observe(el));
-
-    // Active nav highlight
-    const navLinks = Array.from(document.querySelectorAll('a[data-nav]'));
-    const sections = navLinks.map(a => document.querySelector(a.getAttribute('href'))).filter(Boolean);
-    const navIO = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        const idx = sections.indexOf(entry.target);
-        if (idx >= 0 && entry.isIntersecting) {
-          navLinks.forEach(a => a.classList.remove('active'));
-          navLinks[idx].classList.add('active');
-        }
-      });
-    }, { rootMargin: "-35% 0px -55% 0px", threshold: 0.01 });
-    sections.forEach(s => navIO.observe(s));
+    document.getElementById('y').textContent = new Date().getFullYear();
   </script>
-
-  <script>
-  (function(){
-    const track = document.getElementById('workTrack');
-    const carousel = document.getElementById('workCarousel');
-    if(!track || !carousel) return;
-
-    const prevBtn = carousel.querySelector('.car-btn.prev');
-    const nextBtn = carousel.querySelector('.car-btn.next');
-    const cards = Array.from(track.querySelectorAll('.proj-card'));
-    if(cards.length === 0) return;
-
-    let index = 0;
-    let timer = null;
-    const intervalMs = 7000; // slides every ~7 seconds (5–10s range)
-
-    function cardsPerView(){
-      const w = window.innerWidth;
-      if(w <= 640) return 1;
-      if(w <= 980) return 2;
-      return 3;
-    }
-
-    function stepWidth(){
-      const card = cards[0];
-      const style = getComputedStyle(track);
-      const gap = parseFloat(style.gap || style.columnGap || 16) || 16;
-      return card.getBoundingClientRect().width + gap;
-    }
-
-    function maxIndex(){
-      return Math.max(0, cards.length - cardsPerView());
-    }
-
-    function go(i){
-      index = Math.min(Math.max(i, 0), maxIndex());
-      const x = stepWidth() * index;
-      track.style.transform = `translateX(${-x}px)`;
-    }
-
-    function next(){ go(index + 1 > maxIndex() ? 0 : index + 1); }
-    function prev(){ go(index - 1 < 0 ? maxIndex() : index - 1); }
-
-    function start(){
-      stop();
-      timer = setInterval(next, intervalMs);
-    }
-    function stop(){
-      if(timer){ clearInterval(timer); timer = null; }
-    }
-
-    // Pause on hover so you can click
-    carousel.addEventListener('mouseenter', stop);
-    carousel.addEventListener('mouseleave', start);
-
-    if(nextBtn) nextBtn.addEventListener('click', () => { stop(); next(); start(); });
-    if(prevBtn) prevBtn.addEventListener('click', () => { stop(); prev(); start(); });
-
-    window.addEventListener('resize', () => go(index), { passive:true });
-
-    go(0);
-    start();
-  })();
-  </script>
-
-  <script>
-const btn = document.querySelector(".menu-toggle");
-const nav = document.querySelector(".mobile-nav");
-
-btn.addEventListener("click", function() {
-  nav.classList.toggle("active");
-});
-</script>
 </body>
 </html>

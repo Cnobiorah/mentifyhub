@@ -286,37 +286,6 @@
     </div>
   </div>
 
-    
-    <!-- Email confirmation modal -->
-  <div id="emailModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-label="Confirm your email">
-    <div class="modal sample">
-      <div class="modal-body">
-        <div class="modal-center">
-          <div class="mail-hero" aria-hidden="true">
-            <div class="mail-envelope">
-              <div class="mail-check">✓</div>
-              <div class="mail-flap"></div>
-              <div class="mail-body"></div>
-            </div>
-          </div>
-
-          <h2>Confirm your email</h2>
-          <h3 class="modal-greet" id="emailHiName">Hi there!</h3>
-          <p class="modal-copy">Thank you for signing up with MentifyHub! Please confirm your email address by clicking the link we sent to:</p>
-          <div class="modal-email" id="emailSentTo">—</div>
-
-          <button class="btn modal-primary" type="button" id="modalPrimaryBtn">Open email app</button>
-
-          <div class="modal-foot">Thanks,<br/>The MentifyHub Support Team</div>
-        </div>
-      </div>
-      <div class="modal-actions">
-        <button class="btn secondary" type="button" id="modalCloseBtn">I’ll confirm later</button>
-        <button class="btn" type="button" id="modalSigninBtn">Go to sign in</button>
-      </div>
-    </div>
-  </div>
-
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -622,8 +591,7 @@ primaryBtn.onclick = async () => {
 
     // After signup: ALWAYS require email confirmation + manual sign-in
     setBusy(false);
-    setNote('success', 'Account created', 'Check your email to confirm, then sign in.');
-    openEmailModal(email, fullName);
+    setNote('success', 'Account created', 'You can now sign in.');
     setMode('signin');
     return;
   }catch(err){

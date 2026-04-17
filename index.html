@@ -1,387 +1,429 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>MentifyHub — Green Skills Mentorship</title>
-  <meta name="description" content="MentifyHub connects mentees and mentors for green skills and built-environment growth." />
-  <style>
-    :root{
-      --bg:#ffffff;
-      --card:#ffffff;
-      --text:#0f172a;
-      --muted:#475569;
-      --line:#e5e7eb;
-      --soft:#f8fafc;
-      --soft2:#f1f5f9;
-      --accent:#0b3b89;
-      --accent2:#1d4ed8;
-      --radius:18px;
-      --shadow: 0 16px 40px rgba(2,6,23,.08);
-    }
-    *{ box-sizing:border-box; }
-    html,body{ height:100%; }
-    body{
-      margin:0;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
-      color:var(--text);
-      background:
-        radial-gradient(900px 520px at 18% 10%, rgba(29,78,216,.10), transparent 55%),
-        radial-gradient(900px 520px at 86% 18%, rgba(11,59,137,.08), transparent 55%),
-        linear-gradient(180deg, #ffffff, #ffffff);
-    }
-    a{ color:inherit; text-decoration:none; }
-    .container{ max-width:1180px; margin:0 auto; padding:22px; }
-    .topbar{
-      display:flex; align-items:center; justify-content:space-between; gap:16px;
-      padding:14px 16px;
-      border:1px solid var(--line);
-      border-radius: 22px;
-      background: rgba(255,255,255,.78);
-      backdrop-filter: blur(10px);
-      box-shadow: 0 10px 24px rgba(2,6,23,.06);
-      position: sticky; top: 14px; z-index: 20;
-    }
-    .brand{ display:flex; align-items:center; gap:12px; min-width: 220px; }
-    .logo{
-      width:40px; height:40px; border-radius: 14px;
-      background: linear-gradient(135deg, rgba(11,59,137,.14), rgba(29,78,216,.16));
-      border: 1px solid rgba(29,78,216,.18);
-      display:flex; align-items:center; justify-content:center;
-      font-weight:800; color: var(--accent);
-    }
-    .brand h1{ margin:0; font-size:16px; letter-spacing:.2px; }
-    .brand p{ margin:2px 0 0; font-size:12px; color:var(--muted); }
-    .nav{
-      display:flex; align-items:center; gap:10px;
-    }
-    .chip{
-      padding:9px 12px;
-      border-radius: 999px;
-      border:1px solid var(--line);
-      background: #fff;
-      font-size: 13px;
-      color: var(--muted);
-    }
-    .btn{
-      display:inline-flex; align-items:center; justify-content:center; gap:10px;
-      padding: 10px 14px;
-      border-radius: 14px;
-      border: 1px solid var(--line);
-      background: #fff;
-      cursor:pointer;
-      font-weight: 650;
-      font-size: 14px;
-      transition: transform .06s ease, box-shadow .2s ease, border-color .2s ease, background .2s ease;
-      user-select:none;
-    }
-    .btn:hover{ transform: translateY(-1px); box-shadow: 0 10px 24px rgba(2,6,23,.08); border-color: #dbe2ea; }
-    .btn.primary{
-      border-color: rgba(29,78,216,.25);
-      background: linear-gradient(180deg, rgba(29,78,216,.10), rgba(11,59,137,.08));
-      color: var(--accent);
-    }
-    .btn.solid{
-      border-color: transparent;
-      background: linear-gradient(180deg, var(--accent2), var(--accent));
-      color: #fff;
-      box-shadow: 0 16px 40px rgba(29,78,216,.22);
-    }
-    .btn.solid:hover{ box-shadow: 0 18px 46px rgba(29,78,216,.26); }
-    .hero{
-      display:grid;
-      grid-template-columns: 1.15fr .85fr;
-      gap: 18px;
-      align-items: stretch;
-      padding: 26px 0 10px;
-    }
-    .card{
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-    }
-    .hero-left{ padding: 26px; }
-    .kicker{
-      display:inline-flex; align-items:center; gap:10px;
-      font-size: 12px; color: var(--muted);
-      background: var(--soft);
-      border:1px solid var(--line);
-      padding: 8px 12px;
-      border-radius: 999px;
-    }
-    .dot{
-      width:8px; height:8px; border-radius: 99px;
-      background: var(--accent2);
-      box-shadow: 0 0 0 6px rgba(29,78,216,.12);
-    }
-    .hero h2{
-      margin: 14px 0 10px;
-      font-size: clamp(30px, 3.4vw, 44px);
-      line-height: 1.08;
-      letter-spacing: -0.4px;
-    }
-    .hero p{
-      margin: 0;
-      font-size: 15px;
-      line-height: 1.6;
-      color: var(--muted);
-      max-width: 58ch;
-    }
-    .cta-row{
-      display:flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-top: 18px;
-      align-items:center;
-    }
-    .mini{
-      margin-top: 12px;
-      display:flex; gap:10px; flex-wrap: wrap;
-      color: var(--muted);
-      font-size: 12px;
-    }
-    .mini span{
-      padding: 8px 10px;
-      border:1px solid var(--line);
-      border-radius: 999px;
-      background: #fff;
-    }
-    .hero-right{ padding: 18px; display:flex; flex-direction: column; gap: 12px; }
-    .choice{
-      padding: 16px;
-      border-radius: 16px;
-      border:1px solid var(--line);
-      background: linear-gradient(180deg, var(--soft), #fff);
-    }
-    .choice h3{ margin:0; font-size: 15px; }
-    .choice p{ margin: 8px 0 12px; font-size: 13px; color: var(--muted); line-height: 1.5; }
-    .choice .btn{ width: 100%; }
-    .grid{
-      display:grid;
-      grid-template-columns: repeat(12, 1fr);
-      gap: 14px;
-      margin-top: 18px;
-    }
-    .col-4{ grid-column: span 4; }
-    .col-6{ grid-column: span 6; }
-    .col-12{ grid-column: span 12; }
-    .feature{
-      padding: 18px;
-      background: linear-gradient(180deg, #fff, var(--soft));
-    }
-    .feature h4{ margin: 10px 0 6px; font-size: 14px; }
-    .feature p{ margin:0; color: var(--muted); font-size: 13px; line-height: 1.55; }
-    .icon{
-      width: 40px; height: 40px;
-      border-radius: 14px;
-      display:flex; align-items:center; justify-content:center;
-      background: rgba(29,78,216,.08);
-      border: 1px solid rgba(29,78,216,.14);
-      color: var(--accent);
-      font-weight: 800;
-    }
-    .section-title{
-      margin: 22px 0 10px;
-      display:flex; align-items:flex-end; justify-content:space-between; gap: 10px;
-    }
-    .section-title h3{ margin:0; font-size: 16px; letter-spacing: .2px; }
-    .section-title p{ margin:0; font-size: 13px; color: var(--muted); }
-    .steps{ padding: 18px; background: #fff; }
-    .step{
-      display:flex; gap: 12px; padding: 12px;
-      border:1px solid var(--line);
-      border-radius: 16px;
-      background: linear-gradient(180deg, #fff, var(--soft));
-      margin-top: 10px;
-    }
-    .num{
-      width: 30px; height: 30px; border-radius: 12px;
-      display:flex; align-items:center; justify-content:center;
-      background: rgba(11,59,137,.08);
-      border:1px solid rgba(11,59,137,.14);
-      color: var(--accent);
-      font-weight: 800;
-      flex: 0 0 30px;
-    }
-    .step b{ display:block; font-size: 13px; }
-    .step span{ display:block; margin-top: 4px; color: var(--muted); font-size: 13px; line-height: 1.5; }
-    footer{
-      margin-top: 22px;
-      padding: 18px;
-      border:1px solid var(--line);
-      border-radius: 22px;
-      background: rgba(255,255,255,.78);
-      backdrop-filter: blur(10px);
-      display:flex;
-      justify-content:space-between;
-      flex-wrap: wrap;
-      gap: 10px;
-      color: var(--muted);
-      font-size: 13px;
-    }
-    .links{ display:flex; gap: 12px; flex-wrap: wrap; }
-    .links a{ text-decoration: underline; text-underline-offset: 3px; }
-    @media (max-width: 980px){
-      .hero{ grid-template-columns: 1fr; }
-      .topbar{ position: static; }
-    }
-    @media (max-width: 720px){
-      .nav .chip{ display:none; }
-    }
-  
-    /* Hero right image replacement */
-    .hero-right.hero-image{
-      padding: 0;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      overflow:hidden;
-    }
-    .hero-right.hero-image .image-wrap{
-      width:100%;
-      height:100%;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding:18px;
-    }
-    .hero-right.hero-image img{
-      width:100%;
-      height:100%;
-      object-fit:contain;
-    }
-
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Green Skill Hub | Global Green Skills Knowledge Platform</title>
+  <meta name="description" content="Green Skill Hub is a global platform for green skills knowledge – articles, training updates, and resources for learners and professionals worldwide." />
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:wght@400;600;700&display=swap"
+    rel="stylesheet"
+  />
 </head>
+
 <body>
-  <div class="container">
-    <header class="topbar">
-     <a href="index.html" class="brand">
+  <!-- ================= HEADER ================= -->
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="brand">
+        <img src="./assets/logo3.png" alt="Green Skill Hub Logo" class="brand-logo">
+        <div class="brand-text">
+          <span class="brand-name">Green Skill Hub</span>
+          <span class="brand-tagline">Global Green Skills Knowledge Platform</span>
+        </div>
+      </a>
 
-<img
-  src="logo.png"
-  alt="MentifyHub logo"
-  style="
-    width:40px;
-    height:40px;
-    border-radius:10px;
-    object-fit:contain;
-  "
->
+      <button class="nav-toggle" aria-label="Toggle navigation" id="navToggle">
+        <span></span><span></span><span></span>
+      </button>
 
-<div>
-  <h1>MentifyHub</h1>
-  <p>Green skills mentorship for built environment professionals.</p>
-</div>
-
-</a>
-
-      <nav class="nav">
-        <span class="chip">Mentorship • Research • Impact</span>
-        <a class="btn" href="auth.html?mode=signup">Explore</a>
-        <a class="btn solid" href="auth.html?mode=signin">Sign in</a>
+      <nav class="main-nav" id="mainNav">
+        <ul>
+          <li><a href="index.html" class="nav-link active">Home</a></li>
+          <li><a href="articles.html" class="nav-link">Articles</a></li>
+          <li><a href="tracker.html" class="nav-link">Skills Tracker</a></li>
+          <li><a href="updates.html" class="nav-link">Green Skill Updates</a></li>
+          <li><a href="resources.html" class="nav-link">Resources</a></li>
+          <li><a href="#about" class="nav-link">About</a></li>
+        </ul>
+        <a href="#newsletter" class="btn btn-sm btn-outline">Join Newsletter</a>
+        <button id="themeToggle" class="theme-toggle">🌓</button>
       </nav>
-    </header>
+    </div>
+  </header>
 
-    <section class="hero">
-      <div class="card hero-left">
-        <div class="kicker"><span class="dot"></span> Build skills. Find guidance. Grow your impact.</div>
-        <h2>A clean, focused mentorship platform for green skills.</h2>
-        <p>
-          MentifyHub helps learners and professionals connect with mentors across sustainability, energy,
-          green buildings, and the built environment — with structured requests, tracking, and real outcomes.
+  <!-- ================= HERO ================= -->
+  <section class="hero">
+    <div class="container hero-inner">
+      <div class="hero-content">
+        <p class="hero-kicker">Green Skills • Sustainability • Careers</p>
+        <h1>Empowering the world with <span class="highlight">green skills</span> knowledge.</h1>
+        <p class="hero-subtitle">
+          Curated insights, training opportunities, and practical resources to help students,
+          professionals, and organisations thrive in the global green economy.
         </p>
-
-        <div class="cta-row">
-          <a class="btn solid" href="auth.html?role=mentee">Get started as a mentee</a>
-          <a class="btn primary" href="auth.html?role=mentor">Become a mentor</a>
+        <div class="hero-actions">
+          <a href="articles.html" class="btn btn-primary">Explore Articles</a>
+          <a href="tracker.html" class="btn btn-ghost">Explore Skills Tracker</a>
         </div>
-
-        <div class="mini">
-          <span>Fast onboarding</span>
-          <span>Smart matching</span>
-          <span>Request tracking</span>
-          <span>Admin-quality control</span>
+        <div class="hero-meta">
+          <span class="meta-pill">Quarterly Publications</span>
+          <span class="meta-pill">Training &amp; Certification Updates</span>
+          <span class="meta-pill">For Learners Worldwide</span>
         </div>
       </div>
 
-      
-      <div class="card hero-right hero-image">
-        <div class="image-wrap">
-          <!-- Replace src with your illustration/image -->
-          <img src="mentoring.svg" alt="MentifyHub illustration" />
+      <div class="hero-media">
+        <div class="hero-card">
+          <p class="hero-card-label">Latest Highlight</p>
+          <h2>The Global Green Economy: Skills That Will Define the Future</h2>
+          <p class="hero-card-text">
+            Discover the key green skills driving new opportunities in energy, buildings,
+            ESG, and climate innovation across regions and industries.
+          </p>
+          <a href="articles.html" class="hero-card-link">Read the feature article →</a>
         </div>
       </div>
+    </div>
+  </section>
 
-    </section>
-
-    <div class="section-title">
+  <!-- ================= PLATFORM HIGHLIGHTS ================= -->
+  <section class="section" id="platform-highlights">
+    <div class="container section-header">
       <div>
-        <h3>What you can do on MentifyHub</h3>
-        <p>Simple workflow — no noise, just progress.</p>
+        <h2>Platform Highlights</h2>
+        <p class="section-subtitle">
+          Start from the most important parts of Green Skill Hub — discover a featured skill,
+          explore a curated resource, and catch up on the latest update.
+        </p>
       </div>
     </div>
 
-    <section class="grid">
-      <div class="card feature col-4">
-        <div class="icon">1</div>
-        <h4>Set your goal</h4>
-        <p>Define what you want to achieve — exams, career transitions, portfolios, research direction, or skills growth.</p>
-      </div>
-      <div class="card feature col-4">
-        <div class="icon">2</div>
-        <h4>Get matched</h4>
-        <p>Find mentors by field, region, timezone, availability, and expertise tags.</p>
-      </div>
-      <div class="card feature col-4">
-        <div class="icon">3</div>
-        <h4>Request & track</h4>
-        <p>Send a mentorship request with context, and track responses (pending / accepted / declined).</p>
-      </div>
+    <div class="container cards-grid cards-grid-3">
+      <article class="card">
+        <p class="hero-kicker">Green Skill of the Month</p>
+        <h3>Building Energy Modelling</h3>
+        <p>
+          Learn how simulation tools support energy efficiency, better design decisions,
+          and net-zero building performance across the built environment.
+        </p>
+        <a href="tracker.html" class="btn btn-sm btn-secondary">View in Tracker</a>
+      </article>
 
-      <div class="card steps col-12">
-        <div class="section-title" style="margin:0 0 6px;">
-          <h3>How it works</h3>
-          <p>Three steps to start strong.</p>
+      <article class="card resource-card">
+        <div class="resource-icon">📘</div>
+        <h3>Featured Resource</h3>
+        <p>
+          Explore curated guides, templates, and learning materials designed to help you
+          build practical green skills and navigate sustainability pathways.
+        </p>
+        <a href="resources.html" class="btn btn-sm btn-secondary">Explore Resources</a>
+      </article>
+
+      <article class="card">
+        <p class="hero-kicker">Latest Update</p>
+        <h3>Courses, Certifications & Opportunities</h3>
+        <p>
+          Stay current with new green skill updates, training opportunities, webinars,
+          and sustainability learning pathways from around the world.
+        </p>
+        <a href="updates.html" class="btn btn-sm btn-secondary">See Updates</a>
+      </article>
+    </div>
+  </section>
+
+  <!-- ================= FEATURED ARTICLES (JS-driven) ================= -->
+  <section class="section" id="articles">
+    <div class="container section-header">
+      <div>
+        <h2>Featured Articles</h2>
+        <p class="section-subtitle">
+          Deep dives, explainers, and publications on green skills, sustainability,
+          and the evolving global green economy.
+        </p>
+      </div>
+      <a href="articles.html" class="link-inline">View all publications →</a>
+    </div>
+
+    <!-- JS will inject up to 3 featured articles here -->
+    <div class="container cards-grid cards-grid-3" id="featuredArticlesGrid"></div>
+  </section>
+
+  <!-- ================= GREEN SKILL UPDATES PREVIEW ================= -->
+  <section class="section section-alt" id="updates">
+    <div class="container section-header">
+      <div>
+        <h2>Green Skill Updates</h2>
+        <p class="section-subtitle">
+          Curated list of free and paid courses, certifications, webinars, and training
+          opportunities in sustainability and green skills from around the world.
+        </p>
+      </div>
+      <a href="updates.html" class="link-inline">Browse all updates →</a>
+    </div>
+
+    <div class="container">
+      <div class="cards-grid cards-grid-2" id="updatesPreviewGrid"></div>
+    </div>
+  </section>
+
+  <!-- ================= GREEN SKILLS TRACKER PREVIEW ================= -->
+  <section class="section" id="tracker-preview">
+    <div class="container section-header">
+      <div>
+        <h2>Green Skills Tracker</h2>
+        <p class="section-subtitle">
+          Discover in-demand green skills, the tools used in practice, and the learning pathways
+          that support careers in sustainability, energy, buildings, ESG, and climate innovation.
+        </p>
+      </div>
+      <a href="tracker.html" class="link-inline">Explore the tracker →</a>
+    </div>
+
+    <div class="container cards-grid cards-grid-3">
+      <article class="card" id="skillOfMonthCard">
+        <p class="hero-kicker" id="skillMonthKicker">Green Skill of the Month</p>
+        <h3 id="skillMonthTitle">Loading skill...</h3>
+        <p id="skillMonthDescription">Loading description...</p>
+        <ul class="resource-meta-list">
+          <li id="skillMonthTools"></li>
+          <li id="skillMonthLevel"></li>
+        </ul>
+        <a href="tracker.html" class="btn btn-sm btn-secondary">Explore Skills Tracker</a>
+      </article>
+
+      <article class="card">
+        <p class="hero-kicker">Trending Skill • Carbon • High demand</p>
+        <h3>Life Cycle Assessment (LCA)</h3>
+        <p>
+          Evaluate environmental impacts across materials, products, and buildings to support
+          lower-carbon design and decision-making.
+        </p>
+        <ul class="resource-meta-list">
+          <li>Tools: One Click LCA, OpenLCA</li>
+          <li>Level: Advanced</li>
+        </ul>
+        <a href="tracker.html" class="btn btn-sm btn-secondary">View in tracker</a>
+      </article>
+
+      <article class="card">
+        <p class="hero-kicker">Trending Skill • ESG • High demand</p>
+        <h3>Sustainability Reporting</h3>
+        <p>
+          Turn sustainability performance data into clear disclosures, KPIs, and reports for
+          accountability, compliance, and stakeholder communication.
+        </p>
+        <ul class="resource-meta-list">
+          <li>Focus: GRI, ISSB, CSRD</li>
+          <li>Level: Advanced</li>
+        </ul>
+        <a href="tracker.html" class="btn btn-sm btn-secondary">View in tracker</a>
+      </article>
+    </div>
+  </section>
+
+  <!-- ================= RESOURCES & TOOLKITS ================= -->
+  <section class="section" id="resources">
+    <div class="container section-header">
+      <div>
+        <h2>Resources &amp; Toolkits</h2>
+        <p class="section-subtitle">
+          Download practical resources to support your learning, teaching, or professional
+          work in sustainability and green skills.
+        </p>
+      </div>
+      <a href="resources.html" class="link-inline">View all resources →</a>
+    </div>
+
+    <div class="container cards-grid cards-grid-3">
+      <article class="card resource-card">
+        <div class="resource-icon">📗</div>
+        <h3>Green Skills Starter Guide</h3>
+        <p>
+          A high-level introduction to green skills, key sectors, and pathways for students,
+          career switchers, and professionals around the world.
+        </p>
+        <ul class="resource-meta-list">
+          <li>Format: PDF</li>
+          <li>Length: 30+ pages</li>
+        </ul>
+        <a href="#" class="btn btn-sm btn-secondary">Download</a>
+      </article>
+
+      <article class="card resource-card">
+        <div class="resource-icon">🧭</div>
+        <h3>Sustainability Career Roadmap Template</h3>
+        <p>
+          A step-by-step roadmap template to help you plan your transition into a green or
+          sustainability-focused career.
+        </p>
+        <ul class="resource-meta-list">
+          <li>Format: PDF + Editable</li>
+          <li>Use: Self or mentoring</li>
+        </ul>
+        <a href="#" class="btn btn-sm btn-secondary">Download</a>
+      </article>
+
+      <article class="card resource-card">
+        <div class="resource-icon">📊</div>
+        <h3>Green Skills Course Tracker</h3>
+        <p>
+          A simple tracker to record courses taken, certifications completed, and skills
+          you are building over time.
+        </p>
+        <ul class="resource-meta-list">
+          <li>Format: Spreadsheet / PDF</li>
+          <li>Use: Personal learning log</li>
+        </ul>
+        <a href="#" class="btn btn-sm btn-secondary">Download</a>
+      </article>
+    </div>
+  </section>
+
+  <!-- ================= ABOUT ================= -->
+  <section class="section section-alt" id="about">
+    <div class="container about-layout">
+      <div>
+        <h2>About Green Skill Hub</h2>
+        <p>
+          Green Skill Hub is a publication and resource platform dedicated to documenting,
+          translating, and amplifying green skills knowledge for learners and professionals
+          worldwide.
+        </p>
+        <p>
+          Through quarterly publications, curated course updates, and collaboration with
+          initiatives across the globe, we exist to make sustainability education more
+          accessible, actionable, and relevant to real careers and organisations.
+        </p>
+        <a href="#" class="btn btn-outline">Learn more</a>
+      </div>
+      <div class="about-highlight">
+        <h3>Who We Serve</h3>
+        <ul>
+          <li>Students and recent graduates</li>
+          <li>Built environment, energy &amp; climate professionals</li>
+          <li>Educators and training providers</li>
+          <li>Organisations building green capacity</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= NEWSLETTER ================= -->
+  <section class="section section-newsletter" id="newsletter">
+    <div class="container newsletter-inner">
+      <div>
+        <h2>Stay Updated on Green Skills</h2>
+        <p>
+          Get monthly updates on new courses, certifications, events, and featured articles
+          from across the global green skills ecosystem.
+        </p>
+      </div>
+      <form 
+  class="newsletter-form"
+  action="https://formspree.io/f/xrerqelz"
+  method="POST">
+
+  <label for="email" class="sr-only">Email address</label>
+
+  <input 
+    type="email"
+    name="email"
+    id="email"
+    placeholder="Enter your email address"
+    required
+  />
+ <!-- ADD THIS LINE HERE -->
+  <input type="hidden" name="_redirect" value="index.html">
+
+  <button type="submit" class="btn btn-primary">
+    Join the newsletter
+  </button>
+
+</form>
+    </div>
+  </section>
+
+  <!-- ================= FOOTER ================= -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-brand">
+          <h3>Green Skills Hub</h3>
+          <p>Building the workforce for the green transition.</p>
         </div>
 
-        <div class="step">
-          <div class="num">1</div>
-          <div>
-            <b>Create an account</b>
-            <span>Choose mentee or mentor and set up your profile in minutes.</span>
-          </div>
+        <div class="footer-links">
+          <h4>Quick Links</h4>
+          <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="tracker.html">Skills Tracker</a></li>
+            <li><a href="resources.html">Resources</a></li>
+            <li><a href="articles.html">Articles</a></li>
+            <li><a href="updates.html">Updates</a></li>
+            <li><a href="index.html#about">About</a></li>
+          </ul>
         </div>
-        <div class="step">
-          <div class="num">2</div>
-          <div>
-            <b>Connect with purpose</b>
-            <span>Browse mentors, send requests, and set clear goals from day one.</span>
-          </div>
-        </div>
-        <div class="step">
-          <div class="num">3</div>
-          <div>
-            <b>Build outcomes</b>
-            <span>Track requests, keep your learning organized, and grow your green skills portfolio.</span>
-          </div>
+
+        <div class="footer-contact">
+          <h4>Contact</h4>
+          <ul>
+            <li><a href="mailto:hello@greenskillshub.org">hello@greenskillshub.org</a></li>
+            <li><a href="https://www.linkedin.com/" target="_blank" rel="noopener">LinkedIn</a></li>
+            <li><a href="https://www.instagram.com/" target="_blank" rel="noopener">Instagram</a></li>
+          </ul>
         </div>
       </div>
-    </section>
 
-    <footer>
-      <div>© <span id="y"></span> MentifyHub. All rights reserved.</div>
-      <div class="links">
-        <a href="#" onclick="return false;">Privacy</a>
-        <a href="#" onclick="return false;">Terms</a>
-        <a href="#" onclick="return false;">Contact</a>
+      <div class="footer-bottom">
+        <p>&copy; 2026 Green Skills Hub. All rights reserved.</p>
       </div>
-    </footer>
-  </div>
+    </div>
+  </footer>
 
+  <script src="js/main.js"></script>
   <script>
-    document.getElementById('y').textContent = new Date().getFullYear();
+    document.addEventListener("DOMContentLoaded", function () {
+      const skillsOfMonth = [
+        {
+          kicker: "Green Skill of the Month • Built Environment • High demand",
+          title: "Building Energy Modelling",
+          description: "Simulate building energy performance to support energy efficiency and net-zero building design.",
+          tools: "Tools: IES VE, DesignBuilder, EnergyPlus",
+          level: "Level: Advanced"
+        },
+        {
+          kicker: "Green Skill of the Month • Carbon • High demand",
+          title: "Life Cycle Assessment (LCA)",
+          description: "Assess environmental impacts of materials and buildings across their life cycle.",
+          tools: "Tools: One Click LCA, OpenLCA",
+          level: "Level: Advanced"
+        },
+        {
+          kicker: "Green Skill of the Month • ESG • High demand",
+          title: "Sustainability Reporting",
+          description: "Translate sustainability data into ESG disclosures and reports.",
+          tools: "Focus: GRI, ISSB, CSRD",
+          level: "Level: Advanced"
+        },
+        {
+          kicker: "Green Skill of the Month • Built Environment",
+          title: "Passive Design Strategy",
+          description: "Use climate-responsive design strategies like shading and ventilation to reduce energy demand.",
+          tools: "Tools: Climate Consultant, Ladybug",
+          level: "Level: Intermediate"
+        },
+        {
+          kicker: "Green Skill of the Month • Energy",
+          title: "Solar PV Integration",
+          description: "Design and integrate solar photovoltaic systems in buildings and energy systems.",
+          tools: "Tools: PVsyst, PVSol",
+          level: "Level: Intermediate"
+        }
+      ];
+
+      const month = new Date().getMonth();
+      const skill = skillsOfMonth[month % skillsOfMonth.length];
+
+      document.getElementById("skillMonthKicker").textContent = skill.kicker;
+      document.getElementById("skillMonthTitle").textContent = skill.title;
+      document.getElementById("skillMonthDescription").textContent = skill.description;
+      document.getElementById("skillMonthTools").textContent = skill.tools;
+      document.getElementById("skillMonthLevel").textContent = skill.level;
+    });
   </script>
 </body>
 </html>

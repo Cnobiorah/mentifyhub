@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Resources & Toolkits | Green Skill Hub</title>
+  <meta
+    name="description"
+    content="Browse Green Skill Hub resources and toolkits – starter guides, career templates, trackers, and more to support sustainability and green skills learning."
+  />
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:wght@400;600;700&display=swap"
+    rel="stylesheet"
+  />
+</head>
+
+<body>
+  <!-- ================= HEADER ================= -->
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="brand">
+        <img src="./assets/logo3.png" alt="Green Skill Hub Logo" class="brand-logo">
+        <div class="brand-text">
+          <span class="brand-name">Green Skill Hub</span>
+          <span class="brand-tagline">Global Green Skills Knowledge Platform</span>
+        </div>
+      </a>
+
+      <button class="nav-toggle" aria-label="Toggle navigation" id="navToggle">
+        <span></span><span></span><span></span>
+      </button>
+
+      <nav class="main-nav" id="mainNav">
+        <ul class="nav-list">
+  <li><a href="index.html" class="nav-link">Home</a></li>
+  <li><a href="articles.html" class="nav-link">Articles</a></li>
+  <li><a href="tracker.html" class="nav-link">Skills Tracker</a></li>
+  <li><a href="updates.html" class="nav-link">Green Skill Updates</a></li>
+  <li><a href="resources.html" class="nav-link active">Resources</a></li>
+  <li><a href="index.html#about" class="nav-link">About</a></li>
+</ul>
+        <a href="index.html#newsletter" class="btn btn-sm btn-outline">Join Newsletter</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ================= MAIN CONTENT ================= -->
+  <main>
+    <section class="section">
+      <!-- Page header -->
+      <div class="container section-header">
+        <div>
+          <h2>Resources &amp; Toolkits</h2>
+          <p class="section-subtitle">
+            Browse starter guides, templates, trackers, and toolkits you can use to plan, document, and share your
+            sustainability and green skills journey.
+          </p>
+        </div>
+      </div>
+
+      <!-- Search + filters -->
+      <div class="container resource-controls">
+        <div class="resource-search">
+          <label for="resourceSearch" class="sr-only">Search resources</label>
+          <input
+            type="search"
+            id="resourceSearch"
+            placeholder="Search resources (e.g. career, tracker, ESG)…"
+          />
+        </div>
+
+        <div class="resource-filters">
+          <label for="resourceCategory" class="sr-only">Filter by type</label>
+          <select id="resourceCategory">
+            <option value="all">All types</option>
+            <option value="toolkit">Toolkits</option>
+            <option value="guide">Guides</option>
+            <option value="template">Templates</option>
+            <option value="tracker">Trackers &amp; Excel tools</option>
+          </select>
+
+          <label for="resourceAccess" class="sr-only">Filter by access</label>
+          <select id="resourceAccess">
+            <option value="all">All access</option>
+            <option value="free">Free</option>
+            <option value="paid">Paid</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Resource grid -->
+      <div class="container cards-grid cards-grid-3" id="resourceList">
+        <!-- MAIN FREE TOOLKIT -->
+        <article
+          class="card resource-card resource-item"
+          data-category="toolkit"
+          data-access="free"
+          data-keywords="sustainability career toolkit roadmap starter guide excel dashboard bundle"
+        >
+          <div class="resource-icon">🧰</div>
+          <h3>Sustainability Career Toolkit</h3>
+          <p>
+            A complete starter bundle including a green skills guide, career roadmap template, interactive Excel
+            dashboard, and user guide.
+          </p>
+          <ul class="resource-meta-list">
+            <li>Type: Toolkit</li>
+            <li>Format: PDF + Word + Excel</li>
+            <li>Access: Free</li>
+          </ul>
+          <a href="toolkit.html" class="btn btn-sm btn-secondary">Open toolkit page</a>
+        </article>
+
+        <!-- Green Skills Starter Guide -->
+        <article
+          class="card resource-card resource-item"
+          data-category="guide"
+          data-access="free"
+          data-keywords="green skills starter guide introduction overview pathways"
+        >
+          <div class="resource-icon">📗</div>
+          <h3>Green Skills Starter Guide</h3>
+          <p>
+            A high-level introduction to green skills, key sectors, and pathways for students, career switchers, and
+            professionals around the world.
+          </p>
+          <ul class="resource-meta-list">
+            <li>Type: Guide</li>
+            <li>Format: PDF</li>
+            <li>Access: Free</li>
+          </ul>
+          <!-- TODO: update href to your actual PDF -->
+          <a href="#" class="btn btn-sm btn-secondary">Download PDF</a>
+        </article>
+
+        <!-- Sustainability Career Roadmap Template -->
+        <article
+          class="card resource-card resource-item"
+          data-category="template"
+          data-access="free"
+          data-keywords="career roadmap template sustainability planning reflection word document"
+        >
+          <div class="resource-icon">🧭</div>
+          <h3>Sustainability Career Roadmap Template</h3>
+          <p>
+            A structured template to describe your profile, set short and long-term goals, map your skills, and plan
+            experiments on your sustainability journey.
+          </p>
+          <ul class="resource-meta-list">
+            <li>Type: Template</li>
+            <li>Format: Word + PDF</li>
+            <li>Access: Free</li>
+          </ul>
+          <!-- TODO: update href to your actual Word/PDF -->
+          <a href="#" class="btn btn-sm btn-secondary">Download template</a>
+        </article>
+
+        <!-- Green Skills Course Tracker -->
+        <article
+          class="card resource-card resource-item"
+          data-category="tracker"
+          data-access="free"
+          data-keywords="course tracker excel log learning record certifications"
+        >
+          <div class="resource-icon">📊</div>
+          <h3>Green Skills Course Tracker</h3>
+          <p>
+            A simple tracker to record courses taken, certifications completed, and key skills you are building over
+            time.
+          </p>
+          <ul class="resource-meta-list">
+            <li>Type: Tracker</li>
+            <li>Format: Excel + PDF</li>
+            <li>Access: Free</li>
+          </ul>
+          <!-- TODO: update href to your actual Excel/PDF -->
+          <a href="#" class="btn btn-sm btn-secondary">Download tracker</a>
+        </article>
+
+        <!-- Example future resource -->
+        <article
+          class="card resource-card resource-item"
+          data-category="guide"
+          data-access="paid"
+          data-keywords="esg sustainability reporting paid resource"
+        >
+          <div class="resource-icon">📘</div>
+          <h3>ESG &amp; Sustainability Reporting Starter Pack</h3>
+          <p>
+            A planned resource focusing on ESG reporting basics, frameworks, and terminology – designed for people
+            entering corporate sustainability roles.
+          </p>
+          <ul class="resource-meta-list">
+            <li>Type: Guide (planned)</li>
+            <li>Format: PDF</li>
+            <li>Access: Paid</li>
+          </ul>
+          <button class="btn btn-sm btn-disabled" disabled>Coming soon</button>
+        </article>
+      </div>
+
+      <!-- Pagination -->
+      <div class="container">
+        <nav class="pagination" id="resourcePagination" aria-label="Resources pagination">
+          <!-- buttons created by JS -->
+        </nav>
+      </div>
+    </section>
+  </main>
+
+  <!-- ================= FOOTER ================= -->
+  <footer class="site-footer">
+  <div class="container">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <h3>Green Skills Hub</h3>
+        <p>Building the workforce for the green transition.</p>
+      </div>
+
+      <div class="footer-links">
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="tracker.html">Skills Tracker</a></li>
+          <li><a href="resources.html">Resources</a></li>
+          <li><a href="articles.html">Articles</a></li>
+          <li><a href="updates.html">Updates</a></li>
+          <li><a href="index.html#about">About</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-contact">
+        <h4>Contact</h4>
+        <ul>
+          <li><a href="mailto:hello@greenskillshub.org">hello@greenskillshub.org</a></li>
+          <li><a href="https://www.linkedin.com/" target="_blank" rel="noopener">LinkedIn</a></li>
+          <li><a href="https://www.instagram.com/" target="_blank" rel="noopener">Instagram</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>&copy; 2026 Green Skills Hub. All rights reserved.</p>
+    </div>
+  </div>
+</footer>
+
+  <script src="js/main.js"></script>
+
+  <!-- Inline script for search, filters, and pagination (ONLY on this page) -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const searchInput = document.getElementById("resourceSearch");
+      const categorySelect = document.getElementById("resourceCategory");
+      const accessSelect = document.getElementById("resourceAccess");
+      const cards = Array.from(document.querySelectorAll(".resource-item"));
+      const paginationContainer = document.getElementById("resourcePagination");
+
+      const PAGE_SIZE = 6;
+      let currentPage = 1;
+
+      function getFilteredResources() {
+        const query = searchInput.value.trim().toLowerCase();
+        const category = categorySelect.value;
+        const access = accessSelect.value;
+
+        return cards.filter((card) => {
+          const cardCategory = card.dataset.category || "all";
+          const cardAccess = card.dataset.access || "all";
+          const keywords = (card.dataset.keywords || card.textContent).toLowerCase();
+
+          const matchesQuery = !query || keywords.includes(query);
+          const matchesCategory = category === "all" || cardCategory === category;
+          const matchesAccess = access === "all" || cardAccess === access;
+
+          return matchesQuery && matchesCategory && matchesAccess;
+        });
+      }
+
+      function updatePagination(totalItems) {
+        paginationContainer.innerHTML = "";
+
+        const totalPages = Math.ceil(totalItems / PAGE_SIZE) || 1;
+        if (totalPages <= 1) return;
+
+        function createButton(label, page, disabled = false, isActive = false) {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.textContent = label;
+          btn.disabled = disabled;
+          btn.className = "pagination-btn" + (isActive ? " active" : "");
+          btn.addEventListener("click", () => {
+            if (!disabled && page !== currentPage) {
+              currentPage = page;
+              render();
+            }
+          });
+          return btn;
+        }
+
+        // Prev
+        paginationContainer.appendChild(
+          createButton("Prev", Math.max(1, currentPage - 1), currentPage === 1)
+        );
+
+        // Page numbers
+        const totalPagesNum = Math.ceil(totalItems / PAGE_SIZE) || 1;
+        for (let page = 1; page <= totalPagesNum; page++) {
+          paginationContainer.appendChild(
+            createButton(page.toString(), page, false, page === currentPage)
+          );
+        }
+
+        // Next
+        paginationContainer.appendChild(
+          createButton("Next", Math.min(totalPagesNum, currentPage + 1), currentPage === totalPagesNum)
+        );
+      }
+
+      function render() {
+        const filtered = getFilteredResources();
+        const totalPages = Math.ceil(filtered.length / PAGE_SIZE) || 1;
+        if (currentPage > totalPages) currentPage = totalPages;
+
+        // Hide all cards
+        cards.forEach((card) => {
+          card.style.display = "none";
+        });
+
+        const start = (currentPage - 1) * PAGE_SIZE;
+        const end = start + PAGE_SIZE;
+
+        filtered.slice(start, end).forEach((card) => {
+          card.style.display = "";
+        });
+
+        updatePagination(filtered.length);
+      }
+
+      searchInput.addEventListener("input", () => {
+        currentPage = 1;
+        render();
+      });
+
+      categorySelect.addEventListener("change", () => {
+        currentPage = 1;
+        render();
+      });
+
+      accessSelect.addEventListener("change", () => {
+        currentPage = 1;
+        render();
+      });
+
+      // Initial render
+      render();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Green Skill Updates | Green Skill Hub</title>
+  <meta
+    name="description"
+    content="Browse curated green skills courses, certifications, webinars, and training opportunities from around the world."
+  />
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:wght@400;600;700&display=swap"
+    rel="stylesheet"
+  />
+  <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-3H4B6SHLVS"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-3H4B6SHLVS');
+</script>
+</head>
+
+<body>
+
+  <!-- ================= HEADER ================= -->
+  <header class="site-header">
+    <div class="container header-inner">
+
+      <a href="index.html" class="brand">
+        <img src="./assets/logo3.png" alt="Green Skill Hub Logo" class="brand-logo">
+        <div class="brand-text">
+          <span class="brand-name">Green Skill Hub</span>
+          <span class="brand-tagline">Global Green Skills Knowledge Platform</span>
+        </div>
+      </a>
+
+      <button class="nav-toggle" aria-label="Toggle navigation" id="navToggle">
+        <span></span><span></span><span></span>
+      </button>
+
+      <nav class="main-nav" id="mainNav">
+        <ul class="nav-list">
+          <li><a href="index.html" class="nav-link">Home</a></li>
+          <li><a href="articles.html" class="nav-link">Articles</a></li>
+          <li><a href="tracker.html" class="nav-link">Skills Tracker</a></li>
+          <li><a href="updates.html" class="nav-link active">Green Skill Updates</a></li>
+          <li><a href="resources.html" class="nav-link">Resources</a></li>
+          <li><a href="index.html#about" class="nav-link">About</a></li>
+        </ul>
+
+        <a href="index.html#newsletter" class="btn btn-sm btn-outline">Join Newsletter</a>
+        <button id="themeToggle" class="theme-toggle">🌓</button>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ================= PAGE INTRO ================= -->
+    <section class="section">
+      <div class="container section-header">
+        <div>
+          <h2>Green Skill Updates</h2>
+          <p class="section-subtitle">
+            A living directory of green skills learning opportunities – free and paid courses,
+            certifications, webinars, and training programs from across the globe.
+          </p>
+        </div>
+      </div>
+
+      <div class="container updates-layout">
+
+        <div class="updates-toolbar">
+          <div class="updates-search">
+            <input
+              type="text"
+              id="updatesSearch"
+              placeholder="Search by title, provider, or keyword"
+              autocomplete="off"
+            />
+          </div>
+
+          <div class="updates-filter-select">
+            <select id="updatesSectorFilter" class="updates-dropdown">
+              <option value="all">All sectors</option>
+              <option value="energy">Energy Transition</option>
+              <option value="built-environment">Built Environment</option>
+              <option value="carbon">Climate &amp; Carbon</option>
+              <option value="climate-finance">Climate Finance &amp; ESG</option>
+              <option value="circular-economy">Circular Economy</option>
+              <option value="environment">Water &amp; Environment</option>
+              <option value="agriculture">Agriculture &amp; Food Systems</option>
+              <option value="cities">Sustainable Cities</option>
+            </select>
+          </div>
+
+          <div class="updates-filter-select">
+            <select id="updatesTypeFilter" class="updates-dropdown">
+              <option value="all">All training types</option>
+              <option value="online-course">Online Course</option>
+              <option value="certification-training">Certification Training</option>
+              <option value="certification-course">Certification Course</option>
+              <option value="professional-certificate">Professional Certificate</option>
+              <option value="professional-certification">Professional Certification</option>
+              <option value="live-training">Live Training</option>
+              <option value="tutorial">Tutorial</option>
+              <option value="webinar">Webinar</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="cards-grid cards-grid-2" id="updatesGrid"></div>
+        <div class="updates-pagination" id="updatesPagination"></div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ================= FOOTER ================= -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-content">
+
+        <div class="footer-brand">
+          <h3>Green Skills Hub</h3>
+          <p>Building the workforce for the green transition.</p>
+        </div>
+
+        <div class="footer-links">
+          <h4>Quick Links</h4>
+          <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="tracker.html">Skills Tracker</a></li>
+            <li><a href="resources.html">Resources</a></li>
+            <li><a href="articles.html">Articles</a></li>
+            <li><a href="updates.html">Updates</a></li>
+            <li><a href="index.html#about">About</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-contact">
+          <h4>Contact</h4>
+          <ul>
+            <li><a href="mailto:hello@greenskillshub.org">hello@greenskillshub.org</a></li>
+            <li><a href="https://www.linkedin.com/" target="_blank" rel="noopener">LinkedIn</a></li>
+            <li><a href="https://www.instagram.com/" target="_blank" rel="noopener">Instagram</a></li>
+          </ul>
+        </div>
+
+      </div>
+
+      <div class="footer-bottom">
+        <p>&copy; 2026 Green Skills Hub. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
+<script src="js/supabase.js"></script>
+<script src="js/global.js"></script>
+<script src="js/resources.js"></script> <!-- 🔥 ADD THIS -->
+<script src="js/updates.js"></script>
+</body>
+</html>

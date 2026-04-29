@@ -723,30 +723,31 @@ View profile
     console.log("Mentor email:", mentor?.email);
 
     // ✅ 3. CALL EDGE FUNCTION (SEND EMAIL)
+    
     if (mentor?.email) {
       try {
-        const res = await fetch(
-          "https://mscgaaaobxiuzqsukvjc.supabase.co/functions/v1/notify-mentor",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "apikey": SUPABASE_ANON_KEY,
+   const res = await fetch(
+  "https://mscgaaaobxiuzqsukvjc.supabase.co/functions/v1/notify-mentor",
+  {
+    method: "POST",
+    mode: "cors",
+    headers: {
+      "Content-Type": "application/json",
+      "apikey": SUPABASE_ANON_KEY,
       "Authorization": `Bearer ${SUPABASE_ANON_KEY}`
-              
-            },
-            body: JSON.stringify({
-              mentor_email: mentor.email,
-              mentee_name:
-                USER.user_metadata?.full_name ||
-                USER.email ||
-                "A mentee"
-            })
-          }
-        );
+    },
+    body: JSON.stringify({
+      mentor_email: mentor.email,
+      mentee_name:
+        USER?.user_metadata?.full_name ||
+        USER?.email ||
+        "A mentee"
+    })
+  }
+);
 
-        const data = await res.json();
-        console.log("Email response:", data);
+const data = await res.json();
+console.log("Email response:", data);
 
       } catch (notifyErr) {
         console.error("Email send error:", notifyErr);

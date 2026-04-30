@@ -568,7 +568,7 @@ class="avatar"
 
 <button class="btn primary"
 ${already ? "disabled" : ""}
-onclick="openRequestModal('${m.user_id}','${name}')">
+onclick="openModal(${JSON.stringify(m)})"
 
 ${already ? "Requested" : "Request"}
 
@@ -706,8 +706,18 @@ View profile
           status: "pending"
         };
 
-        const { error } = await sb.from(TABLES.requests).insert(payload);
-        if(error) throw error;
+       const { data: insertedRequest, error } = await sb
+  .from(TABLES.requests)
+  .insert(payload)
+  .select()
+  .single();
+
+if (error) {
+  console.error("Insert error:", error);
+  throw error;
+}
+
+const request_id = insertedRequest?.id;
 
          // ✅ 2. GET MENTOR EMAIL
     const { data: mentor, error: mentorError } = await sb
@@ -733,16 +743,17 @@ View profile
     mode: "cors",
     headers: {
       "Content-Type": "application/json",
-      "apikey": SUPABASE_ANON_KEY,
-      "Authorization": `Bearer ${SUPABASE_ANON_KEY}`
+      "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y",
+      "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y"
     },
     body: JSON.stringify({
-      mentor_email: mentor.email,
-      mentee_name:
-        USER?.user_metadata?.full_name ||
-        USER?.email ||
-        "A mentee"
-    })
+  mentor_email: mentor.email,
+  mentee_name:
+    USER?.user_metadata?.full_name ||
+    USER?.email ||
+    "A mentee",
+  request_id: request_id
+})
   }
 );
 

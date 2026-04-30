@@ -568,7 +568,7 @@ class="avatar"
 
 <button class="btn primary"
 ${already ? "disabled" : ""}
-onclick="openModal(${JSON.stringify(m)})"
+onclick="openRequestModal('${m.user_id}','${name}')">
 
 ${already ? "Requested" : "Request"}
 

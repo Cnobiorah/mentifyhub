@@ -736,6 +736,7 @@ const request_id = insertedRequest?.id;
     
     if (mentor?.email) {
       try {
+        
    const res = await fetch(
   "https://mscgaaaobxiuzqsukvjc.supabase.co/functions/v1/notify-mentor",
   {

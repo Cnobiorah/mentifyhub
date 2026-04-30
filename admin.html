@@ -1,0 +1,846 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>MentifyHub — Admin Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="stylesheet" href="mh-theme.css"/>
+  <style>
+    /* ─── Layout ──────────────────────────────── */
+    .layout {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 0;
+      margin-top: 18px;
+      min-height: calc(100vh - 130px);
+    }
+
+    /* ─── Sidebar ─────────────────────────────── */
+    .sidebar {
+      padding: 16px 12px;
+      position: sticky;
+      top: 92px;
+      align-self: start;
+    }
+
+    .sidebar-section {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      color: var(--subtle);
+      margin: 16px 0 6px 10px;
+    }
+    .sidebar-section:first-child { margin-top: 0; }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid transparent;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all .1s ease;
+      margin-bottom: 2px;
+      text-decoration: none;
+    }
+    .nav-item:hover  { background: var(--soft2); border-color: var(--line); color: var(--text); }
+    .nav-item.active { background: rgba(29,78,216,.07); border-color: rgba(29,78,216,.18); color: var(--accent); }
+    .nav-item .icon  { width: 18px; text-align: center; font-size: 14px; }
+    .nav-badge {
+      margin-left: auto;
+      font-size: 11px;
+      background: rgba(29,78,216,.10);
+      color: var(--accent);
+      border: 1px solid rgba(29,78,216,.14);
+      border-radius: 999px;
+      padding: 2px 7px;
+      font-weight: 700;
+    }
+
+    /* ─── Main content ────────────────────────── */
+    .main {
+      padding: 0 0 40px 20px;
+      border-left: 1px solid var(--line);
+      min-width: 0;
+    }
+
+    /* ─── Panels ──────────────────────────────── */
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    /* ─── Stats grid ──────────────────────────── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .stat-card {
+      padding: 18px;
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      background: #fff;
+      box-shadow: var(--shadow);
+    }
+    .stat-card .icon-wrap {
+      width: 38px; height: 38px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 17px; margin-bottom: 12px;
+    }
+    .stat-card .val { font-size: 28px; font-weight: 800; letter-spacing: -1px; color: var(--text); }
+    .stat-card .lbl { font-size: 12px; color: var(--muted); margin-top: 3px; font-weight: 500; }
+    .stat-card .delta { font-size: 11px; margin-top: 6px; font-weight: 600; }
+    .delta.up   { color: var(--accepted-fg); }
+    .delta.down { color: var(--declined-fg); }
+
+    /* ─── Section header ──────────────────────── */
+    .section-title {
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: -.1px;
+      color: var(--text);
+    }
+    .section-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+    /* ─── Table ───────────────────────────────── */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .data-table th {
+      text-align: left;
+      padding: 10px 14px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .4px;
+      color: var(--muted);
+      border-bottom: 1px solid var(--line);
+      background: var(--soft);
+    }
+    .data-table td {
+      padding: 11px 14px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: middle;
+      color: var(--text);
+    }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table tr:hover td { background: var(--soft); }
+    .data-table .name-cell { display: flex; align-items: center; gap: 10px; }
+    .data-table .name-cell b { display: block; font-size: 13px; font-weight: 700; }
+    .data-table .name-cell small { display: block; font-size: 11px; color: var(--muted); margin-top: 1px; }
+
+    /* ─── Activity feed ──────────────────────── */
+    .feed-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .feed-item:last-child { border-bottom: none; }
+    .feed-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      flex-shrink: 0; margin-top: 5px;
+    }
+    .feed-item b  { font-size: 13px; font-weight: 600; }
+    .feed-item span { font-size: 12px; color: var(--muted); }
+
+    /* ─── Chart placeholder ───────────────────── */
+    .chart-wrap {
+      height: 140px;
+      border-radius: var(--radius-sm);
+      background: linear-gradient(180deg, rgba(29,78,216,.04), rgba(29,78,216,.01));
+      border: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 14px;
+      position: relative;
+      overflow: hidden;
+    }
+    .chart-bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 6px;
+      height: 100px;
+      padding: 0 20px;
+      width: 100%;
+    }
+    .bar-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    .bar-col .b {
+      width: 100%;
+      background: linear-gradient(180deg, var(--accent3), var(--accent2));
+      border-radius: 4px 4px 0 0;
+      opacity: .7;
+      min-height: 4px;
+      transition: height .5s ease;
+    }
+    .bar-col .bl { font-size: 10px; color: var(--muted); }
+
+    /* ─── Search/filter bar ────────────────────── */
+    .filter-bar {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+    .filter-bar input, .filter-bar select {
+      padding: 8px 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      font: inherit;
+      font-size: 13px;
+      outline: none;
+      background: #fff;
+    }
+    .filter-bar input { flex: 1; min-width: 180px; }
+    .filter-bar input:focus, .filter-bar select:focus { border-color: var(--accent3); }
+
+    /* ─── Notice / alert ──────────────────────── */
+    .admin-notice {
+      padding: 12px 16px;
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(29,78,216,.18);
+      background: rgba(29,78,216,.05);
+      font-size: 13px;
+      color: var(--accent);
+      margin-bottom: 16px;
+    }
+
+    /* ─── Empty state ─────────────────────────── */
+    .table-empty {
+      text-align: center;
+      padding: 32px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    /* ─── Responsive ──────────────────────────── */
+    @media (max-width: 1100px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { position: static; border-left: none; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+      .sidebar-section { display: none; }
+      .nav-item { padding: 7px 12px; }
+      .main { padding: 16px 0 40px; border-left: none; }
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 600px) {
+      .stats-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="mh-wrap">
+
+  <!-- Topbar -->
+  <header class="mh-topbar">
+    <a href="index.html" class="mh-brand">
+      <img src="logo.png" alt="MentifyHub" class="mh-brand-logo"/>
+      <div class="mh-brand-text">
+        <strong>MentifyHub</strong>
+        <span>Admin dashboard</span>
+      </div>
+    </a>
+    <nav class="mh-nav">
+      <span class="mh-chip"><span class="mh-chip-dot"></span> <span id="adminChip">Loading…</span></span>
+      <a class="mh-btn" href="mentor-directory.html">Directory</a>
+      <button class="mh-btn mh-btn-danger" id="signOutBtn" type="button">Sign out</button>
+    </nav>
+  </header>
+
+  <div class="layout">
+
+    <!-- Sidebar -->
+    <nav class="mh-card sidebar">
+      <div class="sidebar-section">Overview</div>
+      <a class="nav-item active" data-panel="overview" onclick="return showPanel('overview')">
+        <span class="icon">📊</span> Overview
+      </a>
+      <a class="nav-item" data-panel="mentors" onclick="return showPanel('mentors')">
+        <span class="icon">🌱</span> Mentors
+        <span class="nav-badge" id="mentorBadge">—</span>
+      </a>
+      <a class="nav-item" data-panel="mentees" onclick="return showPanel('mentees')">
+        <span class="icon">🎓</span> Mentees
+        <span class="nav-badge" id="menteeBadge">—</span>
+      </a>
+
+      <div class="sidebar-section">Activity</div>
+      <a class="nav-item" data-panel="requests" onclick="return showPanel('requests')">
+        <span class="icon">📋</span> Requests
+        <span class="nav-badge" id="reqBadge">—</span>
+      </a>
+      <a class="nav-item" data-panel="sessions" onclick="return showPanel('sessions')">
+        <span class="icon">🗓</span> Sessions
+        <span class="nav-badge" id="sessionBadge">—</span>
+      </a>
+      <a class="nav-item" data-panel="feed" onclick="return showPanel('feed')">
+        <span class="icon">⚡</span> Activity feed
+      </a>
+
+      <div class="sidebar-section">App</div>
+      <a class="nav-item" href="mentor-directory.html"><span class="icon">🔍</span> Directory</a>
+      <a class="nav-item" href="mentor-dashboard.html"><span class="icon">👤</span> Mentor view</a>
+      <a class="nav-item" href="mentee-dashboard.html"><span class="icon">📚</span> Mentee view</a>
+    </nav>
+
+    <!-- Main content -->
+    <div class="main">
+
+      <!-- ══════════ OVERVIEW PANEL ══════════ -->
+      <div class="panel active" id="panel-overview">
+        <div style="margin-bottom:18px">
+          <h2 style="font-size:20px;font-weight:800;letter-spacing:-.3px">Platform overview</h2>
+          <p style="color:var(--muted);font-size:13px;margin-top:4px">Live data from Supabase — all tables.</p>
+        </div>
+
+        <div class="admin-notice" id="adminNotice" style="display:none"></div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="icon-wrap" style="background:rgba(29,78,216,.08)">🌱</div>
+            <div class="val" id="statMentors">—</div>
+            <div class="lbl">Total mentors</div>
+            <div class="delta up" id="statMentorsNew"></div>
+          </div>
+          <div class="stat-card">
+            <div class="icon-wrap" style="background:rgba(5,150,105,.08)">🎓</div>
+            <div class="val" id="statMentees">—</div>
+            <div class="lbl">Total mentees</div>
+            <div class="delta up" id="statMenteesNew"></div>
+          </div>
+          <div class="stat-card">
+            <div class="icon-wrap" style="background:rgba(245,158,11,.09)">📋</div>
+            <div class="val" id="statRequests">—</div>
+            <div class="lbl">Total requests</div>
+            <div class="delta" id="statRequestsPending"></div>
+          </div>
+          <div class="stat-card">
+            <div class="icon-wrap" style="background:rgba(139,92,246,.08)">🗓</div>
+            <div class="val" id="statSessions">—</div>
+            <div class="lbl">Total sessions</div>
+            <div class="delta up" id="statSessionsUp"></div>
+          </div>
+        </div>
+
+        <!-- Two-col: chart + breakdown -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px">
+          <!-- Request status breakdown -->
+          <div class="mh-card" style="padding:18px">
+            <div class="section-title">Request breakdown</div>
+            <div class="section-sub">By status</div>
+            <div style="display:flex;flex-direction:column;gap:10px;margin-top:16px" id="reqBreakdown">
+              <div class="mh-skeleton" style="height:28px"></div>
+              <div class="mh-skeleton" style="height:28px"></div>
+              <div class="mh-skeleton" style="height:28px"></div>
+            </div>
+          </div>
+
+          <!-- Match rate + registrations -->
+          <div class="mh-card" style="padding:18px">
+            <div class="section-title">Platform health</div>
+            <div class="section-sub">Key ratios</div>
+            <div style="display:flex;flex-direction:column;gap:12px;margin-top:16px" id="healthStats">
+              <div class="mh-skeleton" style="height:24px"></div>
+              <div class="mh-skeleton" style="height:24px"></div>
+              <div class="mh-skeleton" style="height:24px"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent requests -->
+        <div class="mh-card" style="overflow:hidden">
+          <div style="padding:16px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between">
+            <div>
+              <div class="section-title">Recent requests</div>
+              <div class="section-sub">Latest 8 mentorship requests across the platform</div>
+            </div>
+            <button class="mh-btn mh-btn-sm" onclick="showPanel('requests')">View all</button>
+          </div>
+          <div style="overflow-x:auto">
+            <table class="data-table" id="recentReqTable">
+              <thead><tr><th>Mentee</th><th>Mentor</th><th>Status</th><th>Date</th></tr></thead>
+              <tbody id="recentReqBody"><tr><td colspan="4" class="table-empty">Loading…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════ MENTORS PANEL ══════════ -->
+      <div class="panel" id="panel-mentors">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px">
+          <div>
+            <h2 style="font-size:20px;font-weight:800;letter-spacing:-.3px">Mentors</h2>
+            <p style="color:var(--muted);font-size:13px;margin-top:4px">All mentors who have completed onboarding.</p>
+          </div>
+          <span class="mh-chip" id="mentorCount">Loading…</span>
+        </div>
+        <div class="filter-bar">
+          <input id="mentorSearch" placeholder="Search by name, field, country, tags…" oninput="filterMentors()"/>
+          <select id="mentorFieldFilter" onchange="filterMentors()">
+            <option value="">All fields</option>
+          </select>
+          <select id="mentorAvailFilter" onchange="filterMentors()">
+            <option value="">All availability</option>
+            <option>Weekdays</option><option>Weeknights</option><option>Weekends</option><option>Flexible</option>
+          </select>
+        </div>
+        <div class="mh-card" style="overflow:hidden">
+          <div style="overflow-x:auto">
+            <table class="data-table">
+              <thead><tr><th>Mentor</th><th>Field</th><th>Level</th><th>Tags</th><th>Country</th><th>Slots</th><th>Completeness</th><th></th></tr></thead>
+              <tbody id="mentorTableBody"><tr><td colspan="8" class="table-empty">Loading…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════ MENTEES PANEL ══════════ -->
+      <div class="panel" id="panel-mentees">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px">
+          <div>
+            <h2 style="font-size:20px;font-weight:800;letter-spacing:-.3px">Mentees</h2>
+            <p style="color:var(--muted);font-size:13px;margin-top:4px">All mentees who have completed onboarding.</p>
+          </div>
+          <span class="mh-chip" id="menteeCount">Loading…</span>
+        </div>
+        <div class="filter-bar">
+          <input id="menteeSearch" placeholder="Search by name, goal, field, country…" oninput="filterMentees()"/>
+          <select id="menteeGoalFilter" onchange="filterMentees()">
+            <option value="">All goals</option>
+          </select>
+          <select id="menteeLevelFilter" onchange="filterMentees()">
+            <option value="">All levels</option>
+            <option>Beginner</option><option>Intermediate</option><option>Advanced</option>
+          </select>
+        </div>
+        <div class="mh-card" style="overflow:hidden">
+          <div style="overflow-x:auto">
+            <table class="data-table">
+              <thead><tr><th>Mentee</th><th>Goal</th><th>Level</th><th>Field</th><th>Country</th><th>Tags</th><th>Completeness</th></tr></thead>
+              <tbody id="menteeTableBody"><tr><td colspan="7" class="table-empty">Loading…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════ REQUESTS PANEL ══════════ -->
+      <div class="panel" id="panel-requests">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px">
+          <div>
+            <h2 style="font-size:20px;font-weight:800;letter-spacing:-.3px">All requests</h2>
+            <p style="color:var(--muted);font-size:13px;margin-top:4px">Every mentorship request across the platform.</p>
+          </div>
+        </div>
+        <div class="filter-bar">
+          <input id="reqSearch" placeholder="Search mentee or mentor ID…" oninput="filterRequests()"/>
+          <select id="reqStatusFilter" onchange="filterRequests()">
+            <option value="">All statuses</option>
+            <option>pending</option><option>accepted</option><option>declined</option>
+          </select>
+        </div>
+        <div class="mh-card" style="overflow:hidden">
+          <div style="overflow-x:auto">
+            <table class="data-table">
+              <thead><tr><th>Mentee</th><th>Mentor</th><th>Status</th><th>Message</th><th>Date</th></tr></thead>
+              <tbody id="reqTableBody"><tr><td colspan="5" class="table-empty">Loading…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════ SESSIONS PANEL ══════════ -->
+      <div class="panel" id="panel-sessions">
+        <div style="margin-bottom:18px">
+          <h2 style="font-size:20px;font-weight:800;letter-spacing:-.3px">Sessions</h2>
+          <p style="color:var(--muted);font-size:13px;margin-top:4px">All scheduled sessions across the platform.</p>
+        </div>
+        <div class="mh-card" style="overflow:hidden">
+          <div style="overflow-x:auto">
+            <table class="data-table">
+              <thead><tr><th>When</th><th>Duration</th><th>Status</th><th>Meeting link</th><th>Notes</th></tr></thead>
+              <tbody id="sessionTableBody"><tr><td colspan="5" class="table-empty">Loading…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════ ACTIVITY FEED PANEL ══════════ -->
+      <div class="panel" id="panel-feed">
+        <div style="margin-bottom:18px">
+          <h2 style="font-size:20px;font-weight:800;letter-spacing:-.3px">Activity feed</h2>
+          <p style="color:var(--muted);font-size:13px;margin-top:4px">Latest platform events ordered by time.</p>
+        </div>
+        <div class="mh-card" style="padding:18px">
+          <div id="feedList">
+            <div class="mh-skeleton" style="height:36px;margin-bottom:8px"></div>
+            <div class="mh-skeleton" style="height:36px;margin-bottom:8px"></div>
+            <div class="mh-skeleton" style="height:36px;margin-bottom:8px"></div>
+            <div class="mh-skeleton" style="height:36px"></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /main -->
+  </div><!-- /layout -->
+</div><!-- /wrap -->
+
+<div class="mh-toast" id="toast"></div>
+
+<script>
+  const SUPABASE_URL      = "https://mscgaaaobxiuzqsukvjc.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y";
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const $ = id => document.getElementById(id);
+
+  // ─── State
+  let ALL_MENTORS  = [];
+  let ALL_MENTEES  = [];
+  let ALL_REQUESTS = [];
+  let ALL_SESSIONS = [];
+
+  // ─── Utils
+  function esc(s){ return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+  function fmt(iso){ try{ return new Date(iso).toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"}); }catch{ return "—"; } }
+  function safeArr(v){ if(Array.isArray(v)) return v; if(typeof v==="string") return v.split(",").map(s=>s.trim()).filter(Boolean); return []; }
+
+  function toast(msg){
+    const t=$("toast"); t.textContent=msg; t.classList.add("show");
+    clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove("show"),2800);
+  }
+
+  // ─── Nav
+  function showPanel(name){
+    document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
+    document.querySelectorAll(".nav-item[data-panel]").forEach(n=>n.classList.remove("active"));
+    const p=document.getElementById("panel-"+name);
+    if(p) p.classList.add("active");
+    document.querySelectorAll(`.nav-item[data-panel="${name}"]`).forEach(n=>n.classList.add("active"));
+    return false;
+  }
+
+  // ─── Completeness helpers
+  function mentorCompleteness(m){
+    const checks=[!!m.headline,!!m.current_title,!!m.experience,!!m.years_experience,!!m.bio,!!m.field,safeArr(m.best_for).length>=1,safeArr(m.tags).length>=3,!!m.preferred_level,!!m.mentorship_style,!!m.session_duration,m.active_slots!=null,!!m.pricing_type,!!m.communication,!!m.country,!!m.timezone,!!m.availability];
+    return Math.round(checks.filter(Boolean).length/checks.length*100);
+  }
+
+  function menteeCompleteness(m){
+    const checks=[!!m.goal,!!m.level,!!m.current_role,!!m.field_experience_level,!!m.preferred_language,!!m.field,safeArr(m.help_needed).length>=1,!!m.timeline,!!m.preferred_session_type,safeArr(m.tags).length>=3,!!m.country,!!m.timezone,!!m.availability,!!m.communication];
+    return Math.round(checks.filter(Boolean).length/checks.length*100);
+  }
+
+  function completeBadge(pct){
+    const cls = pct>=80 ? "accepted" : pct>=50 ? "pending" : "declined";
+    return `<span class="mh-badge mh-badge-${cls}">${pct}%</span>`;
+  }
+
+  // ─── Overview
+  function renderOverview(){
+    const mentors  = ALL_MENTORS.length;
+    const mentees  = ALL_MENTEES.length;
+    const requests = ALL_REQUESTS.length;
+    const sessions = ALL_SESSIONS.length;
+
+    $("statMentors").textContent  = mentors;
+    $("statMentees").textContent  = mentees;
+    $("statRequests").textContent = requests;
+    $("statSessions").textContent = sessions;
+
+    const accepted = ALL_REQUESTS.filter(r=>(r.status||"").toLowerCase()==="accepted").length;
+    const pending  = ALL_REQUESTS.filter(r=>(r.status||"pending").toLowerCase()==="pending").length;
+    const declined = ALL_REQUESTS.filter(r=>(r.status||"").toLowerCase()==="declined").length;
+
+    $("statRequestsPending").textContent = pending ? `${pending} pending` : "None pending";
+    $("statRequestsPending").className   = `delta ${pending>0?"up":""}`;
+    $("statSessionsUp").textContent      = sessions > 0 ? `${sessions} scheduled` : "";
+
+    // Update badges
+    $("mentorBadge").textContent  = mentors;
+    $("menteeBadge").textContent  = mentees;
+    $("reqBadge").textContent     = requests;
+    $("sessionBadge").textContent = sessions;
+
+    // Breakdown bars
+    const total = requests || 1;
+    $("reqBreakdown").innerHTML = [
+      { label:"Accepted", count:accepted, cls:"accepted" },
+      { label:"Pending",  count:pending,  cls:"pending"  },
+      { label:"Declined", count:declined, cls:"declined" }
+    ].map(({label,count,cls})=>`
+      <div>
+        <div class="flex justify-between items-center" style="font-size:12px;font-weight:600;margin-bottom:5px">
+          <span class="mh-badge mh-badge-${cls}">${label}</span>
+          <span style="color:var(--muted)">${count} / ${requests}</span>
+        </div>
+        <div class="mh-bar-wrap">
+          <div class="mh-bar-fill" style="width:${Math.round(count/total*100)}%;background:${cls==="accepted"?"var(--green)":cls==="pending"?"#f59e0b":"#ef4444"}"></div>
+        </div>
+      </div>`).join("");
+
+    // Platform health
+    const acceptRate = requests ? Math.round(accepted/requests*100) : 0;
+    const mentorRatio = mentors && mentees ? (mentees/mentors).toFixed(1) : "—";
+    const avgComp = ALL_MENTORS.length
+      ? Math.round(ALL_MENTORS.reduce((s,m)=>s+mentorCompleteness(m),0)/ALL_MENTORS.length)
+      : 0;
+    $("healthStats").innerHTML = `
+      <div class="flex justify-between items-center" style="font-size:13px">
+        <span style="color:var(--muted);font-weight:500">Request acceptance rate</span>
+        <b style="color:var(--text)">${acceptRate}%</b>
+      </div>
+      <div class="flex justify-between items-center" style="font-size:13px">
+        <span style="color:var(--muted);font-weight:500">Mentees per mentor</span>
+        <b style="color:var(--text)">${mentorRatio}</b>
+      </div>
+      <div class="flex justify-between items-center" style="font-size:13px">
+        <span style="color:var(--muted);font-weight:500">Avg mentor profile completeness</span>
+        <b style="color:var(--text)">${avgComp}%</b>
+      </div>
+      <div class="flex justify-between items-center" style="font-size:13px">
+        <span style="color:var(--muted);font-weight:500">Total sessions scheduled</span>
+        <b style="color:var(--text)">${sessions}</b>
+      </div>`;
+
+    // Recent requests table
+    const recent = [...ALL_REQUESTS].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).slice(0,8);
+    $("recentReqBody").innerHTML = recent.length ? recent.map(r=>`
+      <tr>
+        <td><div class="name-cell"><div class="mh-avatar mh-btn-sm" style="width:28px;height:28px;border-radius:8px;font-size:11px">${esc(String(r.mentee_id||"M").slice(0,2).toUpperCase())}</div><div><b>${esc(r.mentee_id||"—")}</b><small>Mentee ID</small></div></div></td>
+        <td><small style="color:var(--muted)">${esc(String(r.mentor_id||"—").slice(0,12))}…</small></td>
+        <td><span class="mh-badge mh-badge-${(r.status||"pending").toLowerCase()}">${esc(r.status||"pending")}</span></td>
+        <td>${fmt(r.created_at)}</td>
+      </tr>`).join("") : `<tr><td colspan="4" class="table-empty">No requests yet.</td></tr>`;
+  }
+
+  // ─── Mentors table
+  function renderMentorTable(data){
+    $("mentorCount").textContent = `${data.length} mentor${data.length===1?"":"s"}`;
+    $("mentorTableBody").innerHTML = data.length ? data.map(m=>{
+      const tags = safeArr(m.tags).slice(0,3).map(t=>`<span class="mh-tag" style="font-size:11px">${esc(t)}</span>`).join(" ");
+      const pct  = mentorCompleteness(m);
+      return `<tr>
+        <td><div class="name-cell">
+          <div class="mh-avatar" style="width:32px;height:32px;border-radius:10px;font-size:12px">${esc((m.full_name||"M").charAt(0))}</div>
+          <div><b>${esc(m.full_name||"—")}</b><small>${esc(m.headline||m.email||"")}</small></div>
+        </div></td>
+        <td>${esc(m.field||"—")}</td>
+        <td>${esc(m.experience||"—")}</td>
+        <td style="max-width:180px">${tags||"—"}</td>
+        <td>${esc(m.country||"—")}</td>
+        <td>${m.active_slots??1}</td>
+        <td>${completeBadge(pct)}</td>
+        <td><a class="mh-btn mh-btn-sm" href="mentor-profile.html?id=${m.user_id}">View</a></td>
+      </tr>`;
+    }).join("") : `<tr><td colspan="8" class="table-empty">No mentors found.</td></tr>`;
+  }
+
+  // ─── Mentees table
+  function renderMenteeTable(data){
+    $("menteeCount").textContent = `${data.length} mentee${data.length===1?"":"s"}`;
+    $("menteeTableBody").innerHTML = data.length ? data.map(m=>{
+      const tags = safeArr(m.tags).slice(0,3).map(t=>`<span class="mh-tag" style="font-size:11px">${esc(t)}</span>`).join(" ");
+      const pct  = menteeCompleteness(m);
+      return `<tr>
+        <td><div class="name-cell">
+          <div class="mh-avatar" style="width:32px;height:32px;border-radius:10px;font-size:12px">${esc((m.full_name||"M").charAt(0))}</div>
+          <div><b>${esc(m.full_name||"—")}</b><small>${esc(m.email||"")}</small></div>
+        </div></td>
+        <td style="max-width:140px"><small>${esc(m.goal||"—")}</small></td>
+        <td>${esc(m.level||"—")}</td>
+        <td>${esc(m.field||"—")}</td>
+        <td>${esc(m.country||"—")}</td>
+        <td>${tags||"—"}</td>
+        <td>${completeBadge(pct)}</td>
+      </tr>`;
+    }).join("") : `<tr><td colspan="7" class="table-empty">No mentees found.</td></tr>`;
+  }
+
+  // ─── Requests table
+  function renderRequestTable(data){
+    // Try to enrich with names from loaded data
+    const mentorMap = new Map(ALL_MENTORS.map(m=>[m.user_id,m.full_name||m.email||m.user_id]));
+    const menteeMap = new Map(ALL_MENTEES.map(m=>[m.user_id,m.full_name||m.email||m.user_id]));
+    $("reqTableBody").innerHTML = data.length ? data.map(r=>`
+      <tr>
+        <td><small>${esc(menteeMap.get(r.mentee_id)||String(r.mentee_id||"—").slice(0,12)+"…")}</small></td>
+        <td><small>${esc(mentorMap.get(r.mentor_id)||String(r.mentor_id||"—").slice(0,12)+"…")}</small></td>
+        <td><span class="mh-badge mh-badge-${(r.status||"pending").toLowerCase()}">${esc(r.status||"pending")}</span></td>
+        <td style="max-width:200px"><small style="color:var(--muted)">${esc((r.message||"").slice(0,80))}${(r.message||"").length>80?"…":""}</small></td>
+        <td>${fmt(r.created_at)}</td>
+      </tr>`).join("") : `<tr><td colspan="5" class="table-empty">No requests found.</td></tr>`;
+  }
+
+  // ─── Sessions table
+  function renderSessionTable(data){
+    $("sessionTableBody").innerHTML = data.length ? data.map(s=>`
+      <tr>
+        <td>${fmt(s.scheduled_for)}<br/><small style="color:var(--muted)">${s.scheduled_for?new Date(s.scheduled_for).toLocaleTimeString(undefined,{hour:"2-digit",minute:"2-digit"}):"—"}</small></td>
+        <td>${s.duration_minutes||"—"} min</td>
+        <td><span class="mh-badge">${esc(s.status||"proposed")}</span></td>
+        <td>${s.meeting_link?`<a class="mh-btn mh-btn-sm" href="${esc(s.meeting_link)}" target="_blank">Open →</a>`:"—"}</td>
+        <td><small style="color:var(--muted)">${esc((s.notes||"").slice(0,60))}${(s.notes||"").length>60?"…":""}</small></td>
+      </tr>`).join("") : `<tr><td colspan="5" class="table-empty">No sessions found.</td></tr>`;
+  }
+
+  // ─── Activity feed
+  function renderFeed(){
+    const events = [];
+    ALL_REQUESTS.forEach(r=>{
+      events.push({ ts:new Date(r.created_at), type:"request", status:r.status, id:r.id });
+    });
+    ALL_SESSIONS.forEach(s=>{
+      if(s.created_at) events.push({ ts:new Date(s.created_at), type:"session", id:s.id });
+    });
+    ALL_MENTORS.forEach(m=>{
+      if(m.created_at) events.push({ ts:new Date(m.created_at), type:"mentor", name:m.full_name||m.email||"Mentor" });
+    });
+    ALL_MENTEES.forEach(m=>{
+      if(m.created_at) events.push({ ts:new Date(m.created_at), type:"mentee", name:m.full_name||m.email||"Mentee" });
+    });
+    events.sort((a,b)=>b.ts-a.ts);
+    const recent = events.slice(0,30);
+
+    const typeConfig = {
+      request: { dot:"#f59e0b", label:"New request" },
+      session:  { dot:"#8b5cf6", label:"Session scheduled" },
+      mentor:   { dot:"var(--accent2)", label:"Mentor joined" },
+      mentee:   { dot:"var(--green)", label:"Mentee joined" }
+    };
+
+    $("feedList").innerHTML = recent.length ? recent.map(e=>{
+      const cfg = typeConfig[e.type] || { dot:"var(--muted)", label:e.type };
+      const detail = e.type==="request" ? ` — ${e.status||"pending"}` : e.name ? ` — ${esc(e.name)}` : "";
+      return `<div class="feed-item">
+        <div class="feed-dot" style="background:${cfg.dot}"></div>
+        <div>
+          <b>${cfg.label}${detail}</b>
+          <span>${e.ts.toLocaleString()}</span>
+        </div>
+      </div>`;
+    }).join("") : `<div class="table-empty">No activity yet.</div>`;
+  }
+
+  // ─── Filter functions
+  function filterMentors(){
+    const q   = $("mentorSearch").value.toLowerCase();
+    const fld = $("mentorFieldFilter").value;
+    const av  = $("mentorAvailFilter").value;
+    const filtered = ALL_MENTORS.filter(m=>{
+      const blob = JSON.stringify(m).toLowerCase();
+      if(q && !blob.includes(q)) return false;
+      if(fld && m.field!==fld) return false;
+      if(av && m.availability!==av) return false;
+      return true;
+    });
+    renderMentorTable(filtered);
+  }
+  window.filterMentors = filterMentors;
+
+  function filterMentees(){
+    const q   = $("menteeSearch").value.toLowerCase();
+    const gl  = $("menteeGoalFilter").value;
+    const lv  = $("menteeLevelFilter").value;
+    const filtered = ALL_MENTEES.filter(m=>{
+      const blob = JSON.stringify(m).toLowerCase();
+      if(q && !blob.includes(q)) return false;
+      if(gl && m.goal!==gl) return false;
+      if(lv && m.level!==lv) return false;
+      return true;
+    });
+    renderMenteeTable(filtered);
+  }
+  window.filterMentees = filterMentees;
+
+  function filterRequests(){
+    const q  = $("reqSearch").value.toLowerCase();
+    const st = $("reqStatusFilter").value;
+    const filtered = ALL_REQUESTS.filter(r=>{
+      const blob = JSON.stringify(r).toLowerCase();
+      if(q && !blob.includes(q)) return false;
+      if(st && (r.status||"pending").toLowerCase()!==st) return false;
+      return true;
+    });
+    renderRequestTable(filtered);
+  }
+  window.filterRequests = filterRequests;
+
+  // ─── Fill select filters
+  function fillFilterOptions(selectId, values){
+    const sel = document.getElementById(selectId);
+    if(!sel) return;
+    const uniq = [...new Set(values.filter(Boolean))].sort();
+    while(sel.options.length>1) sel.remove(1);
+    uniq.forEach(v=>{ const o=document.createElement("option"); o.value=v; o.textContent=v; sel.appendChild(o); });
+  }
+
+  // ─── Auth + data load
+  async function init(){
+    const {data:{session}} = await sb.auth.getSession();
+    if(!session){ window.location.href="auth.html?mode=signin&returnTo=admin.html"; return; }
+    $("adminChip").textContent = session.user.email || "Admin";
+
+    // Load all data in parallel
+    const [
+      {data:mentors},
+      {data:mentees},
+      {data:requests},
+      {data:sessions}
+    ] = await Promise.all([
+      sb.from("mentors").select("*").order("created_at",{ascending:false}).limit(500),
+      sb.from("mentees").select("*").order("created_at",{ascending:false}).limit(500),
+      sb.from("mentorship_requests").select("*").order("created_at",{ascending:false}).limit(500),
+      sb.from("sessions").select("*").order("scheduled_for",{ascending:false}).limit(200)
+    ]);
+
+    ALL_MENTORS  = mentors  || [];
+    ALL_MENTEES  = mentees  || [];
+    ALL_REQUESTS = requests || [];
+    ALL_SESSIONS = sessions || [];
+
+    if(!ALL_MENTORS.length && !ALL_MENTEES.length){
+      const n=$("adminNotice"); n.style.display="block";
+      n.textContent="No mentor or mentee data found. Data will appear here once users complete onboarding. Check your Supabase RLS policies if you expect data.";
+    }
+
+    // Populate filter dropdowns
+    fillFilterOptions("mentorFieldFilter", ALL_MENTORS.map(m=>m.field));
+    fillFilterOptions("menteeGoalFilter",  ALL_MENTEES.map(m=>m.goal));
+
+    // Render all panels
+    renderOverview();
+    renderMentorTable(ALL_MENTORS);
+    renderMenteeTable(ALL_MENTEES);
+    renderRequestTable(ALL_REQUESTS);
+    renderSessionTable(ALL_SESSIONS);
+    renderFeed();
+
+    toast(`Loaded: ${ALL_MENTORS.length} mentors, ${ALL_MENTEES.length} mentees, ${ALL_REQUESTS.length} requests`);
+  }
+
+  $("signOutBtn").onclick = async () => { await sb.auth.signOut(); window.location.href="auth.html?mode=signin"; };
+
+  init();
+</script>
+</body>
+</html>

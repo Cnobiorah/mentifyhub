@@ -1,277 +1,119 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
-<meta charset="UTF-8">
-
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>MentifyHub Testing</title>
-
-
-<style>
-
-body{
-
-font-family: system-ui, -apple-system, Segoe UI, Roboto;
-
-background:#f8fafc;
-
-margin:0;
-
-height:100vh;
-
-display:flex;
-
-justify-content:center;
-
-align-items:center;
-
-}
-
-
-
-.container{
-
-background:white;
-
-padding:40px;
-
-border-radius:16px;
-
-box-shadow:0 10px 30px rgba(0,0,0,0.08);
-
-text-align:center;
-
-max-width:460px;
-
-width:90%;
-
-}
-
-
-
-.logo{
-
-width:75px;
-
-display:block;
-
-margin:0 auto 15px auto;
-
-}
-
-
-
-h1{
-
-margin-bottom:5px;
-
-color:#065f46;
-
-font-size:28px;
-
-}
-
-
-
-.subtitle{
-
-color:#64748b;
-
-margin-bottom:25px;
-
-}
-
-
-
-.note{
-
-font-size:14px;
-
-color:#475569;
-
-margin-bottom:20px;
-
-}
-
-
-
-button{
-
-width:100%;
-
-padding:14px;
-
-margin:10px 0;
-
-border:none;
-
-border-radius:12px;
-
-font-size:15px;
-
-cursor:pointer;
-
-font-weight:600;
-
-transition:0.2s;
-
-}
-
-
-
-.mentify{
-
-background:#16a34a;
-
-color:white;
-
-}
-
-
-
-.feedback{
-
-background:#0f172a;
-
-color:white;
-
-}
-
-
-
-button:hover{
-
-opacity:0.92;
-
-transform:translateY(-1px);
-
-}
-
-
-
-footer{
-
-margin-top:12px;
-
-font-size:13px;
-
-color:#94a3b8;
-
-}
-
-
-
-</style>
-
-
-
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MentifyHub — Testing</title>
+  <link rel="stylesheet" href="mh-theme.css"/>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 420px;
+      padding: 36px 32px;
+      text-align: center;
+    }
+
+    .logo {
+      width: 64px;
+      height: 64px;
+      object-fit: contain;
+      border-radius: 16px;
+      margin: 0 auto 18px;
+      display: block;
+      border: 1px solid rgba(29,78,216,.12);
+      box-shadow: 0 2px 10px rgba(29,78,216,.10);
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -.3px;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 6px;
+    }
+
+    .note {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--muted);
+      background: var(--soft2);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 5px 12px;
+      margin-bottom: 24px;
+    }
+
+    .btn-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    footer {
+      margin-top: 20px;
+      font-size: 12px;
+      color: var(--subtle);
+    }
+  </style>
 </head>
-
-
-
 <body>
 
+<div class="mh-wrap-sm">
+  <div class="mh-card card">
+    <img src="logo.png" class="logo" alt="MentifyHub logo"/>
 
+    <h1>MentifyHub Testing</h1>
+    <p class="subtitle">Help improve MentifyHub by testing and sharing your feedback.</p>
 
-<div class="container">
+    <div class="note">🧪 Test as a mentor or mentee</div>
 
+    <div class="btn-group">
+      <button
+        class="mh-btn mh-btn-primary mh-btn-full mh-btn-lg"
+        onclick="openSoftware('https://mentifyhub.com/')">
+        Test MentifyHub
+      </button>
 
+      <button
+        class="mh-btn mh-btn-full mh-btn-lg"
+        style="background:#0f172a;color:#fff;border-color:transparent"
+        onclick="window.open('https://docs.google.com/forms/d/e/1FAIpQLScxpNPYHSTnedJUffgHUQdbMHq78exVvdzHT4EbtlEJOQymCg/viewform','_blank')">
+        Give feedback
+      </button>
+    </div>
 
-<img
-
-src="https://mentifyhub.com/logo.png"
-
-class="logo"
-
->
-
-
-
-<h1>MentifyHub Testing</h1>
-
-
-
-<p class="subtitle">
-
-Help improve MentifyHub by testing and sharing feedback.
-
-</p>
-
-
-
-<p class="note">
-
-Test as mentor or mentee.
-
-</p>
-
-
-
-<button
-
-class="mentify"
-
-onclick="openSoftware('https://mentifyhub.com/')">
-
-Test MentifyHub
-
-</button>
-
-
-
-<button
-class="feedback"
-onclick="window.open('https://docs.google.com/forms/d/e/1FAIpQLScxpNPYHSTnedJUffgHUQdbMHq78exVvdzHT4EbtlEJOQymCg/viewform','_blank')">
-Give Feedback
-</button>
-
-
-<footer>
-
-Your feedback helps improve MentifyHub 🚀
-
-</footer>
-
-
-
+    <footer>Your feedback helps improve MentifyHub 🚀</footer>
+  </div>
 </div>
 
-
-
 <script>
-
-
-
-function openSoftware(link){
-
-window.open(link,'_blank');
-
-
-
-setTimeout(function(){
-
-window.open(
-'https://docs.google.com/forms/d/e/1FAIpQLScxpNPYHSTnedJUffgHUQdbMHq78exVvdzHT4EbtlEJOQymCg/viewform',
-'_blank'
-);
-
-},20000);
-
-
-
-}
-
-
-
+  function openSoftware(link){
+    window.open(link, '_blank');
+    setTimeout(function(){
+      window.open(
+        'https://docs.google.com/forms/d/e/1FAIpQLScxpNPYHSTnedJUffgHUQdbMHq78exVvdzHT4EbtlEJOQymCg/viewform',
+        '_blank'
+      );
+    }, 20000);
+  }
 </script>
 
-
-
 </body>
-
-
-
 </html>

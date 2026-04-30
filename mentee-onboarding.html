@@ -1,1009 +1,457 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>MentifyHub — Mentee Onboarding</title>
-  <meta name="description" content="Complete your mentee profile to get smarter mentor matches." />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="stylesheet" href="mh-theme.css"/>
   <style>
-    :root{
-      --bg:#fff;
-      --card:#fff;
-      --text:#0f172a;
-      --muted:#475569;
-      --line:#e5e7eb;
-      --soft:#f8fafc;
-      --soft2:#f1f5f9;
-      --accent:#0b3b89;
-      --accent2:#1d4ed8;
-      --radius:18px;
-      --shadow:0 20px 50px rgba(2,6,23,.08);
+    .shell { display: grid; grid-template-columns: 1fr 280px; gap: 18px; margin-top: 18px; align-items: start; }
+    .side  { position: sticky; top: 92px; }
+
+    .step    { }
+    .step.hidden { display: none !important; }
+    .step h3 { font-size: 16px; font-weight: 800; letter-spacing: -.2px; margin-bottom: 4px; }
+    .step > p { font-size: 13px; color: var(--muted); margin-bottom: 18px; line-height: 1.5; }
+
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .col-12 { grid-column: 1 / -1; }
+    .help { font-size: 12px; color: var(--subtle); margin-top: 4px; }
+    .req  { color: #b91c1c; }
+
+    .tagbox {
+      display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+      padding: 8px; border-radius: var(--radius-sm); border: 1px solid var(--line);
+      background: #fff; min-height: 48px;
     }
-
-    *{box-sizing:border-box}
-    html,body{height:100%}
-
-    body{
-      margin:0;
-      font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
-      color:var(--text);
-      background:
-        radial-gradient(900px 520px at 15% 5%, rgba(29,78,216,.10), transparent 55%),
-        radial-gradient(900px 520px at 90% 10%, rgba(11,59,137,.08), transparent 55%),
-        #fff;
+    .tagbox .tag {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 4px 10px; border-radius: 999px;
+      background: rgba(29,78,216,.08); border: 1px solid rgba(29,78,216,.16);
+      color: var(--accent); font-size: 12px; font-weight: 600;
     }
-
-    a{color:inherit;text-decoration:none}
-    .container{max-width:1120px;margin:0 auto;padding:22px}
-
-    .topbar{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:16px;
-      padding:14px 16px;
-      border:1px solid var(--line);
-      border-radius:22px;
-      background:rgba(255,255,255,.82);
-      backdrop-filter:blur(10px);
-      box-shadow:0 10px 24px rgba(2,6,23,.06);
-      position:sticky;
-      top:14px;
-      z-index:20;
+    .tagbox .tag button { background: none; border: none; cursor: pointer; color: inherit; font-size: 14px; line-height: 1; padding: 0; margin-left: 2px; }
+    .tag-input { border: none; outline: none; font: inherit; font-size: 13px; flex: 1; min-width: 120px; background: transparent; }
+    .suggestions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .suggest-chip {
+      padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line);
+      background: #fff; font-size: 12px; color: var(--muted); cursor: pointer;
+      transition: background .1s ease, border-color .1s ease;
     }
+    .suggest-chip:hover { background: rgba(29,78,216,.06); border-color: rgba(29,78,216,.20); color: var(--accent); }
 
-    .brand{display:flex;align-items:center;gap:12px}
-
-    .logo{
-      width:40px;
-      height:40px;
-      border-radius:14px;
-      background:linear-gradient(135deg, rgba(11,59,137,.14), rgba(29,78,216,.16));
-      border:1px solid rgba(29,78,216,.18);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-weight:800;
-      color:var(--accent);
+    .steps-nav { margin-top: 12px; display: flex; flex-direction: column; gap: 4px; }
+    .step-item {
+      padding: 10px 12px; border-radius: var(--radius-sm); cursor: pointer;
+      border: 1px solid transparent; transition: background .1s, border-color .1s;
     }
+    .step-item:hover  { background: var(--soft2); border-color: var(--line); }
+    .step-item.active { background: rgba(29,78,216,.06); border-color: rgba(29,78,216,.18); }
+    .step-item b { display: block; font-size: 13px; font-weight: 700; color: var(--text); }
+    .step-item span { display: block; font-size: 12px; color: var(--muted); margin-top: 2px; }
 
-    .brand h1{margin:0;font-size:16px;letter-spacing:.2px}
-    .brand p{margin:2px 0 0;font-size:12px;color:var(--muted)}
+    .form-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--line); }
+    .form-actions-right { display: flex; gap: 8px; }
+    .hint { font-size: 12px; color: var(--subtle); margin-top: 10px; }
 
-    .nav{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-
-    .chip{
-      padding:9px 12px;
-      border-radius:999px;
-      border:1px solid var(--line);
-      background:var(--soft);
-      font-size:13px;
-      color:var(--muted);
-    }
-
-    .btn{
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      gap:10px;
-      padding:10px 14px;
-      border-radius:14px;
-      border:1px solid var(--line);
-      background:#fff;
-      cursor:pointer;
-      font-weight:700;
-      font-size:14px;
-      transition:transform .06s ease, box-shadow .2s ease, border-color .2s ease;
-      user-select:none;
-    }
-
-    .btn:hover{
-      transform:translateY(-1px);
-      box-shadow:0 10px 24px rgba(2,6,23,.08);
-      border-color:#dbe2ea;
-    }
-
-    .btn.solid{
-      border-color:transparent;
-      background:linear-gradient(180deg, var(--accent2), var(--accent));
-      color:#fff;
-      box-shadow:0 16px 40px rgba(29,78,216,.22);
-    }
-
-    .btn.solid:hover{box-shadow:0 18px 46px rgba(29,78,216,.26)}
-
-    .shell{
-      margin-top:18px;
-      display:grid;
-      grid-template-columns:minmax(0,1fr) 320px;
-      gap:18px;
-      align-items:start;
-    }
-
-    .card{
-      background:var(--card);
-      border:1px solid var(--line);
-      border-radius:var(--radius);
-      box-shadow:var(--shadow);
-    }
-
-    .main{padding:22px}
-    .side{padding:16px;position:sticky;top:92px}
-
-    .title{margin:0;font-size:20px;letter-spacing:.2px}
-    .subtitle{margin:8px 0 0;color:var(--muted);font-size:14px;line-height:1.55}
-
-    .progress{
-      margin-top:18px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-      color:var(--muted);
-      font-size:12px;
-    }
-
-    .bar{
-      height:10px;
-      width:100%;
-      border-radius:999px;
-      border:1px solid var(--line);
-      background:var(--soft);
-      overflow:hidden;
-    }
-
-    .bar > div{
-      height:100%;
-      width:0%;
-      background:linear-gradient(90deg, rgba(29,78,216,.35), rgba(11,59,137,.35));
-      transition:width .2s ease;
-    }
-
-    .step{
-      margin-top:20px;
-      padding:20px;
-      border:1px solid var(--line);
-      border-radius:18px;
-      background:linear-gradient(180deg,#fff,var(--soft));
-    }
-
-    .step h3{margin:0;font-size:15px;letter-spacing:.2px}
-    .step p{margin:8px 0 0;color:var(--muted);font-size:13px;line-height:1.55}
-
-    .section-block{
-      margin-top:18px;
-      padding-top:2px;
-    }
-
-    .grid{
-      margin-top:10px;
-      display:grid;
-      grid-template-columns:repeat(12,1fr);
-      gap:16px;
-    }
-
-    .col-4{grid-column:span 4}
-    .col-6{grid-column:span 6}
-    .col-12{grid-column:span 12}
-
-    .field{
-      display:flex;
-      flex-direction:column;
-      gap:6px;
-    }
-
-    label{
-      display:block;
-      margin:0;
-      font-size:13px;
-      font-weight:700;
-      color:var(--text);
-    }
-
-    .req{
-      color:var(--accent2);
-      font-weight:800;
-      margin-left:3px;
-    }
-
-    .help{
-      font-size:12px;
-      color:var(--muted);
-      line-height:1.45;
-      margin:0;
-    }
-
-    input,select,textarea{
-      width:100%;
-      padding:13px 14px;
-      border-radius:14px;
-      border:1px solid var(--line);
-      background:#fff;
-      font-size:14px;
-      outline:none;
-      transition:box-shadow .15s ease,border-color .15s ease;
-    }
-
-    textarea{
-      min-height:110px;
-      resize:vertical;
-    }
-
-    input:focus,select:focus,textarea:focus{
-      border-color:rgba(29,78,216,.35);
-      box-shadow:0 0 0 4px rgba(29,78,216,.10);
-    }
-
-    .tagbox{
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px;
-      padding:12px;
-      border-radius:14px;
-      border:1px solid var(--line);
-      background:#fff;
-      min-height:54px;
-    }
-
-    .tag{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding:8px 10px;
-      border-radius:999px;
-      border:1px solid var(--line);
-      background:var(--soft);
-      font-size:13px;
-    }
-
-    .tag button{
-      border:none;
-      background:transparent;
-      cursor:pointer;
-      color:var(--muted);
-      font-weight:800;
-    }
-
-    .tag-input{
-      flex:1;
-      min-width:180px;
-      border:none!important;
-      padding:6px 8px!important;
-      outline:none!important;
-      background:transparent!important;
-    }
-
-    .suggestions{
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px;
-      margin-top:10px;
-    }
-
-    .suggest-chip{
-      padding:8px 10px;
-      border-radius:999px;
-      border:1px solid var(--line);
-      background:#fff;
-      font-size:12px;
-      cursor:pointer;
-    }
-
-    .suggest-chip:hover{background:var(--soft)}
-
-    .actions{
-      margin-top:18px;
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      justify-content:space-between;
-      align-items:center;
-    }
-
-    .actions .right{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-    }
-
-    .hint{
-      margin-top:10px;
-      color:var(--muted);
-      font-size:12px;
-      line-height:1.45;
-    }
-
-    .steps-nav{
-      margin-top:12px;
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-    }
-
-    .step-item{
-      padding:12px;
-      border:1px solid var(--line);
-      border-radius:16px;
-      background:#fff;
-      cursor:pointer;
-    }
-
-    .step-item b{
-      display:block;
-      font-size:13px;
-    }
-
-    .step-item span{
-      display:block;
-      margin-top:4px;
-      color:var(--muted);
-      font-size:12px;
-      line-height:1.45;
-    }
-
-    .step-item.active{
-      border-color:rgba(29,78,216,.28);
-      box-shadow:0 16px 40px rgba(2,6,23,.06);
-      background:linear-gradient(180deg,#fff,var(--soft2));
-    }
-
-    .hidden{display:none!important}
-
-    @media (max-width:980px){
-      .shell{grid-template-columns:1fr}
-      .side{position:static}
-      .topbar{position:static}
-    }
-
-    @media (max-width:720px){
-      .col-4,.col-6{grid-column:span 12}
-      .actions{flex-direction:column;align-items:stretch}
-      .actions .right .btn{width:100%}
+    @media (max-width: 900px) {
+      .shell { grid-template-columns: 1fr; }
+      .side  { position: static; }
+      .form-grid { grid-template-columns: 1fr; }
+      .col-12 { grid-column: 1; }
     }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-<div class="container">
-  <header class="topbar">
-    <a href="index.html" class="brand">
+<div class="mh-wrap">
 
-<img
-  src="logo.png"
-  alt="MentifyHub logo"
-  style="
-    width:42px;
-    height:42px;
-    object-fit:contain;
-  "
->
-
-<div>
-  <h1>MentifyHub</h1>
-  <p>Mentee onboarding</p>
-</div>
-
-</a>
-    <nav class="nav">
-      <span class="chip" id="chip">Step 1 of 3</span>
-      <a class="btn" href="index.html">Home</a>
-      <a class="btn solid" id="goDashBtn" href="mentee-dashboard.html" style="display:none;">Go to Dashboard</a>
-      <button class="btn solid" id="saveTop" type="button">Save</button>
+  <header class="mh-topbar">
+    <a href="index.html" class="mh-brand">
+      <img src="logo.png" alt="MentifyHub" class="mh-brand-logo"/>
+      <div class="mh-brand-text">
+        <strong>MentifyHub</strong>
+        <span>Mentee onboarding</span>
+      </div>
+    </a>
+    <nav class="mh-nav">
+      <span class="mh-chip" id="chip">Step 1 of 3</span>
+      <a class="mh-btn" href="index.html">Home</a>
+      <a class="mh-btn mh-btn-primary" id="goDashBtn" href="mentee-dashboard.html" style="display:none">Go to dashboard</a>
+      <button class="mh-btn mh-btn-primary" id="saveTop" type="button">Save</button>
     </nav>
   </header>
 
   <div class="shell">
-    <div class="card main">
-      <h2 class="title">Complete your mentee profile</h2>
-      <p class="subtitle">Create a clear profile so the right mentors can understand your goals and support needs.</p>
+    <div class="mh-card mh-card-body">
+      <h2 style="font-size:20px;font-weight:800;letter-spacing:-.3px">Complete your mentee profile</h2>
+      <p style="color:var(--muted);font-size:13px;margin-top:6px;line-height:1.5">Create a clear profile so the right mentors can understand your goals and support needs.</p>
 
-      <div class="progress">
-        <div style="min-width:140px;">Profile completeness</div>
-        <div class="bar"><div id="barFill"></div></div>
-        <div style="min-width:78px;text-align:right;" id="pct">0%</div>
+      <div style="margin-top:14px">
+        <div class="flex justify-between items-center" style="font-size:12px;color:var(--muted);font-weight:600;margin-bottom:6px">
+          <span>Profile completeness</span>
+          <span id="pct">0%</span>
+        </div>
+        <div class="mh-bar-wrap"><div class="mh-bar-fill" id="barFill" style="width:0%"></div></div>
       </div>
 
-      <section class="step" data-step="1">
-        <h3>Goal, background & level</h3>
+      <!-- Step 1 -->
+      <section class="step" data-step="1" style="margin-top:22px">
+        <h3>Goal, background &amp; level</h3>
         <p>Tell mentors where you are now and what you want to achieve.</p>
-
-        <div class="section-block">
-          <div class="grid">
-            <div class="col-6 field">
-              <label for="goal">Primary goal <span class="req">*</span></label>
-              <select id="goal">
-                <option value="">Select a goal…</option>
-                <option>Certification exam preparation</option>
-                <option>Career transition into green skills</option>
-                <option>Portfolio / project guidance</option>
-                <option>Research direction & publishing</option>
-                <option>Building performance / modelling skills</option>
-                <option>ESG / sustainability reporting skills</option>
-                <option>Net-zero / decarbonisation pathway</option>
-                <option>Other</option>
-              </select>
-              <p class="help">Used to match you with mentors who fit your main objective.</p>
-            </div>
-
-            <div class="col-6 field">
-              <label for="level">Current level <span class="req">*</span></label>
-              <select id="level">
-                <option value="">Select level…</option>
-                <option>Beginner</option>
-                <option>Intermediate</option>
-                <option>Advanced</option>
-              </select>
-            </div>
-
-            <div class="col-6 field">
-              <label for="currentRole">Current role / background <span class="req">*</span></label>
-              <select id="currentRole">
-                <option value="">Select role…</option>
-                <option>Student</option>
-                <option>Graduate</option>
-                <option>Job seeker</option>
-                <option>Junior professional</option>
-                <option>Mid-level professional</option>
-                <option>Career switcher</option>
-                <option>Entrepreneur</option>
-                <option>Researcher</option>
-              </select>
-            </div>
-
-            <div class="col-6 field">
-              <label for="fieldExperienceLevel">Experience in this field <span class="req">*</span></label>
-              <select id="fieldExperienceLevel">
-                <option value="">Select experience…</option>
-                <option>None yet</option>
-                <option>Basic knowledge</option>
-                <option>Some project experience</option>
-                <option>Professional experience</option>
-                <option>Specialization level</option>
-              </select>
-            </div>
-
-            <div class="col-6 field">
-              <label for="preferredLanguage">Preferred language <span class="req">*</span></label>
-              <select id="preferredLanguage">
-                <option value="">Select language…</option>
-                <option>English</option>
-                <option>French</option>
-                <option>Arabic</option>
-                <option>Spanish</option>
-                <option>Other</option>
-              </select>
-            </div>
-
-            <div class="col-6 field">
-              <label for="profileLink">LinkedIn / portfolio / CV link</label>
-              <input id="profileLink" placeholder="https://linkedin.com/in/yourname" />
-            </div>
-
-            <div class="col-12 field">
-              <label for="goalText">Goal details</label>
-              <textarea id="goalText" placeholder="Example: I want to prepare for LEED GA in 8 weeks and build a small portfolio project."></textarea>
-              <p class="help">Add more context so mentors understand your learning stage and target outcome.</p>
-            </div>
+        <div class="form-grid">
+          <div class="mh-field">
+            <label class="mh-label">Primary goal <span class="req">*</span></label>
+            <select class="mh-select" id="goal">
+              <option value="">Select a goal…</option>
+              <option>Certification exam preparation</option>
+              <option>Career transition into green skills</option>
+              <option>Portfolio / project guidance</option>
+              <option>Research direction &amp; publishing</option>
+              <option>Building performance / modelling skills</option>
+              <option>ESG / sustainability reporting skills</option>
+              <option>Net-zero / decarbonisation pathway</option>
+              <option>Other</option>
+            </select>
+            <p class="help">Used to match you with mentors who fit your main objective.</p>
+          </div>
+          <div class="mh-field">
+            <label class="mh-label">Current level <span class="req">*</span></label>
+            <select class="mh-select" id="level">
+              <option value="">Select level…</option>
+              <option>Beginner</option><option>Intermediate</option><option>Advanced</option>
+            </select>
+          </div>
+          <div class="mh-field">
+            <label class="mh-label">Current role / background <span class="req">*</span></label>
+            <select class="mh-select" id="currentRole">
+              <option value="">Select role…</option>
+              <option>Student</option><option>Graduate</option><option>Job seeker</option>
+              <option>Junior professional</option><option>Mid-level professional</option>
+              <option>Career switcher</option><option>Entrepreneur</option><option>Researcher</option>
+            </select>
+          </div>
+          <div class="mh-field">
+            <label class="mh-label">Experience in this field <span class="req">*</span></label>
+            <select class="mh-select" id="fieldExperienceLevel">
+              <option value="">Select experience…</option>
+              <option>None yet</option><option>Basic knowledge</option>
+              <option>Some project experience</option><option>Professional experience</option>
+              <option>Specialization level</option>
+            </select>
+          </div>
+          <div class="mh-field">
+            <label class="mh-label">Preferred language <span class="req">*</span></label>
+            <select class="mh-select" id="preferredLanguage">
+              <option value="">Select language…</option>
+              <option>English</option><option>French</option>
+              <option>Arabic</option><option>Spanish</option><option>Other</option>
+            </select>
+          </div>
+          <div class="mh-field">
+            <label class="mh-label">LinkedIn / portfolio / CV link</label>
+            <input class="mh-input" id="profileLink" placeholder="https://linkedin.com/in/yourname"/>
+          </div>
+          <div class="mh-field col-12">
+            <label class="mh-label">Goal details</label>
+            <textarea class="mh-textarea" id="goalText" placeholder="Example: I want to prepare for LEED GA in 8 weeks and build a small portfolio project."></textarea>
+            <p class="help">Add context so mentors understand your learning stage and target outcome.</p>
           </div>
         </div>
       </section>
 
-      <section class="step hidden" data-step="2">
-        <h3>Focus, help needed & tags</h3>
+      <!-- Step 2 -->
+      <section class="step hidden" data-step="2" style="margin-top:22px">
+        <h3>Focus, help needed &amp; tags</h3>
         <p>Choose your field, support area and niche topics for better matching.</p>
-
-        <div class="section-block">
-          <div class="grid">
-            <div class="col-6 field">
-              <label for="field">Primary field <span class="req">*</span></label>
-              <select id="field">
-                <option value="">Select field…</option>
-                <option>Green Buildings</option>
-                <option>Energy & Renewables</option>
-                <option>Sustainability / ESG</option>
-                <option>Built Environment (General)</option>
-                <option>BIM / Digital Twins</option>
-                <option>Policy & Research</option>
-              </select>
-              <p class="help">Core discipline used in matching.</p>
+        <div class="form-grid">
+          <div class="mh-field">
+            <label class="mh-label">Primary field <span class="req">*</span></label>
+            <select class="mh-select" id="field">
+              <option value="">Select field…</option>
+              <option>Green Buildings</option><option>Energy &amp; Renewables</option>
+              <option>Sustainability / ESG</option><option>Built Environment (General)</option>
+              <option>BIM / Digital Twins</option><option>Policy &amp; Research</option>
+            </select>
+            <p class="help">Core discipline used in matching.</p>
+          </div>
+          <div class="mh-field">
+            <label class="mh-label">Subfield</label>
+            <select class="mh-select" id="subfield">
+              <option value="">Select subfield…</option>
+              <option>Life Cycle Assessment (LCA)</option><option>Energy Modelling (EnergyPlus/OpenStudio)</option>
+              <option>Passive Design</option><option>HVAC &amp; Building Services</option>
+              <option>Carbon Accounting</option><option>Materials &amp; Circularity</option>
+              <option>Net Zero Buildings</option><option>Green Certifications</option>
+              <option>ESG Reporting</option><option>Sustainable Architecture</option>
+            </select>
+          </div>
+          <div class="mh-field">
+            <label class="mh-label">What do you need help with? <span class="req">*</span></label>
+            <select class="mh-select" id="helpNeeded">
+              <option value="">Select support area…</option>
+              <option>Career guidance</option><option>Technical skills</option>
+              <option>Portfolio review</option><option>Certification preparation</option>
+              <option>Research support</option><option>Job search strategy</option>
+              <option>Interview preparation</option><option>Transition into sustainability</option>
+              <option>Project feedback</option><option>Accountability</option>
+            </select>
+            <p class="help">Choose the area where you want the most practical support.</p>
+          </div>
+          <div class="mh-field">
+            <label class="mh-label">Timeline / urgency <span class="req">*</span></label>
+            <select class="mh-select" id="timeline">
+              <option value="">Select timeline…</option>
+              <option>Just exploring</option><option>Within 3 months</option>
+              <option>Within 6 months</option><option>Immediately</option>
+              <option>Ongoing mentorship</option>
+            </select>
+          </div>
+          <div class="mh-field col-12">
+            <label class="mh-label">Preferred session type <span class="req">*</span></label>
+            <select class="mh-select" id="preferredSessionType">
+              <option value="">Select session type…</option>
+              <option>1-on-1 guidance</option><option>Structured learning plan</option>
+              <option>Q&amp;A sessions</option><option>Project-based mentoring</option>
+              <option>Career coaching</option><option>Accountability check-ins</option>
+            </select>
+          </div>
+          <div class="mh-field col-12">
+            <label class="mh-label">Expertise tags <span class="req">*</span></label>
+            <div class="tagbox" id="tagbox">
+              <input class="tag-input" id="tagInput" placeholder="Type a tag and press Enter (e.g., EDGE, LEED, EnergyPlus)"/>
             </div>
-
-            <div class="col-6 field">
-              <label for="subfield">Subfield</label>
-              <select id="subfield">
-                <option value="">Select subfield…</option>
-                <option>Life Cycle Assessment (LCA)</option>
-                <option>Energy Modelling (EnergyPlus/OpenStudio)</option>
-                <option>Passive Design</option>
-                <option>HVAC & Building Services</option>
-                <option>Carbon Accounting</option>
-                <option>Materials & Circularity</option>
-                <option>Net Zero Buildings</option>
-                <option>Green Certifications</option>
-                <option>ESG Reporting</option>
-                <option>Sustainable Architecture</option>
-              </select>
+            <div class="suggestions">
+              <button type="button" class="suggest-chip">Net Zero Buildings</button>
+              <button type="button" class="suggest-chip">Energy Modelling</button>
+              <button type="button" class="suggest-chip">Building Performance</button>
+              <button type="button" class="suggest-chip">ESG Reporting</button>
+              <button type="button" class="suggest-chip">Carbon Accounting</button>
+              <button type="button" class="suggest-chip">Green Materials</button>
+              <button type="button" class="suggest-chip">Life Cycle Assessment</button>
+              <button type="button" class="suggest-chip">Climate Risk</button>
+              <button type="button" class="suggest-chip">Sustainable Architecture</button>
+              <button type="button" class="suggest-chip">Circular Economy</button>
+              <button type="button" class="suggest-chip">EDGE Exam Prep</button>
+              <button type="button" class="suggest-chip">LEED Exam Prep</button>
+              <button type="button" class="suggest-chip">BREEAM</button>
             </div>
-
-            <div class="col-6 field">
-              <label for="helpNeeded">What do you need help with? <span class="req">*</span></label>
-              <select id="helpNeeded">
-                <option value="">Select support area…</option>
-                <option>Career guidance</option>
-                <option>Technical skills</option>
-                <option>Portfolio review</option>
-                <option>Certification preparation</option>
-                <option>Research support</option>
-                <option>Job search strategy</option>
-                <option>Interview preparation</option>
-                <option>Transition into sustainability</option>
-                <option>Project feedback</option>
-                <option>Accountability</option>
-              </select>
-              <p class="help">Choose the area where you want the most practical support from mentors.</p>
-            </div>
-
-            <div class="col-6 field">
-              <label for="timeline">Timeline / urgency <span class="req">*</span></label>
-              <select id="timeline">
-                <option value="">Select timeline…</option>
-                <option>Just exploring</option>
-                <option>Within 3 months</option>
-                <option>Within 6 months</option>
-                <option>Immediately</option>
-                <option>Ongoing mentorship</option>
-              </select>
-            </div>
-
-            <div class="col-12 field">
-              <label for="preferredSessionType">Preferred session type <span class="req">*</span></label>
-              <select id="preferredSessionType">
-                <option value="">Select session type…</option>
-                <option>1-on-1 guidance</option>
-                <option>Structured learning plan</option>
-                <option>Q&A sessions</option>
-                <option>Project-based mentoring</option>
-                <option>Career coaching</option>
-                <option>Accountability check-ins</option>
-              </select>
-            </div>
-
-            <div class="col-12 field">
-              <label>Expertise tags <span class="req">*</span></label>
-              <div class="tagbox" id="tagbox">
-                <input class="tag-input" id="tagInput" placeholder="Type a tag and press Enter (e.g., EDGE, LEED, EnergyPlus)" />
-              </div>
-
-              <div class="suggestions" id="suggestions">
-                <button type="button" class="suggest-chip">Net Zero Buildings</button>
-                <button type="button" class="suggest-chip">Energy Modelling</button>
-                <button type="button" class="suggest-chip">Building Performance</button>
-                <button type="button" class="suggest-chip">ESG Reporting</button>
-                <button type="button" class="suggest-chip">Carbon Accounting</button>
-                <button type="button" class="suggest-chip">Green Materials</button>
-                <button type="button" class="suggest-chip">Life Cycle Assessment</button>
-                <button type="button" class="suggest-chip">Climate Risk</button>
-                <button type="button" class="suggest-chip">Sustainable Architecture</button>
-                <button type="button" class="suggest-chip">Circular Economy</button>
-                <button type="button" class="suggest-chip">EDGE Exam Prep</button>
-                <button type="button" class="suggest-chip">LEED Exam Prep</button>
-                <button type="button" class="suggest-chip">BREEAM</button>
-                <button type="button" class="suggest-chip">Building Simulation</button>
-                <button type="button" class="suggest-chip">Green Skills Research</button>
-              </div>
-
-              <p class="help">Use standard tags where possible. At least 3 tags improves matching quality.</p>
-            </div>
+            <p class="help">At least 3 tags improves matching quality.</p>
           </div>
         </div>
       </section>
 
-      <section class="step hidden" data-step="3">
+      <!-- Step 3 -->
+      <section class="step hidden" data-step="3" style="margin-top:22px">
         <h3>Preferences</h3>
         <p>Set your location, availability and preferred communication format.</p>
-
-        <div class="section-block">
-          <div class="grid">
-            <div class="col-6 field">
-              <label for="country">Country <span class="req">*</span></label>
-              <input id="country" placeholder="e.g., United Kingdom" />
-            </div>
-
-            <div class="col-6 field">
-              <label for="timezone">Timezone <span class="req">*</span></label>
-              <select id="timezone">
-                <option value="">Select timezone…</option>
-                <option>GMT</option>
-                <option>GMT+1</option>
-                <option>GMT+2</option>
-                <option>GMT-5</option>
-                <option>GMT-8</option>
-              </select>
-            </div>
-
-            <div class="col-6 field">
-              <label for="availability">Preferred availability <span class="req">*</span></label>
-              <select id="availability">
-                <option value="">Select…</option>
-                <option>Weekdays</option>
-                <option>Weeknights</option>
-                <option>Weekends</option>
-                <option>Flexible</option>
-              </select>
-            </div>
-
-            <div class="col-6 field">
-              <label for="communication">Preferred communication <span class="req">*</span></label>
-              <select id="communication">
-                <option value="">Select…</option>
-                <option>Zoom</option>
-                <option>Google Meet</option>
-                <option>Microsoft Teams</option>
-                <option>WhatsApp</option>
-                <option>Email</option>
-              </select>
-            </div>
+        <div class="form-grid">
+          <div class="mh-field">
+            <label class="mh-label">Country <span class="req">*</span></label>
+            <input class="mh-input" id="country" placeholder="e.g., United Kingdom"/>
+          </div>
+          <div class="mh-field">
+            <label class="mh-label">Timezone <span class="req">*</span></label>
+            <select class="mh-select" id="timezone">
+              <option value="">Select timezone…</option>
+              <option>GMT</option><option>GMT+1</option><option>GMT+2</option>
+              <option>GMT-5</option><option>GMT-8</option>
+            </select>
+          </div>
+          <div class="mh-field">
+            <label class="mh-label">Preferred availability <span class="req">*</span></label>
+            <select class="mh-select" id="availability">
+              <option value="">Select…</option>
+              <option>Weekdays</option><option>Weeknights</option>
+              <option>Weekends</option><option>Flexible</option>
+            </select>
+          </div>
+          <div class="mh-field">
+            <label class="mh-label">Preferred communication <span class="req">*</span></label>
+            <select class="mh-select" id="communication">
+              <option value="">Select…</option>
+              <option>Zoom</option><option>Google Meet</option>
+              <option>Microsoft Teams</option><option>WhatsApp</option><option>Email</option>
+            </select>
           </div>
         </div>
       </section>
 
-      <div class="actions">
-        <button class="btn" id="backBtn" type="button" disabled>Back</button>
-        <div class="right">
-          <button class="btn" id="saveBtn" type="button">Save later</button>
-          <button class="btn solid" id="nextBtn" type="button">Next</button>
+      <div class="form-actions">
+        <button class="mh-btn" id="backBtn" type="button" disabled>← Back</button>
+        <div class="form-actions-right">
+          <button class="mh-btn" id="saveBtn" type="button">Save draft</button>
+          <button class="mh-btn mh-btn-primary" id="nextBtn" type="button">Next →</button>
         </div>
       </div>
-      <div class="hint">Production: Save writes to Supabase and keeps a local draft backup.</div>
+      <p class="hint">Save writes to Supabase and keeps a local draft backup.</p>
     </div>
 
-    <aside class="card side">
-      <div style="font-weight:800;font-size:14px;">Onboarding steps</div>
-      <div class="hint" style="margin-top:6px;">Click a step to jump.</div>
-
+    <aside class="mh-card mh-card-body side">
+      <div style="font-size:13px;font-weight:700">Onboarding steps</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px">Click a step to jump.</div>
       <div class="steps-nav">
-        <div class="step-item active" data-nav="1"><b>1. Goal, background & level</b><span>Where you are now and what you want to achieve.</span></div>
-        <div class="step-item" data-nav="2"><b>2. Focus, help needed & tags</b><span>Field, support need and niche topics.</span></div>
+        <div class="step-item active" data-nav="1"><b>1. Goal, background &amp; level</b><span>Where you are now and what you want to achieve.</span></div>
+        <div class="step-item" data-nav="2"><b>2. Focus, help needed &amp; tags</b><span>Field, support need and niche topics.</span></div>
         <div class="step-item" data-nav="3"><b>3. Preferences</b><span>Timezone, availability and communication.</span></div>
       </div>
-
-      <div class="hint" style="margin-top:14px;">Matching uses: goals • role • field • help needed • tags • timezone • availability • level fit.</div>
+      <p class="hint" style="margin-top:14px">Matching uses: goals · role · field · help needed · tags · timezone · availability · level fit.</p>
     </aside>
   </div>
 </div>
 
 <script>
-  const SUPABASE_URL = "https://mscgaaaobxiuzqsukvjc.supabase.co";
+  const SUPABASE_URL      = "https://mscgaaaobxiuzqsukvjc.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y";
-  const TABLES = { mentees: "mentees", mentors: "mentors" };
-
+  const TABLES = { mentees:"mentees", mentors:"mentors" };
   const sb = (SUPABASE_URL.startsWith("http") && SUPABASE_ANON_KEY.startsWith("ey"))
-    ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-    : null;
+    ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
-  async function requireSession() {
-    if(!sb){
-      alert("Add your Supabase URL + anon key in this file first.");
-      return null;
-    }
-    const { data: { session }, error } = await sb.auth.getSession();
+  async function requireSession(){
+    if(!sb){ alert("Add your Supabase URL + anon key in this file first."); return null; }
+    const {data:{session},error}=await sb.auth.getSession();
     if(error) console.error(error);
-    if(!session){
-      const returnTo = encodeURIComponent("mentee-onboarding.html");
-      window.location.href = `auth.html?mode=signin&returnTo=${returnTo}&role=mentee`;
-      return null;
-    }
+    if(!session){ window.location.href=`auth.html?mode=signin&returnTo=${encodeURIComponent("mentee-onboarding.html")}&role=mentee`; return null; }
     return session.user;
   }
 
-  function safeArr(v){
-    if(Array.isArray(v)) return v;
-    if(typeof v === "string") return v.split(",").map(s=>s.trim()).filter(Boolean);
-    return [];
-  }
+  function safeArr(v){ if(Array.isArray(v)) return v; if(typeof v==="string") return v.split(",").map(s=>s.trim()).filter(Boolean); return []; }
+  function normalizeTag(v){ return String(v||"").trim().replace(/\s+/g," "); }
+  function uniqueNormalized(arr){ const out=[],seen=new Set(); arr.forEach(item=>{ const clean=normalizeTag(item),key=clean.toLowerCase(); if(clean&&!seen.has(key)){ seen.add(key); out.push(clean); } }); return out; }
 
-  function normalizeTag(v){
-    return String(v || "").trim().replace(/\s+/g, " ");
-  }
-
-  function uniqueNormalized(arr){
-    const out = [];
-    const seen = new Set();
-    arr.forEach(item => {
-      const clean = normalizeTag(item);
-      const key = clean.toLowerCase();
-      if(clean && !seen.has(key)){
-        seen.add(key);
-        out.push(clean);
-      }
-    });
-    return out;
-  }
-
-  const tagbox = document.getElementById('tagbox');
-  const tagInput = document.getElementById('tagInput');
+  const tagbox=document.getElementById("tagbox"),tagInput=document.getElementById("tagInput");
 
   function makeTag(text){
-    const clean = normalizeTag(text);
-    const existing = Array.from(document.querySelectorAll('#tagbox .tag')).map(t => t.dataset.value?.toLowerCase());
+    const clean=normalizeTag(text);
+    const existing=Array.from(document.querySelectorAll("#tagbox .tag")).map(t=>t.dataset.value?.toLowerCase());
     if(existing.includes(clean.toLowerCase())) return null;
-
-    const span = document.createElement('span');
-    span.className = 'tag';
-    span.dataset.value = clean;
-    span.innerHTML = `${clean} <button type="button" aria-label="remove">×</button>`;
-    span.querySelector('button').onclick = () => {
-      span.remove();
-      updateProfileCompleteness();
-    };
+    const span=document.createElement("span");
+    span.className="tag"; span.dataset.value=clean;
+    span.innerHTML=`${clean} <button type="button" aria-label="remove">×</button>`;
+    span.querySelector("button").onclick=()=>{ span.remove(); updateProfileCompleteness(); };
     return span;
   }
 
-  function addTag(text){
-    const tag = makeTag(text);
-    if(tag) tagbox.insertBefore(tag, tagInput);
-  }
+  function addTag(text){ const tag=makeTag(text); if(tag) tagbox.insertBefore(tag,tagInput); }
 
-  tagInput.addEventListener('keydown', (e) => {
-    if(e.key === 'Enter'){
-      e.preventDefault();
-      const v = tagInput.value.trim();
-      if(!v) return;
-      addTag(v);
-      tagInput.value = '';
-      updateProfileCompleteness();
-    }
-  });
+  tagInput.addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); const v=tagInput.value.trim(); if(!v) return; addTag(v); tagInput.value=""; updateProfileCompleteness(); } });
+  document.querySelectorAll(".suggest-chip").forEach(btn=>{ btn.addEventListener("click",()=>{ addTag(btn.textContent.trim()); updateProfileCompleteness(); }); });
 
-  document.querySelectorAll('.suggest-chip').forEach(btn => {
-    btn.addEventListener('click', () => {
-      addTag(btn.textContent.trim());
-      updateProfileCompleteness();
-    });
-  });
-
-  const steps = Array.from(document.querySelectorAll('.step'));
-  const navItems = Array.from(document.querySelectorAll('.step-item'));
-  const chip = document.getElementById('chip');
-  const barFill = document.getElementById('barFill');
-  const pct = document.getElementById('pct');
-  const backBtn = document.getElementById('backBtn');
-  const nextBtn = document.getElementById('nextBtn');
-  const saveBtn = document.getElementById('saveBtn');
-  const saveTop = document.getElementById('saveTop');
-
-  let current = 1;
-  const total = steps.length;
+  const steps=Array.from(document.querySelectorAll(".step"));
+  const navItems=Array.from(document.querySelectorAll(".step-item"));
+  const chip=document.getElementById("chip"),barFill=document.getElementById("barFill"),pct=document.getElementById("pct");
+  const backBtn=document.getElementById("backBtn"),nextBtn=document.getElementById("nextBtn");
+  const saveBtn=document.getElementById("saveBtn"),saveTop=document.getElementById("saveTop");
+  let current=1; const total=steps.length;
 
   function currentFormState(){
     return {
-      goal: document.getElementById('goal').value,
-      level: document.getElementById('level').value,
-      goal_text: document.getElementById('goalText').value,
-      current_role: document.getElementById('currentRole').value,
-      field_experience_level: document.getElementById('fieldExperienceLevel').value,
-      profile_link: document.getElementById('profileLink').value,
-      preferred_language: document.getElementById('preferredLanguage').value,
-      field: document.getElementById('field').value,
-      subfield: document.getElementById('subfield').value,
-      help_needed: document.getElementById('helpNeeded').value,
-      timeline: document.getElementById('timeline').value,
-      preferred_session_type: document.getElementById('preferredSessionType').value,
-      tags: Array.from(document.querySelectorAll('#tagbox .tag')).map(t => t.dataset.value || t.childNodes[0].textContent.trim()).filter(Boolean),
-      country: document.getElementById('country').value,
-      timezone: document.getElementById('timezone').value,
-      availability: document.getElementById('availability').value,
-      communication: document.getElementById('communication').value
+      goal:document.getElementById("goal").value,level:document.getElementById("level").value,
+      goal_text:document.getElementById("goalText").value,current_role:document.getElementById("currentRole").value,
+      field_experience_level:document.getElementById("fieldExperienceLevel").value,
+      profile_link:document.getElementById("profileLink").value,
+      preferred_language:document.getElementById("preferredLanguage").value,
+      field:document.getElementById("field").value,subfield:document.getElementById("subfield").value,
+      help_needed:document.getElementById("helpNeeded").value,
+      timeline:document.getElementById("timeline").value,
+      preferred_session_type:document.getElementById("preferredSessionType").value,
+      tags:Array.from(document.querySelectorAll("#tagbox .tag")).map(t=>t.dataset.value||t.childNodes[0].textContent.trim()).filter(Boolean),
+      country:document.getElementById("country").value,timezone:document.getElementById("timezone").value,
+      availability:document.getElementById("availability").value,communication:document.getElementById("communication").value
     };
   }
 
   function calcProfileCompleteness(data){
-    const checks = [
-      !!data.goal,
-      !!data.level,
-      !!data.current_role,
-      !!data.field_experience_level,
-      !!data.preferred_language,
-      !!data.field,
-      !!data.help_needed,
-      !!data.timeline,
-      !!data.preferred_session_type,
-      safeArr(data.tags).length >= 3,
-      !!data.country,
-      !!data.timezone,
-      !!data.availability,
-      !!data.communication
-    ];
-    const filled = checks.filter(Boolean).length;
-    return Math.round((filled / checks.length) * 100);
+    const checks=[!!data.goal,!!data.level,!!data.current_role,!!data.field_experience_level,!!data.preferred_language,!!data.field,!!data.help_needed,!!data.timeline,!!data.preferred_session_type,safeArr(data.tags).length>=3,!!data.country,!!data.timezone,!!data.availability,!!data.communication];
+    return Math.round(checks.filter(Boolean).length/checks.length*100);
   }
 
-  function updateProfileCompleteness(){
-    const progress = calcProfileCompleteness(currentFormState());
-    barFill.style.width = progress + '%';
-    pct.textContent = progress + '%';
-  }
+  function updateProfileCompleteness(){ const p=calcProfileCompleteness(currentFormState()); barFill.style.width=p+"%"; pct.textContent=p+"%"; }
 
   function showStep(n){
-    current = Math.min(Math.max(n, 1), total);
-    steps.forEach(s => s.classList.toggle('hidden', Number(s.dataset.step) !== current));
-    navItems.forEach(i => i.classList.toggle('active', Number(i.dataset.nav) === current));
-    chip.textContent = `Step ${current} of ${total}`;
-    backBtn.disabled = current === 1;
-    nextBtn.textContent = current === total ? 'Finish' : 'Next';
+    current=Math.min(Math.max(n,1),total);
+    steps.forEach(s=>s.classList.toggle("hidden",Number(s.dataset.step)!==current));
+    navItems.forEach(i=>i.classList.toggle("active",Number(i.dataset.nav)===current));
+    chip.textContent=`Step ${current} of ${total}`;
+    backBtn.disabled=current===1;
+    nextBtn.textContent=current===total?"Finish":"Next →";
     updateProfileCompleteness();
   }
 
-  navItems.forEach(i => i.addEventListener('click', () => showStep(Number(i.dataset.nav))));
-  backBtn.addEventListener('click', () => showStep(current - 1));
-  nextBtn.addEventListener('click', () => {
-    if(current < total) showStep(current + 1);
-    else finishAndRedirect();
-  });
+  navItems.forEach(i=>i.addEventListener("click",()=>showStep(Number(i.dataset.nav))));
+  backBtn.addEventListener("click",()=>showStep(current-1));
+  nextBtn.addEventListener("click",()=>{ if(current<total) showStep(current+1); else finishAndRedirect(); });
+  saveBtn.addEventListener("click",saveDraft);
+  saveTop.addEventListener("click",saveDraft);
 
-  saveBtn.addEventListener('click', saveDraft);
-  saveTop.addEventListener('click', saveDraft);
+  async function collectData(){ const data=currentFormState(); data.tags=uniqueNormalized(data.tags); data.help_needed=data.help_needed?[data.help_needed]:[]; return data; }
 
-  async function collectData(){
-    const data = currentFormState();
-    data.tags = uniqueNormalized(data.tags);
-    data.help_needed = data.help_needed ? [data.help_needed] : [];
-    return data;
-  }
-
-  async function saveToSupabase(user, data){
-    const payload = {
-      user_id: user.id,
-      full_name: (user.user_metadata && user.user_metadata.full_name)
-        ? user.user_metadata.full_name
-        : (user.email || ""),
-      email: user.email || null,
-      goal: data.goal || null,
-      goal_text: data.goal_text || null,
-      level: data.level || null,
-      current_role: data.current_role || null,
-      field_experience_level: data.field_experience_level || null,
-      profile_link: data.profile_link || null,
-      preferred_language: data.preferred_language || null,
-      field: data.field || null,
-      subfield: data.subfield || null,
-      help_needed: safeArr(data.help_needed),
-      timeline: data.timeline || null,
-      preferred_session_type: data.preferred_session_type || null,
-      tags: safeArr(data.tags),
-      country: data.country || null,
-      timezone: data.timezone || null,
-      availability: data.availability || null,
-      communication: data.communication || null
-    };
-
-    const { error } = await sb
-      .from(TABLES.mentees)
-      .upsert(payload, { onConflict: "user_id" });
-
+  async function saveToSupabase(user,data){
+    const payload={ user_id:user.id,full_name:(user.user_metadata&&user.user_metadata.full_name)?user.user_metadata.full_name:(user.email||""),email:user.email||null,goal:data.goal||null,goal_text:data.goal_text||null,level:data.level||null,current_role:data.current_role||null,field_experience_level:data.field_experience_level||null,profile_link:data.profile_link||null,preferred_language:data.preferred_language||null,field:data.field||null,subfield:data.subfield||null,help_needed:safeArr(data.help_needed),timeline:data.timeline||null,preferred_session_type:data.preferred_session_type||null,tags:safeArr(data.tags),country:data.country||null,timezone:data.timezone||null,availability:data.availability||null,communication:data.communication||null };
+    const {error}=await sb.from(TABLES.mentees).upsert(payload,{onConflict:"user_id"});
     if(error) throw error;
   }
 
   async function loadFromSupabase(user){
     try{
-      const { data, error } = await sb
-        .from(TABLES.mentees)
-        .select("*")
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-      if(error) throw error;
-      if(!data) return false;
-
-      document.getElementById('goal').value = data.goal || '';
-      document.getElementById('level').value = data.level || '';
-      document.getElementById('goalText').value = data.goal_text || '';
-      document.getElementById('currentRole').value = data.current_role || '';
-      document.getElementById('fieldExperienceLevel').value = data.field_experience_level || '';
-      document.getElementById('profileLink').value = data.profile_link || '';
-      document.getElementById('preferredLanguage').value = data.preferred_language || '';
-      document.getElementById('field').value = data.field || '';
-      document.getElementById('subfield').value = data.subfield || '';
-      document.getElementById('helpNeeded').value = (data.help_needed && data.help_needed[0]) || '';
-      document.getElementById('timeline').value = data.timeline || '';
-      document.getElementById('preferredSessionType').value = data.preferred_session_type || '';
-      document.getElementById('country').value = data.country || '';
-      document.getElementById('timezone').value = data.timezone || '';
-      document.getElementById('availability').value = data.availability || '';
-      document.getElementById('communication').value = data.communication || '';
-
-      document.querySelectorAll('#tagbox .tag').forEach(t => t.remove());
-      (data.tags || []).forEach(t => addTag(t));
-
-      updateProfileCompleteness();
-      return true;
-    }catch(e){
-      console.error(e);
-      return false;
-    }
+      const {data,error}=await sb.from(TABLES.mentees).select("*").eq("user_id",user.id).maybeSingle();
+      if(error) throw error; if(!data) return false;
+      document.getElementById("goal").value=data.goal||""; document.getElementById("level").value=data.level||"";
+      document.getElementById("goalText").value=data.goal_text||""; document.getElementById("currentRole").value=data.current_role||"";
+      document.getElementById("fieldExperienceLevel").value=data.field_experience_level||"";
+      document.getElementById("profileLink").value=data.profile_link||"";
+      document.getElementById("preferredLanguage").value=data.preferred_language||"";
+      document.getElementById("field").value=data.field||""; document.getElementById("subfield").value=data.subfield||"";
+      document.getElementById("helpNeeded").value=(data.help_needed&&data.help_needed[0])||"";
+      document.getElementById("timeline").value=data.timeline||"";
+      document.getElementById("preferredSessionType").value=data.preferred_session_type||"";
+      document.getElementById("country").value=data.country||""; document.getElementById("timezone").value=data.timezone||"";
+      document.getElementById("availability").value=data.availability||""; document.getElementById("communication").value=data.communication||"";
+      document.querySelectorAll("#tagbox .tag").forEach(t=>t.remove()); (data.tags||[]).forEach(t=>addTag(t));
+      updateProfileCompleteness(); return true;
+    }catch(e){ console.error(e); return false; }
   }
 
   async function saveDraft(){
-    const data = {
-      ...(await collectData()),
-      step: current
-    };
-    localStorage.setItem('mentee_onboarding_draft', JSON.stringify(data));
-
-    const user = await requireSession();
-    if(!user) return;
-
-    try{
-      await saveToSupabase(user, data);
-      alert('Saved.');
-      try{ document.getElementById('goDashBtn').style.display = 'inline-flex'; }catch(_){ }
-    }catch(e){
-      console.error(e);
-      alert('Saved locally, but could not save to Supabase (check RLS/table names).');
-    }
+    const data={...(await collectData()),step:current};
+    localStorage.setItem("mentee_onboarding_draft",JSON.stringify(data));
+    const user=await requireSession(); if(!user) return;
+    try{ await saveToSupabase(user,data); alert("Saved."); try{ document.getElementById("goDashBtn").style.display="inline-flex"; }catch(_){} }
+    catch(e){ console.error(e); alert("Saved locally, but could not save to Supabase."); }
   }
 
   async function finishAndRedirect(){
-    const user = await requireSession();
-    if(!user) return;
-    const data = await collectData();
-
-    try{
-      await saveToSupabase(user, data);
-      localStorage.removeItem('mentee_onboarding_draft');
-      window.location.href = "mentee-dashboard.html";
-    }catch(e){
-      console.error(e);
-      alert('Could not finish: check Supabase table/RLS. Your draft is still saved locally.');
-    }
+    const user=await requireSession(); if(!user) return;
+    const data=await collectData();
+    try{ await saveToSupabase(user,data); localStorage.removeItem("mentee_onboarding_draft"); window.location.href="mentee-dashboard.html"; }
+    catch(e){ console.error(e); alert("Could not finish: check Supabase table/RLS. Draft saved locally."); }
   }
 
-  document.querySelectorAll('input, select, textarea').forEach(el => {
-    el.addEventListener('input', updateProfileCompleteness);
-    el.addEventListener('change', updateProfileCompleteness);
-  });
+  document.querySelectorAll("input,select,textarea").forEach(el=>{ el.addEventListener("input",updateProfileCompleteness); el.addEventListener("change",updateProfileCompleteness); });
 
   (async function boot(){
-    const user = await requireSession();
-    if(!user) return;
-
-    const loaded = await loadFromSupabase(user);
-    if(loaded){
-      showStep(1);
-      return;
-    }
-
-    const raw = localStorage.getItem('mentee_onboarding_draft');
+    const user=await requireSession(); if(!user) return;
+    const loaded=await loadFromSupabase(user);
+    if(loaded){ showStep(1); return; }
+    const raw=localStorage.getItem("mentee_onboarding_draft");
     if(raw){
       try{
-        const d = JSON.parse(raw);
-        document.getElementById('goal').value = d.goal || '';
-        document.getElementById('level').value = d.level || '';
-        document.getElementById('goalText').value = d.goalText || d.goal_text || '';
-        document.getElementById('currentRole').value = d.current_role || '';
-        document.getElementById('fieldExperienceLevel').value = d.field_experience_level || '';
-        document.getElementById('profileLink').value = d.profile_link || '';
-        document.getElementById('preferredLanguage').value = d.preferred_language || '';
-        document.getElementById('field').value = d.field || '';
-        document.getElementById('subfield').value = d.subfield || '';
-        document.getElementById('helpNeeded').value = Array.isArray(d.help_needed) ? (d.help_needed[0] || '') : (d.help_needed || '');
-        document.getElementById('timeline').value = d.timeline || '';
-        document.getElementById('preferredSessionType').value = d.preferred_session_type || '';
-        document.getElementById('country').value = d.country || '';
-        document.getElementById('timezone').value = d.timezone || '';
-        document.getElementById('availability').value = d.availability || '';
-        document.getElementById('communication').value = d.communication || '';
-
-        document.querySelectorAll('#tagbox .tag').forEach(t => t.remove());
-        (d.tags || []).forEach(t => addTag(t));
-
-        showStep(d.step || 1);
-      }catch(e){
-        showStep(1);
-      }
-    } else {
-      showStep(1);
-    }
+        const d=JSON.parse(raw);
+        document.getElementById("goal").value=d.goal||""; document.getElementById("level").value=d.level||"";
+        document.getElementById("goalText").value=d.goalText||d.goal_text||""; document.getElementById("currentRole").value=d.current_role||"";
+        document.getElementById("fieldExperienceLevel").value=d.field_experience_level||"";
+        document.getElementById("profileLink").value=d.profile_link||"";
+        document.getElementById("preferredLanguage").value=d.preferred_language||"";
+        document.getElementById("field").value=d.field||""; document.getElementById("subfield").value=d.subfield||"";
+        document.getElementById("helpNeeded").value=Array.isArray(d.help_needed)?(d.help_needed[0]||""):(d.help_needed||"");
+        document.getElementById("timeline").value=d.timeline||"";
+        document.getElementById("preferredSessionType").value=d.preferred_session_type||"";
+        document.getElementById("country").value=d.country||""; document.getElementById("timezone").value=d.timezone||"";
+        document.getElementById("availability").value=d.availability||""; document.getElementById("communication").value=d.communication||"";
+        document.querySelectorAll("#tagbox .tag").forEach(t=>t.remove()); (d.tags||[]).forEach(t=>addTag(t));
+        showStep(d.step||1);
+      }catch(e){ showStep(1); }
+    }else{ showStep(1); }
   })();
 </script>
 </body>

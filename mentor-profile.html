@@ -1,477 +1,160 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mentor Profile | MentifyHub</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="stylesheet" href="mh-theme.css"/>
+  <style>
+    .profile-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .profile-photo {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid var(--line);
+      flex-shrink: 0;
+    }
+    .profile-info { flex: 1; min-width: 200px; }
+    .profile-name { font-size: 22px; font-weight: 800; letter-spacing: -.3px; }
+    .profile-headline { color: var(--muted); font-size: 14px; margin-top: 4px; }
+    .profile-meta { font-size: 13px; color: var(--subtle); margin-top: 6px; }
 
-<title>Mentor Profile | MentifyHub</title>
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-top: 14px;
+    }
+    .info-item b { display: block; font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .3px; }
+    .info-item div { font-size: 14px; margin-top: 3px; color: var(--text); }
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--accent2);
+      margin-bottom: 16px;
+      cursor: pointer;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
 
-<style>
-
-body{
-font-family: system-ui;
-background:#f8fafc;
-margin:0;
-color:#0f172a;
-}
-
-.container{
-max-width:1000px;
-margin:auto;
-padding:24px;
-}
-
-/* header */
-
-.header{
-display:flex;
-align-items:center;
-gap:20px;
-background:white;
-padding:24px;
-border-radius:16px;
-border:1px solid #e5e7eb;
-box-shadow:0 10px 30px rgba(0,0,0,0.05);
-}
-
-.avatar{
-width:90px;
-height:90px;
-border-radius:50%;
-background:#e2e8f0;
-display:flex;
-align-items:center;
-justify-content:center;
-font-size:28px;
-font-weight:bold;
-color:#475569;
-}
-
-.name{
-font-size:22px;
-font-weight:700;
-}
-
-.headline{
-color:#475569;
-margin-top:4px;
-}
-
-.meta{
-margin-top:6px;
-font-size:13px;
-color:#64748b;
-}
-
-/* tags */
-
-.tags{
-display:flex;
-flex-wrap:wrap;
-gap:8px;
-margin-top:10px;
-}
-
-.tag{
-background:#eff6ff;
-color:#1d4ed8;
-padding:6px 10px;
-border-radius:20px;
-font-size:12px;
-}
-
-/* card */
-
-.card{
-background:white;
-padding:20px;
-border-radius:16px;
-border:1px solid #e5e7eb;
-margin-top:16px;
-}
-
-.title{
-font-weight:700;
-margin-bottom:10px;
-}
-
-/* grid */
-
-.grid{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:16px;
-}
-
-.item{
-font-size:14px;
-}
-
-/* button */
-
-.btn{
-background:#1d4ed8;
-color:white;
-padding:12px 18px;
-border:none;
-border-radius:10px;
-font-weight:600;
-cursor:pointer;
-margin-top:14px;
-}
-
-.btn:hover{
-background:#1e40af;
-}
-
-.back{
-margin-bottom:16px;
-display:inline-block;
-color:#1d4ed8;
-cursor:pointer;
-}
-
-.avatar-lg{
-
-width:90px;
-
-height:90px;
-
-border-radius:50%;
-
-object-fit:cover;
-
-border:1px solid #e5e7eb;
-
-}
-
-</style>
-
+    @media (max-width: 640px) {
+      .info-grid { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
-
 <body>
+<div class="mh-wrap mh-wrap-md">
 
-<div class="container">
+  <a class="back-link" onclick="history.back()">← Back to directory</a>
 
-<a class="back" onclick="history.back()">
-← Back to directory
-</a>
+  <!-- Header card -->
+  <div class="mh-card mh-card-body">
+    <div class="profile-header">
+      <img id="photo" class="profile-photo" src="logo.png" alt="Mentor photo"/>
+      <div class="profile-info">
+        <div class="profile-name" id="name">Loading…</div>
+        <div class="profile-headline" id="headline"></div>
+        <div class="profile-meta" id="meta"></div>
+        <div class="flex wrap gap-8 mt-12" id="tags"></div>
+        <div style="margin-top:14px">
+          <button class="mh-btn mh-btn-primary" id="requestBtn">Request mentorship</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
-<div class="header">
+  <!-- About -->
+  <div class="mh-card mh-card-body mt-16">
+    <div style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:10px">About</div>
+    <div id="bio" style="font-size:14px;line-height:1.7;color:var(--text)"></div>
+  </div>
 
-<img
-id="photo"
-class="avatar-lg"
-src="logo.png"
-/>
+  <!-- Mentorship details -->
+  <div class="mh-card mh-card-body mt-16">
+    <div style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:14px">Mentorship details</div>
+    <div class="info-grid">
+      <div class="info-item"><b>Preferred mentee level</b><div id="level"></div></div>
+      <div class="info-item"><b>Mentorship style</b><div id="style"></div></div>
+      <div class="info-item"><b>Session duration</b><div id="duration"></div></div>
+      <div class="info-item"><b>Communication</b><div id="communication"></div></div>
+      <div class="info-item"><b>Pricing</b><div id="pricing"></div></div>
+    </div>
+  </div>
 
-<div>
+  <!-- Availability -->
+  <div class="mh-card mh-card-body mt-16">
+    <div style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:14px">Availability</div>
+    <div class="info-grid">
+      <div class="info-item"><b>Country</b><div id="country"></div></div>
+      <div class="info-item"><b>Timezone</b><div id="timezone"></div></div>
+      <div class="info-item"><b>Availability</b><div id="availability"></div></div>
+      <div class="info-item"><b>Active slots</b><div id="slots"></div></div>
+    </div>
+  </div>
 
-<div class="name" id="name">
-Loading...
-</div>
-
-<div class="headline" id="headline"></div>
-
-<div class="meta" id="meta"></div>
-
-<div class="tags" id="tags"></div>
-
-<button class="btn" id="requestBtn">
-Request mentorship
-</button>
-
-</div>
-
-</div>
-
-
-<div class="card">
-
-<div class="title">
-About
-</div>
-
-<div id="bio"></div>
-
-</div>
-
-
-<div class="card">
-
-<div class="title">
-Expertise
-</div>
-
-<div id="expertise"></div>
-
-</div>
-
-
-<div class="card">
-
-<div class="title">
-Mentorship details
-</div>
-
-<div class="grid">
-
-<div class="item">
-<b>Preferred mentee level</b>
-<div id="level"></div>
-</div>
-
-<div class="item">
-<b>Mentorship style</b>
-<div id="style"></div>
-</div>
-
-<div class="item">
-<b>Session duration</b>
-<div id="duration"></div>
-</div>
-
-<div class="item">
-<b>Communication</b>
-<div id="communication"></div>
-</div>
-
-<div class="item">
-<b>Pricing</b>
-<div id="pricing"></div>
-</div>
+  <!-- Certifications & Links -->
+  <div class="mh-card mh-card-body mt-16">
+    <div style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:10px">Certifications &amp; links</div>
+    <div id="certifications" style="font-size:14px;color:var(--text);line-height:1.6"></div>
+    <div id="link" style="margin-top:10px"></div>
+  </div>
 
 </div>
-
-</div>
-
-
-<div class="card">
-
-<div class="title">
-Availability
-</div>
-
-<div class="grid">
-
-<div>
-<b>Country</b>
-<div id="country"></div>
-</div>
-
-<div>
-<b>Timezone</b>
-<div id="timezone"></div>
-</div>
-
-<div>
-<b>Availability</b>
-<div id="availability"></div>
-</div>
-
-<div>
-<b>Active slots</b>
-<div id="slots"></div>
-</div>
-
-</div>
-
-</div>
-
-
-<div class="card">
-
-<div class="title">
-Certifications / links
-</div>
-
-<div id="certifications"></div>
-
-<div id="link"></div>
-
-</div>
-
-</div>
-
-
 
 <script>
-
-const SUPABASE_URL =
-"https://mscgaaaobxiuzqsukvjc.supabase.co";
-
-const SUPABASE_KEY =
-"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y";
-
-const sb =
-window.supabase.createClient(
-SUPABASE_URL,
-SUPABASE_KEY
-);
-
-const id =
-new URLSearchParams(
-window.location.search
-).get("id");
-
-
-async function loadProfile(){
-
-const { data, error } =
-await sb
-.from("mentors")
-.select("*")
-.eq("user_id", id)
-.single();
-
-if(error){
-
-console.log(error);
-
-return;
-
-}
-
-
-/* header */
-document.getElementById("photo").src =
-data.profile_image || "logo.png";
-
-document.getElementById("name").innerText =
-data.full_name;
-
-document.getElementById("headline").innerText =
-data.headline;
-
-document.getElementById("meta").innerText =
-`${data.field || ""} • ${data.years_experience || ""}`;
-
-
-
-/* avatar */
-
-
-
-
-/* bio */
-
-document.getElementById("bio")
-.innerText = data.bio;
-
-
-/* tags */
-
-const tagsBox =
-document.getElementById("tags");
-
-(data.tags || [])
-.forEach(tag=>{
-
-const el =
-document.createElement("div");
-
-el.className = "tag";
-
-el.innerText = tag;
-
-tagsBox.appendChild(el);
-
-});
-
-
-/* expertise */
-
-document.getElementById("certifications").innerText =
-data.certifications || "";
-
-if(data.profile_link){
-
-document.getElementById("link").innerHTML =
-`<a href="${data.profile_link}" target="_blank">
-View external profile
-</a>`;
-
-}
-
-
-/* mentorship */
-
-document.getElementById("level").innerText =
-data.preferred_level;
-
-document.getElementById("style").innerText =
-data.mentorship_style;
-
-document.getElementById("duration").innerText =
-data.session_duration;
-
-document.getElementById("communication").innerText =
-data.communication;
-
-document.getElementById("pricing").innerText =
-data.pricing_type;
-
-
-/* availability */
-
-document.getElementById("country")
-.innerText =
-data.country;
-
-document.getElementById("timezone")
-.innerText =
-data.timezone;
-
-document.getElementById("availability")
-.innerText =
-data.availability;
-
-document.getElementById("slots")
-.innerText =
-data.active_slots;
-
-
-/* certifications */
-
-document.getElementById("certifications")
-.innerText =
-data.certifications || "";
-
-
-/* link */
-
-if(data.profile_link){
-
-document.getElementById("link")
-.innerHTML =
-`<a href="${data.profile_link}" target="_blank">
-View external profile
-</a>`;
-
-}
-
-}
-
-
-loadProfile();
-
-
-
-/* request button */
-
-document
-.getElementById("requestBtn")
-.onclick = ()=>{
-
-window.location.href =
-`mentor-directory.html?request=${id}`;
-
-};
-
+  const SUPABASE_URL      = "https://mscgaaaobxiuzqsukvjc.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y";
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const id = new URLSearchParams(window.location.search).get("id");
+
+  async function loadProfile(){
+    const {data,error}=await sb.from("mentors").select("*").eq("user_id",id).single();
+    if(error){ console.log(error); return; }
+
+    document.getElementById("photo").src = data.profile_image||"logo.png";
+    document.getElementById("name").innerText = data.full_name||"";
+    document.getElementById("headline").innerText = data.headline||"";
+    document.getElementById("meta").innerText = [data.field,data.years_experience?data.years_experience+" yrs experience":""].filter(Boolean).join(" · ");
+    document.getElementById("bio").innerText = data.bio||"";
+    document.getElementById("level").innerText = data.preferred_level||"—";
+    document.getElementById("style").innerText = data.mentorship_style||"—";
+    document.getElementById("duration").innerText = data.session_duration||"—";
+    document.getElementById("communication").innerText = data.communication||"—";
+    document.getElementById("pricing").innerText = data.pricing_type||"—";
+    document.getElementById("country").innerText = data.country||"—";
+    document.getElementById("timezone").innerText = data.timezone||"—";
+    document.getElementById("availability").innerText = data.availability||"—";
+    document.getElementById("slots").innerText = data.active_slots!=null?String(data.active_slots):"—";
+    document.getElementById("certifications").innerText = data.certifications||"—";
+
+    if(data.profile_link){
+      document.getElementById("link").innerHTML=`<a class="mh-btn mh-btn-sm" href="${data.profile_link}" target="_blank">View external profile →</a>`;
+    }
+
+    const tagsBox=document.getElementById("tags");
+    (data.tags||[]).forEach(tag=>{
+      const el=document.createElement("span");
+      el.className="mh-tag mh-tag-blue";
+      el.innerText=tag;
+      tagsBox.appendChild(el);
+    });
+  }
+
+  loadProfile();
+
+  document.getElementById("requestBtn").onclick=()=>{
+    window.location.href=`mentor-directory.html?request=${id}`;
+  };
 </script>
-
 </body>
-
 </html>

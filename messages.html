@@ -1,674 +1,304 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>MentifyHub — Messages</title>
-  <meta name="description" content="Realtime messages for mentors and mentees on MentifyHub." />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="stylesheet" href="mh-theme.css"/>
   <style>
-    :root{
-      --bg:#f6f8fc;
-      --card:#ffffff;
-      --text:#0f172a;
-      --muted:#64748b;
-      --line:#e2e8f0;
-      --soft:#f8fafc;
-      --primary:#2563eb;
-      --primary-dark:#0b3b89;
-      --radius:18px;
-      --shadow:0 14px 35px rgba(2,6,23,.08);
+    .layout {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      gap: 16px;
+      margin-top: 18px;
+      height: calc(100vh - 130px);
+      min-height: 500px;
     }
 
-    *{box-sizing:border-box}
+    /* Thread list */
+    .threads-panel { display: flex; flex-direction: column; overflow: hidden; }
+    .threads-panel h3 { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); padding: 14px 16px 10px; border-bottom: 1px solid var(--line); }
+    .thread-list { overflow-y: auto; flex: 1; }
 
-    body{
-      margin:0;
-      font-family:Inter,Arial,sans-serif;
-      background:
-        radial-gradient(900px 520px at 10% 0%, rgba(37,99,235,.08), transparent 50%),
-        radial-gradient(800px 500px at 100% 10%, rgba(11,59,137,.06), transparent 50%),
-        var(--bg);
-      color:var(--text);
+    .thread-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      cursor: pointer;
+      border-bottom: 1px solid var(--line);
+      transition: background .1s ease;
+    }
+    .thread-item:hover   { background: var(--soft); }
+    .thread-item.active  { background: rgba(29,78,216,.06); border-left: 3px solid var(--accent2); }
+
+    .thread-item-info b    { display: block; font-size: 13px; font-weight: 700; }
+    .thread-item-info span { display: block; font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+    /* Chat panel */
+    .chat-panel { display: flex; flex-direction: column; overflow: hidden; }
+
+    .chat-placeholder {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      font-size: 14px;
     }
 
-    a{text-decoration:none;color:inherit}
-    button,input,textarea{font:inherit}
+    .chat-ui { flex: 1; display: none; flex-direction: column; overflow: hidden; }
 
-    .app{
-      max-width:1280px;
-      margin:0 auto;
-      padding:18px;
+    .chat-head {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--line);
+      flex-shrink: 0;
+    }
+    .chat-head h2 { font-size: 15px; font-weight: 700; }
+    .chat-head p  { font-size: 12px; color: var(--muted); margin-top: 3px; }
+
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
     }
 
-    .topbar{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:12px;
-      background:rgba(255,255,255,.88);
-      border:1px solid var(--line);
-      border-radius:24px;
-      padding:14px 16px;
-      box-shadow:var(--shadow);
-      position:sticky;
-      top:14px;
-      z-index:20;
-      backdrop-filter:blur(10px);
+    .bubble {
+      max-width: 72%;
+      padding: 10px 14px;
+      border-radius: 14px;
+      font-size: 13px;
+      line-height: 1.5;
+      word-break: break-word;
     }
-
-    .brand{
-      display:flex;
-      align-items:center;
-      gap:12px;
+    .bubble.me {
+      align-self: flex-end;
+      background: linear-gradient(160deg, var(--accent2), var(--accent));
+      color: #fff;
+      border-radius: 14px 14px 4px 14px;
     }
-
-    .logo{
-      width:42px;
-      height:42px;
-      border-radius:14px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      background:linear-gradient(135deg, rgba(37,99,235,.16), rgba(11,59,137,.12));
-      border:1px solid rgba(37,99,235,.18);
-      font-weight:900;
-      color:var(--primary-dark);
+    .bubble.them {
+      align-self: flex-start;
+      background: #fff;
+      border: 1px solid var(--line);
+      color: var(--text);
+      border-radius: 14px 14px 14px 4px;
     }
+    .bubble small { display: block; margin-top: 5px; opacity: .68; font-size: 11px; }
 
-    .brand h1{
-      margin:0;
-      font-size:16px;
+    .composer {
+      display: flex;
+      gap: 10px;
+      padding: 12px 16px;
+      border-top: 1px solid var(--line);
+      align-items: flex-end;
+      flex-shrink: 0;
     }
-
-    .brand p{
-      margin:2px 0 0;
-      font-size:12px;
-      color:var(--muted);
+    .composer textarea {
+      flex: 1;
+      min-height: 52px;
+      max-height: 140px;
+      resize: vertical;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      font: inherit;
+      font-size: 13px;
+      outline: none;
+      transition: border-color .15s ease, box-shadow .15s ease;
     }
+    .composer textarea:focus { border-color: var(--accent3); box-shadow: 0 0 0 3px rgba(59,130,246,.12); }
 
-    .top-actions{
-      display:flex;
-      gap:10px;
-      align-items:center;
-      flex-wrap:wrap;
-    }
-
-    .pill{
-      padding:10px 14px;
-      border-radius:999px;
-      border:1px solid var(--line);
-      background:#fff;
-      color:var(--muted);
-      font-size:13px;
-    }
-
-    .btn{
-      border:1px solid var(--line);
-      background:#fff;
-      color:var(--text);
-      padding:10px 14px;
-      border-radius:14px;
-      cursor:pointer;
-      font-weight:700;
-    }
-
-    .btn:hover{
-      box-shadow:0 10px 22px rgba(2,6,23,.08);
-    }
-
-    .btn.primary{
-      border-color:transparent;
-      color:#fff;
-      background:linear-gradient(180deg, var(--primary), var(--primary-dark));
-    }
-
-    .layout{
-      display:grid;
-      grid-template-columns:320px 1fr;
-      gap:16px;
-      margin-top:16px;
-      min-height:calc(100vh - 120px);
-    }
-
-    .card{
-      background:var(--card);
-      border:1px solid var(--line);
-      border-radius:var(--radius);
-      box-shadow:var(--shadow);
-      padding:16px;
-    }
-
-    .section-title{
-      margin:0 0 12px;
-      font-size:14px;
-      color:var(--muted);
-      text-transform:uppercase;
-      letter-spacing:.2px;
-    }
-
-    .threads{
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-    }
-
-    .thread{
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:12px;
-      background:#fff;
-      cursor:pointer;
-      transition:.15s ease;
-    }
-
-    .thread:hover{
-      background:var(--soft);
-    }
-
-    .thread.active{
-      border-color:rgba(37,99,235,.25);
-      background:linear-gradient(180deg,#fff,var(--soft));
-    }
-
-    .thread-top{
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
-      gap:12px;
-    }
-
-    .thread-info{
-      flex:1;
-      min-width:0;
-    }
-
-    .thread-info b{
-      display:block;
-      font-size:14px;
-      margin-bottom:4px;
-    }
-
-    .thread-info span{
-      display:block;
-      color:var(--muted);
-      font-size:12px;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-      padding-right:6px;
-    }
-
-    .badge{
-      flex:0 0 auto;
-      border-radius:999px;
-      padding:5px 9px;
-      font-size:11px;
-      font-weight:800;
-      border:1px solid var(--line);
-      background:var(--soft);
-      color:var(--muted);
-      white-space:nowrap;
-    }
-
-    .badge.pending{
-      background:rgba(234,179,8,.12);
-      color:#92400e;
-      border-color:rgba(234,179,8,.25);
-    }
-
-    .badge.accepted{
-      background:rgba(34,197,94,.10);
-      color:#166534;
-      border-color:rgba(34,197,94,.25);
-    }
-
-    .badge.declined{
-      background:rgba(239,68,68,.08);
-      color:#b91c1c;
-      border-color:rgba(239,68,68,.25);
-    }
-
-    .chat-wrap{
-      display:flex;
-      flex-direction:column;
-      min-height:70vh;
-    }
-
-    .chat-placeholder{
-      border:1px dashed #d7dfeb;
-      border-radius:16px;
-      padding:16px;
-      background:linear-gradient(180deg,#fff,var(--soft));
-      color:var(--muted);
-    }
-
-    .chat-head{
-      padding-bottom:12px;
-      border-bottom:1px solid var(--line);
-      margin-bottom:12px;
-    }
-
-    .chat-head h2{
-      margin:0;
-      font-size:18px;
-    }
-
-    .chat-head p{
-      margin:6px 0 0;
-      color:var(--muted);
-      font-size:13px;
-    }
-
-    .messages{
-      flex:1;
-      min-height:420px;
-      max-height:62vh;
-      overflow:auto;
-      border:1px solid var(--line);
-      border-radius:16px;
-      background:linear-gradient(180deg,#fff,var(--soft));
-      padding:14px;
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-    }
-
-    .bubble{
-      max-width:74%;
-      padding:10px 12px;
-      border-radius:14px;
-      font-size:14px;
-      line-height:1.45;
-      word-wrap:break-word;
-    }
-
-    .bubble.me{
-      align-self:flex-end;
-      background:linear-gradient(180deg,var(--primary),var(--primary-dark));
-      color:#fff;
-    }
-
-    .bubble.them{
-      align-self:flex-start;
-      background:#fff;
-      border:1px solid var(--line);
-      color:var(--text);
-    }
-
-    .bubble small{
-      display:block;
-      margin-top:6px;
-      opacity:.78;
-      font-size:11px;
-    }
-
-    .composer{
-      display:flex;
-      gap:10px;
-      margin-top:12px;
-      align-items:flex-end;
-    }
-
-    textarea{
-      flex:1;
-      min-height:56px;
-      max-height:150px;
-      resize:vertical;
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:12px;
-      background:#fff;
-    }
-
-    .empty{
-      border:1px dashed #d7dfeb;
-      border-radius:16px;
-      padding:14px;
-      background:#fff;
-      color:var(--muted);
-    }
-
-    .muted{
-      color:var(--muted);
-    }
-
-    @media (max-width:980px){
-      .layout{
-        grid-template-columns:1fr;
-      }
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; height: auto; }
+      .chat-panel { min-height: 60vh; }
     }
   </style>
 </head>
 <body>
-  <div class="app">
-    <header class="topbar">
-      <a href="index.html" class="brand">
+<div class="mh-wrap">
 
-<img
-  src="logo.png"
-  alt="MentifyHub logo"
-  style="
-    width:42px;
-    height:42px;
-    object-fit:contain;
-  "
->
+  <!-- Topbar -->
+  <header class="mh-topbar">
+    <a href="index.html" class="mh-brand">
+      <img src="logo.png" alt="MentifyHub" class="mh-brand-logo"/>
+      <div class="mh-brand-text">
+        <strong>MentifyHub</strong>
+        <span>Messages</span>
+      </div>
+    </a>
+    <nav class="mh-nav">
+      <span class="mh-chip" id="envChip">Connecting…</span>
+      <a class="mh-btn" href="mentee-dashboard.html">Dashboard</a>
+      <a class="mh-btn" href="mentor-directory.html">Directory</a>
+    </nav>
+  </header>
 
-<div>
-  <h1>MentifyHub</h1>
- <p>Green Skills Mentorship</p>
+  <div class="layout">
+    <!-- Thread list -->
+    <aside class="mh-card threads-panel">
+      <h3>Conversations</h3>
+      <div class="thread-list" id="threadList"></div>
+    </aside>
+
+    <!-- Chat -->
+    <main class="mh-card chat-panel">
+      <div class="chat-placeholder" id="chatPlaceholder">
+        Select a conversation to start messaging.
+      </div>
+
+      <div class="chat-ui" id="chatUI">
+        <div class="chat-head">
+          <h2 id="threadTitle">Conversation</h2>
+          <p id="threadMeta">Messages update live</p>
+        </div>
+        <div class="messages" id="messageList"></div>
+        <div class="composer">
+          <textarea id="messageBody" placeholder="Type your message… (Enter to send)"></textarea>
+          <button class="mh-btn mh-btn-primary" id="sendBtn" type="button">Send</button>
+        </div>
+      </div>
+    </main>
+  </div>
 </div>
 
-</a>
-      <div class="top-actions">
-        <span class="pill" id="envChip">Connecting...</span>
-        <a class="btn" href="mentee-dashboard.html">Dashboard</a>
-      </div>
-    </header>
+<script>
+  const SUPABASE_URL      = "https://mscgaaaobxiuzqsukvjc.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y";
 
-    <div class="layout">
-      <aside class="card">
-        <h3 class="section-title">Conversations</h3>
-        <div id="threadList" class="threads"></div>
-      </aside>
+  const $ = id => document.getElementById(id);
+  const sb = (SUPABASE_URL.startsWith("http")&&SUPABASE_ANON_KEY.startsWith("ey"))
+    ? window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY) : null;
 
-      <main class="card chat-wrap">
-        <div id="chatPlaceholder" class="chat-placeholder">
-          Select a conversation to start messaging.
+  let USER=null,THREADS=[],CURRENT=null,ACTIVE_CHANNEL=null;
+
+  function esc(s){ return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+  function formatTime(iso){ try{ return new Date(iso).toLocaleString(); }catch{ return ""; } }
+
+  function threadLabel(thread){
+    if(!thread) return "Conversation";
+    if(USER.id===thread.mentee_id) return thread.mentor_name||thread.mentor_id||"Mentor";
+    return thread.mentee_name||thread.mentee_id||"Mentee";
+  }
+
+  async function guardAuth(){
+    const {data:{session},error}=await sb.auth.getSession();
+    if(error||!session){ window.location.href="auth.html?returnTo=messages.html"; return false; }
+    USER=session.user;
+    $("envChip").textContent="Live";
+    return true;
+  }
+
+  async function enrichThreads(rows){
+    const out=[];
+    for(const row of rows){
+      let mentorName=row.mentor_id,menteeName=row.mentee_id;
+      const {data:mentor}=await sb.from("mentors").select("full_name").eq("user_id",row.mentor_id).maybeSingle();
+      const {data:mentee}=await sb.from("mentees").select("full_name").eq("user_id",row.mentee_id).maybeSingle();
+      if(mentor?.full_name) mentorName=mentor.full_name;
+      if(mentee?.full_name) menteeName=mentee.full_name;
+      out.push({...row,mentor_name:mentorName,mentee_name:menteeName});
+    }
+    return out;
+  }
+
+  async function loadThreads(){
+    const {data,error}=await sb.from("mentorship_requests").select("*").or(`mentor_id.eq.${USER.id},mentee_id.eq.${USER.id}`).order("created_at",{ascending:false});
+    if(error){ console.error(error); $("threadList").innerHTML=`<div class="mh-empty">Could not load conversations.</div>`; return; }
+    THREADS=await enrichThreads(data||[]);
+    renderThreadList();
+
+    // Auto-open from URL param
+    const reqId=new URLSearchParams(location.search).get("request");
+    if(reqId){ const t=THREADS.find(t=>t.id===reqId); if(t) openThread(t.id); }
+  }
+
+  function renderThreadList(){
+    if(!THREADS.length){ $("threadList").innerHTML=`<div class="mh-empty" style="margin:14px">No conversations yet.</div>`; return; }
+    $("threadList").innerHTML=THREADS.map(t=>`
+      <div class="thread-item ${CURRENT&&CURRENT.id===t.id?"active":""}" onclick="openThread('${t.id}')">
+        <div class="mh-avatar" style="width:34px;height:34px;border-radius:10px;font-size:13px">${esc(threadLabel(t).charAt(0))}</div>
+        <div class="thread-item-info" style="min-width:0;flex:1">
+          <b>${esc(threadLabel(t))}</b>
+          <span>${USER.id===t.mentee_id?"Mentor conversation":"Mentee conversation"}</span>
         </div>
+        <span class="mh-badge mh-badge-${(t.status||"pending").toLowerCase()}">${esc(t.status||"pending")}</span>
+      </div>`).join("");
+  }
 
-        <div id="chatUI" style="display:none;flex:1;flex-direction:column;">
-          <div class="chat-head">
-            <h2 id="threadTitle">Conversation</h2>
-            <p id="threadMeta">Messages update live</p>
-          </div>
+  async function openThread(id){
+    CURRENT=THREADS.find(t=>t.id===id)||null;
+    renderThreadList();
+    if(!CURRENT) return;
+    $("chatPlaceholder").style.display="none";
+    const ui=$("chatUI"); ui.style.display="flex"; ui.style.flexDirection="column";
+    $("threadTitle").textContent=threadLabel(CURRENT);
+    $("threadMeta").textContent=`Request status: ${CURRENT.status||"pending"}`;
+    await loadMessages();
+    await markMessagesRead();
+    subscribeToThread();
+  }
+  window.openThread=openThread;
 
-          <div id="messageList" class="messages"></div>
+  async function loadMessages(){
+    if(!CURRENT) return;
+    const {data,error}=await sb.from("messages").select("*").eq("request_id",CURRENT.id).order("created_at",{ascending:true});
+    if(error){ console.error(error); $("messageList").innerHTML=`<div class="mh-empty">Could not load messages.</div>`; return; }
+    renderMessages(data||[]);
+  }
 
-          <div class="composer">
-            <textarea id="messageBody" placeholder="Type your message..."></textarea>
-            <button id="sendBtn" class="btn primary" type="button">Send</button>
-          </div>
-        </div>
-      </main>
-    </div>
-  </div>
+  function renderMessages(messages){
+    const box=$("messageList");
+    if(!messages.length){ box.innerHTML=`<div class="mh-empty">No messages yet. Say hello!</div>`; return; }
+    box.innerHTML=messages.map(m=>{
+      const mine=m.sender_id===USER.id;
+      return `<div class="bubble ${mine?"me":"them"}">${esc(m.body)}<small>${esc(formatTime(m.created_at))}</small></div>`;
+    }).join("");
+    box.scrollTop=box.scrollHeight;
+  }
 
-  <script>
-    const SUPABASE_URL = "https://mscgaaaobxiuzqsukvjc.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y";
+  async function markMessagesRead(){
+    if(!CURRENT) return;
+    await sb.from("messages").update({is_read:true}).eq("request_id",CURRENT.id).neq("sender_id",USER.id).eq("is_read",false);
+  }
 
-    const $ = (id) => document.getElementById(id);
+  function subscribeToThread(){
+    if(!CURRENT) return;
+    if(ACTIVE_CHANNEL){ sb.removeChannel(ACTIVE_CHANNEL); ACTIVE_CHANNEL=null; }
+    ACTIVE_CHANNEL=sb.channel(`messages-thread-${CURRENT.id}`)
+      .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages",filter:`request_id=eq.${CURRENT.id}`},
+        async()=>{ await loadMessages(); await markMessagesRead(); })
+      .subscribe();
+  }
 
-    const sb =
-(SUPABASE_URL.startsWith("http")
- && SUPABASE_ANON_KEY.startsWith("ey"))
-? window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_ANON_KEY
-  )
-: null;
-    let USER = null;
-    let THREADS = [];
-    let CURRENT = null;
-    let ACTIVE_CHANNEL = null;
-
-    function esc(s){
-      return String(s ?? "").replace(/[&<>"']/g, c => ({
-        "&":"&amp;",
-        "<":"&lt;",
-        ">":"&gt;",
-        '"':"&quot;",
-        "'":"&#39;"
-      }[c]));
-    }
-
-    function formatTime(iso){
-      try{
-        return new Date(iso).toLocaleString();
-      }catch{
-        return "";
-      }
-    }
-
-    function buildClient(){
-      return window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    }
-
-    function threadLabel(thread){
-      if (!thread) return "Conversation";
-      if (USER.id === thread.mentee_id) {
-        return thread.mentor_name || thread.mentor_id || "Mentor";
-      }
-      return thread.mentee_name || thread.mentee_id || "Mentee";
-    }
-
-    async function guardAuth(){
-      const { data: { session }, error } = await sb.auth.getSession();
-
-      if (error || !session){
-        window.location.href = "auth.html?returnTo=messages.html";
-        return false;
-      }
-
-      USER = session.user;
-      $("envChip").textContent = "Live";
-      return true;
-    }
-
-    async function enrichThreads(rows){
-      const out = [];
-
-      for (const row of rows) {
-        let mentorName = row.mentor_id;
-        let menteeName = row.mentee_id;
-
-        const { data: mentor } = await sb
-          .from("mentors")
-          .select("full_name")
-          .eq("user_id", row.mentor_id)
-          .maybeSingle();
-
-        const { data: mentee } = await sb
-          .from("mentees")
-          .select("full_name")
-          .eq("user_id", row.mentee_id)
-          .maybeSingle();
-
-        if (mentor?.full_name) mentorName = mentor.full_name;
-        if (mentee?.full_name) menteeName = mentee.full_name;
-
-        out.push({
-          ...row,
-          mentor_name: mentorName,
-          mentee_name: menteeName
-        });
-      }
-
-      return out;
-    }
-
-    async function loadThreads(){
-      const { data, error } = await sb
-        .from("mentorship_requests")
-        .select("*")
-        .or(`mentor_id.eq.${USER.id},mentee_id.eq.${USER.id}`)
-        .order("created_at", { ascending:false });
-
-      if (error){
-        console.error(error);
-        $("threadList").innerHTML = `<div class="empty">Could not load conversations.</div>`;
-        return;
-      }
-
-      THREADS = await enrichThreads(data || []);
-      renderThreadList();
-    }
-
-    function renderThreadList(){
-      if (!THREADS.length){
-        $("threadList").innerHTML = `<div class="empty">No conversations yet.</div>`;
-        return;
-      }
-
-      $("threadList").innerHTML = THREADS.map(t => `
-        <div class="thread ${CURRENT && CURRENT.id === t.id ? "active" : ""}" onclick="openThread('${t.id}')">
-          <div class="thread-top">
-            <div class="thread-info">
-              <b>${esc(threadLabel(t))}</b>
-              <span>${USER.id === t.mentee_id ? "Mentor conversation" : "Mentee conversation"}</span>
-            </div>
-            <span class="badge ${(t.status || "pending").toLowerCase()}">${esc(t.status || "pending")}</span>
-          </div>
-        </div>
-      `).join("");
-    }
-
-    async function openThread(id){
-      CURRENT = THREADS.find(t => t.id === id) || null;
-      renderThreadList();
-      if (!CURRENT) return;
-
-      $("chatPlaceholder").style.display = "none";
-      $("chatUI").style.display = "flex";
-      $("threadTitle").textContent = threadLabel(CURRENT);
-      $("threadMeta").textContent = `Request status: ${CURRENT.status || "pending"}`;
-
+  async function sendMessage(){
+    if(!CURRENT) return;
+    if((CURRENT.status||"").toLowerCase()!=="accepted"){ alert("Messaging is only available for accepted requests."); return; }
+    const body=$("messageBody").value.trim();
+    if(!body) return;
+    const btn=$("sendBtn");
+    btn.disabled=true; btn.textContent="Sending…";
+    try{
+      const {error}=await sb.from("messages").insert({request_id:CURRENT.id,sender_id:USER.id,mentor_id:CURRENT.mentor_id,mentee_id:CURRENT.mentee_id,body,is_read:false});
+      if(error) throw error;
+      $("messageBody").value="";
       await loadMessages();
-      await markMessagesRead();
-      subscribeToThread();
-    }
-    window.openThread = openThread;
+    }catch(e){ console.error(e); alert(e.message||"Could not send message"); }
+    finally{ btn.disabled=false; btn.textContent="Send"; }
+  }
 
-    async function loadMessages(){
-      if (!CURRENT) return;
+  $("sendBtn").addEventListener("click",sendMessage);
+  $("messageBody").addEventListener("keydown",e=>{ if(e.key==="Enter"&&!e.shiftKey){ e.preventDefault(); sendMessage(); } });
 
-      const { data, error } = await sb
-        .from("messages")
-        .select("*")
-        .eq("request_id", CURRENT.id)
-        .order("created_at", { ascending:true });
-
-      if (error){
-        console.error(error);
-        $("messageList").innerHTML = `<div class="empty">Could not load messages.</div>`;
-        return;
-      }
-
-      renderMessages(data || []);
-    }
-
-    function renderMessages(messages){
-      const box = $("messageList");
-
-      if (!messages.length){
-        box.innerHTML = `<div class="empty">No messages yet. Say hello.</div>`;
-        return;
-      }
-
-      box.innerHTML = messages.map(m => {
-        const mine = m.sender_id === USER.id;
-        return `
-          <div class="bubble ${mine ? "me" : "them"}">
-            ${esc(m.body)}
-            <small>${esc(formatTime(m.created_at))}</small>
-          </div>
-        `;
-      }).join("");
-
-      box.scrollTop = box.scrollHeight;
-    }
-
-    async function markMessagesRead(){
-      if (!CURRENT) return;
-
-      await sb
-        .from("messages")
-        .update({ is_read: true })
-        .eq("request_id", CURRENT.id)
-        .neq("sender_id", USER.id)
-        .eq("is_read", false);
-    }
-
-    function subscribeToThread(){
-      if (!CURRENT) return;
-
-      if (ACTIVE_CHANNEL){
-        sb.removeChannel(ACTIVE_CHANNEL);
-        ACTIVE_CHANNEL = null;
-      }
-
-      ACTIVE_CHANNEL = sb
-        .channel(`messages-thread-${CURRENT.id}`)
-        .on(
-          "postgres_changes",
-          {
-            event: "INSERT",
-            schema: "public",
-            table: "messages",
-            filter: `request_id=eq.${CURRENT.id}`
-          },
-          async () => {
-            await loadMessages();
-            await markMessagesRead();
-          }
-        )
-        .subscribe();
-    }
-
-    async function sendMessage(){
-      if (!CURRENT) return;
-
-      if ((CURRENT.status || "").toLowerCase() !== "accepted"){
-        alert("Messaging is only available for accepted mentorship requests.");
-        return;
-      }
-
-      const body = $("messageBody").value.trim();
-      if (!body) return;
-
-      const btn = $("sendBtn");
-      btn.disabled = true;
-      btn.textContent = "Sending...";
-
-      try{
-        const { error } = await sb.from("messages").insert({
-          request_id: CURRENT.id,
-          sender_id: USER.id,
-          mentor_id: CURRENT.mentor_id,
-          mentee_id: CURRENT.mentee_id,
-          body,
-          is_read: false
-        });
-
-        if (error) throw error;
-
-        $("messageBody").value = "";
-        await loadMessages();
-      } catch(e){
-        console.error(e);
-        alert(e.message || "Could not send message");
-      } finally{
-        btn.disabled = false;
-        btn.textContent = "Send";
-      }
-    }
-
-    $("sendBtn").addEventListener("click", sendMessage);
-
-    $("messageBody").addEventListener("keydown", (e) => {
-      if (e.key === "Enter" && !e.shiftKey){
-        e.preventDefault();
-        sendMessage();
-      }
-    });
-
-    window.addEventListener("load", async () => {
-      const ok = await guardAuth();
-      if (!ok) return;
-      await loadThreads();
-    });
-  </script>
+  window.addEventListener("load",async()=>{
+    const ok=await guardAuth();
+    if(!ok) return;
+    await loadThreads();
+  });
+</script>
 </body>
 </html>

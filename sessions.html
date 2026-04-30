@@ -1,483 +1,248 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>MentifyHub — Sessions</title>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>MentifyHub — Sessions</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="stylesheet" href="mh-theme.css"/>
+  <style>
+    .layout {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 16px;
+      margin-top: 18px;
+    }
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    /* Thread/request list */
+    .req-item {
+      padding: 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--line);
+      background: #fff;
+      cursor: pointer;
+      margin-top: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      transition: background .1s ease, border-color .1s ease;
+    }
+    .req-item:hover  { background: var(--soft); border-color: #c8d6e8; }
+    .req-item.active { background: rgba(29,78,216,.06); border-color: rgba(29,78,216,.22); color: var(--accent); }
 
-<style>
+    /* Form grid */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 14px;
+    }
+    .form-grid .span-2 { grid-column: 1 / -1; }
 
-:root{
---bg:#fff;
---card:#fff;
---text:#0f172a;
---muted:#475569;
---line:#e5e7eb;
---soft:#f8fafc;
---accent:#0b3b89;
---accent2:#1d4ed8;
---radius:18px;
---shadow:0 20px 50px rgba(2,6,23,.08)
-}
+    /* Session entries */
+    .session-entry {
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      background: #fff;
+      margin-top: 10px;
+    }
+    .session-entry b { display: block; font-size: 13px; font-weight: 700; }
+    .session-entry span { font-size: 12px; color: var(--muted); }
 
-*{box-sizing:border-box}
+    .divider { height: 1px; background: var(--line); margin: 20px 0; }
 
-body{
-margin:0;
-font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
-color:var(--text);
-background:
-radial-gradient(900px 520px at 15% 5%, rgba(29,78,216,.10), transparent 55%),
-radial-gradient(900px 520px at 90% 10%, rgba(11,59,137,.08), transparent 55%),
-#fff
-}
-
-.container{max-width:1100px;margin:0 auto;padding:22px}
-
-.topbar{
-display:flex;
-align-items:center;
-justify-content:space-between;
-gap:16px;
-padding:14px 16px;
-border:1px solid var(--line);
-border-radius:22px;
-background:rgba(255,255,255,.82);
-backdrop-filter:blur(10px);
-box-shadow:0 10px 24px rgba(2,6,23,.06);
-position:sticky;
-top:14px;
-z-index:20;
-}    
-
-.logo{
-width:40px;
-height:40px;
-border-radius:14px;
-background:linear-gradient(135deg,#dbeafe,#bfdbfe);
-display:flex;
-align-items:center;
-justify-content:center;
-font-weight:800;
-}
-
-.btn{
-display:inline-flex;
-align-items:center;
-justify-content:center;
-gap:10px;
-padding:10px 14px;
-border-radius:14px;
-border:1px solid var(--line);
-background:#fff;
-cursor:pointer;
-font-weight:700;
-font-size:14px;
-color:var(--text);
-text-decoration:none;
-transition:transform .06s ease, box-shadow .2s ease, border-color .2s ease;
-user-select:none;
-}
-
-.btn:hover{
-transform:translateY(-1px);
-box-shadow:0 10px 24px rgba(2,6,23,.08);
-border-color:#dbe2ea;
-}
-
-.btn.solid{
-border-color:transparent;
-background:linear-gradient(180deg, var(--accent2), var(--accent));
-color:#fff;
-box-shadow:0 16px 40px rgba(29,78,216,.22);
-}
-
-
-.btn.danger{
-border-color:rgba(239,68,68,.25);
-background:linear-gradient(180deg, rgba(239,68,68,.08), rgba(239,68,68,.05));
-color:#b91c1c;
-}
-.brand{
-display:flex;
-align-items:center;
-gap:12px;
-}
-
-.brand h1{
-margin:0;
-font-size:16px;
-}
-
-.brand p{
-margin:2px 0 0;
-font-size:12px;
-color:var(--muted);
-}
-
-.nav{
-display:flex;
-align-items:center;
-gap:10px;
-flex-wrap:wrap;
-justify-content:flex-end;
-}
-
-.chip{
-padding:9px 12px;
-border-radius:999px;
-border:1px solid var(--line);
-background:var(--soft);
-font-size:13px;
-color:var(--muted);
-}
-
-.layout{
-display:grid;
-grid-template-columns:320px 1fr;
-gap:16px;
-margin-top:16px;
-}
-
-.card{
-background:#fff;
-border:1px solid var(--line);
-border-radius:18px;
-padding:16px;
-}
-
-.threadItem{
-padding:12px;
-border:1px solid var(--line);
-border-radius:12px;
-margin-top:10px;
-cursor:pointer;
-}
-
-.threadItem.active{
-background:#f1f5f9;
-}
-
-.formGrid{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:10px;
-margin-top:12px;
-}
-
-.formGrid input,
-.formGrid textarea,
-.formGrid select{
-padding:12px;
-border-radius:12px;
-border:1px solid var(--line);
-width:100%;
-}
-
-.formGrid textarea{
-grid-column:1/-1;
-min-height:80px;
-}
-
-.session{
-margin-top:12px;
-padding:12px;
-border:1px solid var(--line);
-border-radius:12px;
-}
-
-.empty{
-margin-top:12px;
-padding:16px;
-border:1px dashed var(--line);
-border-radius:12px;
-color:var(--muted);
-text-align:center;
-}
-
-</style>
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
-
 <body>
+<div class="mh-wrap">
 
-<div class="container">
+  <!-- Topbar -->
+  <header class="mh-topbar">
+    <a href="index.html" class="mh-brand">
+      <img src="logo.png" alt="MentifyHub" class="mh-brand-logo"/>
+      <div class="mh-brand-text">
+        <strong>MentifyHub</strong>
+        <span>Sessions</span>
+      </div>
+    </a>
+    <nav class="mh-nav">
+      <span class="mh-chip" id="whoChip">Checking session…</span>
+      <a class="mh-btn" id="dashboardLink" href="mentee-dashboard.html">Dashboard</a>
+      <a class="mh-btn" href="mentor-directory.html">Directory</a>
+      <a class="mh-btn" href="messages.html">Messages</a>
+      <a class="mh-btn mh-btn-primary" href="sessions.html">Sessions</a>
+      <a class="mh-btn" href="mentor-onboarding.html">Edit profile</a>
+      <button class="mh-btn mh-btn-danger" id="signOutBtn">Sign out</button>
+    </nav>
+  </header>
 
-<header class="topbar">
+  <div class="layout">
 
-<a href="index.html" class="brand">
-  <img src="logo.png" alt="MentifyHub logo" class="logo">
-  <div>
-    <h1>MentifyHub</h1>
-    <p>Green Skills Mentorship</p>
+    <!-- Request list -->
+    <aside class="mh-card mh-card-body" style="position:sticky;top:92px;align-self:start">
+      <div style="font-size:13px;font-weight:700;margin-bottom:10px">Accepted requests</div>
+      <div id="requestList"></div>
+    </aside>
+
+    <!-- Session panel -->
+    <main class="mh-card mh-card-body">
+      <div id="sessionEmpty" class="mh-empty">
+        <strong>No request selected</strong>
+        Choose an accepted request from the list to schedule a session.
+      </div>
+
+      <div id="sessionPane" style="display:none">
+        <h3 style="font-size:16px;font-weight:700;margin-bottom:4px">Schedule a session</h3>
+        <p style="color:var(--muted);font-size:13px">Propose a date, duration, and meeting link for this mentorship pairing.</p>
+
+        <div class="form-grid">
+          <div class="mh-field">
+            <label class="mh-label">Date & time</label>
+            <input class="mh-input" id="scheduledFor" type="datetime-local"/>
+          </div>
+          <div class="mh-field">
+            <label class="mh-label">Duration</label>
+            <select class="mh-select" id="duration">
+              <option value="30">30 minutes</option>
+              <option value="45" selected>45 minutes</option>
+              <option value="60">60 minutes</option>
+            </select>
+          </div>
+          <div class="mh-field">
+            <label class="mh-label">Meeting link</label>
+            <input class="mh-input" id="meetingLink" placeholder="https://meet.google.com/…"/>
+          </div>
+          <div class="mh-field">
+            <label class="mh-label">Status</label>
+            <input class="mh-input" id="status" value="proposed" readonly/>
+          </div>
+          <div class="mh-field span-2">
+            <label class="mh-label">Agenda / notes</label>
+            <textarea class="mh-textarea" id="sessionNotes" placeholder="Add agenda items or notes for this session…"></textarea>
+          </div>
+        </div>
+
+        <button class="mh-btn mh-btn-primary" id="saveBtn">Save session</button>
+
+        <div class="divider"></div>
+
+        <h3 style="font-size:15px;font-weight:700;margin-bottom:4px">Update progress</h3>
+        <p style="color:var(--muted);font-size:13px;margin-bottom:14px">Log mentorship progress for this pairing.</p>
+
+        <div class="form-grid">
+          <div class="mh-field">
+            <label class="mh-label">Progress %</label>
+            <input class="mh-input" id="progressPercent" type="number" min="0" max="100" placeholder="0–100"/>
+          </div>
+          <div class="mh-field span-2">
+            <label class="mh-label">Progress notes</label>
+            <textarea class="mh-textarea" id="progressNotes" placeholder="What was accomplished in the last session?"></textarea>
+          </div>
+        </div>
+
+        <button class="mh-btn mh-btn-primary" id="saveProgressBtn">Save progress</button>
+
+        <div class="divider"></div>
+
+        <h3 style="font-size:14px;font-weight:700;margin-bottom:10px">Session history</h3>
+        <div id="sessions"></div>
+      </div>
+    </main>
   </div>
-</a>
-
-<nav class="nav">
-
-<span class="chip" id="whoChip">Checking session…</span>
-
-<a class="btn" id="dashboardLink">Dashboard</a>
-
-<a class="btn" href="mentor-directory.html">Directory</a>
-
-<a class="btn" href="messages.html">Messages</a>
-
-<a class="btn solid" href="sessions.html">Sessions</a>
-
-<a class="btn" href="mentor-onboarding.html">Edit profile</a>
-
-<button class="btn danger" id="signOutBtn">Sign out</button>
-
-</nav>
-
-</header>
-
-<div class="layout">
-
-<aside class="card">
-<b>Accepted requests</b>
-<div id="requestList"></div>
-</aside>
-
-<main class="card">
-
-<div id="sessionHeader">
-<h3>Select request</h3>
-</div>
-
-<div id="sessionEmpty" class="empty">
-Choose accepted request
-</div>
-
-<div id="sessionPane" style="display:none">
-
-<div class="formGrid">
-
-<input id="scheduledFor" type="datetime-local"/>
-
-<select id="duration">
-<option value="30">30 min</option>
-<option value="45" selected>45 min</option>
-<option value="60">60 min</option>
-</select>
-
-<input id="meetingLink" placeholder="Meeting link"/>
-
-<input id="status" value="proposed" readonly/>
-
-<textarea id="sessionNotes" placeholder="Agenda"></textarea>
-
-</div>
-
-<button class="btn solid" id="saveBtn">Save session</button>
-
-<hr style="margin:20px 0">
-
-<h3>Update progress</h3>
-
-<div class="formGrid">
-
-<input id="progressPercent" type="number" min="0" max="100" placeholder="Progress %"/>
-
-<textarea id="progressNotes" placeholder="Progress notes"></textarea>
-
-</div>
-
-<button class="btn solid" id="saveProgressBtn">Save progress</button>
-
-<div id="sessions"></div>
-
-</div>
-
-</main>
-
-</div>
-
 </div>
 
 <script>
-const SUPABASE_URL="https://mscgaaaobxiuzqsukvjc.supabase.co";
-const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y";
+  const SUPABASE_URL      = "https://mscgaaaobxiuzqsukvjc.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y";
 
-const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
-const $=id=>document.getElementById(id);
+  const sb  = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const $   = id => document.getElementById(id);
 
-let USER=null;
-let REQUESTS=[];
-let CURRENT=null;
+  let USER=null, REQUESTS=[], CURRENT=null;
 
-async function requireAuth(){
-const {data:{session}}=await sb.auth.getSession();
-if(!session){location.href="auth.html";return;}
-USER=session.user;
-const dash =
-document.getElementById("dashboardLink");
+  async function requireAuth(){
+    const {data:{session}}=await sb.auth.getSession();
+    if(!session){ location.href="auth.html"; return; }
+    USER=session.user;
+    const {data:mentorProfile}=await sb.from("mentors").select("user_id").eq("user_id",USER.id).maybeSingle();
+    $("dashboardLink").href=mentorProfile?"mentor-dashboard.html":"mentee-dashboard.html";
+    $("whoChip").textContent=mentorProfile?USER.email+" · Mentor":USER.email+" · Mentee";
+    return USER;
+  }
 
-const { data: mentorProfile } = await sb
-.from("mentors")
-.select("user_id")
-.eq("user_id", USER.id)
-.maybeSingle();
+  async function loadRequests(){
+    const {data}=await sb.from("mentorship_requests").select("*").eq("status","accepted").or(`mentee_id.eq.${USER.id},mentor_id.eq.${USER.id}`);
+    REQUESTS=data||[];
+    renderRequests();
+  }
 
-dash.href =
-mentorProfile
-? "mentor-dashboard.html"
-: "mentee-dashboard.html";
+  function renderRequests(){
+    $("requestList").innerHTML=REQUESTS.length
+      ? REQUESTS.map(r=>`<div class="req-item" onclick="openRequest('${r.id}')">Request ${r.id.substring(0,6)}…</div>`).join("")
+      : `<div class="mh-empty" style="text-align:center;font-size:12px">No accepted requests yet.</div>`;
+  }
 
-/* update header label */
+  function openRequest(id){
+    CURRENT=REQUESTS.find(r=>r.id===id);
+    document.querySelectorAll(".req-item").forEach(el=>{
+      el.classList.toggle("active", el.textContent.includes(id.substring(0,6)));
+    });
+    $("sessionEmpty").style.display="none";
+    $("sessionPane").style.display="block";
+    loadSessions();
+  }
 
-$("whoChip").textContent =
-mentorProfile
-? USER.email + " • Mentor"
-: USER.email + " • Mentee";
-return USER;
-}
+  async function loadSessions(){
+    const {data,error}=await sb.from("sessions").select("*").eq("request_id",CURRENT.id);
+    if(error){ console.error(error); return; }
+    if(!data||!data.length){
+      $("sessions").innerHTML=`<div class="mh-empty">No sessions scheduled yet.</div>`;
+      return;
+    }
+    $("sessions").innerHTML=data.map(s=>`
+      <div class="session-entry">
+        <b>${new Date(s.scheduled_for).toLocaleString()}</b>
+        <span>${s.duration_minutes} minutes · ${s.status||"proposed"}</span>
+        ${s.meeting_link?`<div style="margin-top:6px"><a class="mh-btn mh-btn-sm" href="${s.meeting_link}" target="_blank">Join meeting</a></div>`:""}
+      </div>`).join("");
+  }
 
-async function loadRequests(){
-const {data}=await sb
-.from("mentorship_requests")
-.select("*")
-.eq("status","accepted")
-.or(`mentee_id.eq.${USER.id},mentor_id.eq.${USER.id}`);
+  async function saveSession(){
+    if(!CURRENT){ alert("Select a request first"); return; }
+    const scheduledFor=$("scheduledFor").value;
+    if(!scheduledFor){ alert("Select date and time"); return; }
+    const {error}=await sb.from("sessions").insert({
+      request_id:CURRENT.id,mentor_id:CURRENT.mentor_id,mentee_id:CURRENT.mentee_id,
+      proposed_by:USER.id,scheduled_for:scheduledFor,
+      duration_minutes:Number($("duration").value),
+      meeting_link:$("meetingLink").value,
+      notes:$("sessionNotes").value,
+      status:$("status").value
+    });
+    if(error){ console.error(error); alert("Error saving session"); return; }
+    alert("Session saved ✓");
+    loadSessions();
+  }
 
-REQUESTS=data||[];
-renderRequests();
-}
+  async function saveProgress(){
+    await sb.from("mentorship_progress").insert({
+      request_id:CURRENT.id,mentor_id:CURRENT.mentor_id,mentee_id:CURRENT.mentee_id,
+      progress_percent:Number($("progressPercent").value),notes:$("progressNotes").value
+    });
+    alert("Progress saved ✓");
+    $("progressPercent").value="";
+    $("progressNotes").value="";
+  }
 
-function renderRequests(){
-$("requestList").innerHTML=REQUESTS
-.map(r=> `
-<div class="threadItem"
-onclick="openRequest('${r.id}')">
+  $("saveBtn").onclick=saveSession;
+  $("saveProgressBtn").onclick=saveProgress;
+  $("signOutBtn").onclick=async()=>{ await sb.auth.signOut(); window.location.href="auth.html?mode=signin"; };
 
-Request ${r.id.substring(0,6)}
-
-</div>
-`)
-.join("");
-}
-
-function openRequest(id){
-CURRENT=REQUESTS.find(r=>r.id===id);
-$("sessionEmpty").style.display="none";
-$("sessionPane").style.display="block";
-loadSessions();
-}
-
-async function loadSessions(){
-
-const {data,error}=await sb
-.from("sessions")
-.select("*")
-.eq("request_id",CURRENT.id);
-
-if(error){
-console.error(error);
-return;
-}
-
-if(!data || data.length===0){
-
-$("sessions").innerHTML=
-`<div class="empty">No sessions yet</div>`;
-
-return;
-}
-
-$("sessions").innerHTML=data.map(s=>`
-<div class="session">
-
-<b>${new Date(s.scheduled_for).toLocaleString()}</b>
-
-<div class="muted">
-${s.duration_minutes} minutes
-</div>
-
-</div>
-`).join("");
-
-}
-
-async function saveSession(){
-
-if(!CURRENT){
-alert("Select a request first");
-return;
-}
-
-const scheduledFor = $("scheduledFor").value;
-if(!scheduledFor){
-
-alert("Select date and time");
-
-return;
-
-}
-const durationMinutes = Number($("duration").value);
-const meetingLink = $("meetingLink").value;
-const notes = $("sessionNotes").value;
-const status = $("status").value;
-
-const { error } = await sb
-.from("sessions")
-.insert({
-
-request_id: CURRENT.id,
-
-mentor_id: CURRENT.mentor_id,
-
-mentee_id: CURRENT.mentee_id,
-
-proposed_by: USER.id,
-
-scheduled_for: scheduledFor,
-
-duration_minutes: durationMinutes,
-
-meeting_link: meetingLink,
-
-notes: notes,
-
-status: status
-
-});
-
-if(error){
-
-console.error(error);
-
-alert("Error saving session");
-
-return;
-
-}
-
-alert("Session saved");
-
-loadSessions();
-
-}
-
-async function saveProgress(){
-await sb.from("mentorship_progress").insert({
-request_id:CURRENT.id,
-mentor_id:CURRENT.mentor_id,
-mentee_id:CURRENT.mentee_id,
-progress_percent:Number($("progressPercent").value),
-notes:$("progressNotes").value
-});
-alert("progress saved");
-$("progressPercent").value="";
-$("progressNotes").value="";
-}
-
-$("saveBtn").onclick=saveSession;
-$("saveProgressBtn").onclick=saveProgress;
-
-requireAuth().then(loadRequests);
+  requireAuth().then(loadRequests);
 </script>
-
 </body>
 </html>

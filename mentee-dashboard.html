@@ -1,1088 +1,464 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>MentifyHub — Mentee Dashboard</title>
-  <meta name="description" content="Fresh mentee dashboard for MentifyHub." />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="stylesheet" href="mh-theme.css"/>
   <style>
-    :root{
-      --bg:#f6f8fc;
-      --card:#ffffff;
-      --text:#0f172a;
-      --muted:#64748b;
-      --line:#e2e8f0;
-      --soft:#f8fafc;
-      --primary:#2563eb;
-      --primary-dark:#0b3b89;
-      --radius:18px;
-      --shadow:0 14px 35px rgba(2,6,23,.08);
+    .layout {
+      display: grid;
+      grid-template-columns: 280px 1fr 320px;
+      gap: 16px;
+      margin-top: 18px;
+      align-items: start;
     }
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family:Inter,Arial,sans-serif;
-      background:
-        radial-gradient(900px 520px at 10% 0%, rgba(37,99,235,.08), transparent 50%),
-        radial-gradient(800px 500px at 100% 10%, rgba(11,59,137,.06), transparent 50%),
-        var(--bg);
-      color:var(--text);
+    .sticky-col { position: sticky; top: 92px; }
+
+    /* Sidebar */
+    .sidebar-avatar { width: 52px; height: 52px; border-radius: 18px; font-size: 20px; }
+    .side-nav { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 4px; }
+    .side-nav a, .side-nav button {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 12px; border-radius: var(--radius-sm); border: 1px solid transparent;
+      background: transparent; text-align: left; cursor: pointer;
+      font-size: 13px; font-weight: 600; color: var(--text); text-decoration: none;
+      transition: background .12s ease, border-color .12s ease;
     }
-    a{text-decoration:none;color:inherit}
-    button,input,textarea{font:inherit}
-    .app{max-width:1320px;margin:0 auto;padding:18px}
-    .topbar{
-      display:flex;justify-content:space-between;align-items:center;gap:12px;
-      background:rgba(255,255,255,.88);
-      border:1px solid var(--line);
-      border-radius:24px;
-      padding:14px 16px;
-      box-shadow:var(--shadow);
-      position:sticky;top:14px;z-index:20;
-      backdrop-filter:blur(10px);
+    .side-nav a:hover, .side-nav button:hover { background: var(--soft2); border-color: var(--line); }
+    .side-nav .nav-badge { font-size: 12px; color: var(--muted); background: var(--soft2); padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line); }
+
+    /* Mentor match cards */
+    .matches-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 12px; }
+    .match-card {
+      padding: 14px; border: 1px solid var(--line); border-radius: var(--radius-sm);
+      background: #fff; transition: box-shadow .15s ease;
     }
-    .brand{display:flex;align-items:center;gap:12px}
-    .logo{
-      width:44px;height:44px;border-radius:14px;
-      display:flex;align-items:center;justify-content:center;
-      background:linear-gradient(135deg, rgba(37,99,235,.16), rgba(11,59,137,.12));
-      border:1px solid rgba(37,99,235,.18);
-      font-weight:900;color:var(--primary-dark);
+    .match-card:hover { box-shadow: var(--shadow); }
+    .match-top { display: flex; gap: 10px; align-items: flex-start; }
+    .match-meta b     { display: block; font-size: 14px; font-weight: 700; }
+    .match-meta span  { display: block; font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
+    .match-score {
+      margin-left: auto; flex-shrink: 0;
+      background: rgba(29,78,216,.07); color: var(--accent);
+      border: 1px solid rgba(29,78,216,.16); border-radius: 999px;
+      padding: 4px 10px; font-size: 12px; font-weight: 700;
     }
-    .brand h1{margin:0;font-size:16px}
-    .brand p{margin:2px 0 0;font-size:12px;color:var(--muted)}
-    .top-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-    .pill{
-  padding:8px 12px;
-  border-radius:999px;
-  border:1px solid #e5e7eb;
-  background:#f8fafc;
-  font-size:12px;
-  color:#475569;
-}
-    .btn{
-      border:1px solid var(--line);
-      background:#fff;
-      color:var(--text);
-      padding:10px 14px;
-      border-radius:14px;
-      cursor:pointer;
-      font-weight:700;
+    .match-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+
+    /* Request list items */
+    .req-item { padding: 12px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: #fff; }
+    .req-item + .req-item { margin-top: 8px; }
+    .req-item-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+
+    /* Journey banner */
+    .journey-banner {
+      display: flex; align-items: center; justify-content: space-between; gap: 14px;
+      padding: 18px; border-radius: var(--radius-sm);
+      background: linear-gradient(135deg, rgba(29,78,216,.06), rgba(11,59,137,.04));
+      border: 1px solid rgba(29,78,216,.14);
+      margin-bottom: 16px;
     }
-    .btn:hover{box-shadow:0 10px 22px rgba(2,6,23,.08)}
-    .btn.primary{
-  border-color:transparent;
-  color:#fff;
-  background:linear-gradient(180deg,#1d4ed8,#0b3b89);
-  box-shadow:0 16px 40px rgba(29,78,216,.25);
-}
-    .layout{
-      display:grid;
-      grid-template-columns:310px 1fr 350px;
-      gap:16px;
-      margin-top:16px;
-      align-items:start;
+    .journey-banner h2 { font-size: 16px; font-weight: 700; }
+    .journey-banner p  { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+    @media (max-width: 1200px) {
+      .layout { grid-template-columns: 280px 1fr; }
+      .sticky-col.right { position: static; grid-column: 1 / -1; }
     }
-    .card{
-  background:#fff;
-  border:1px solid #e5e7eb;
-  border-radius:18px;
-  padding:16px;
-  box-shadow:0 20px 50px rgba(2,6,23,.08);
-}
-    .sticky-left,.sticky-right{position:sticky;top:92px}
-    .profile-top{display:flex;gap:12px;align-items:center}
-    .avatar{
-      width:48px;height:48px;border-radius:16px;
-      display:flex;align-items:center;justify-content:center;
-      background:linear-gradient(135deg, rgba(37,99,235,.18), rgba(11,59,137,.12));
-      border:1px solid rgba(37,99,235,.18);
-      color:var(--primary-dark);font-weight:900;font-size:18px;
-    }
-    .profile-top h2{margin:0;font-size:15px}
-    .profile-top p{margin:3px 0 0;font-size:13px;color:var(--muted)}
-    .progress-row{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-top:16px;
-  font-size:13px;
-  color:#475569;
-  font-weight:600;
-}
-    .bar{
-      margin-top:8px;height:10px;border-radius:999px;
-      background:#eef2f7;border:1px solid var(--line);overflow:hidden;
-    }
-    .bar-fill{
-      height:100%;width:0%;
-      background:linear-gradient(90deg, rgba(37,99,235,.45), rgba(11,59,137,.38));
-    }
-    .side-actions{display:flex;gap:10px;margin-top:14px}
-    .side-actions .btn{flex:1}
-    .nav{
-      margin-top:16px;padding-top:10px;border-top:1px solid var(--line);
-      display:flex;flex-direction:column;gap:6px;
-    }
-    .nav a,.nav button{
-      width:100%;display:flex;justify-content:space-between;align-items:center;
-      padding:12px;border-radius:14px;border:1px solid transparent;
-      background:transparent;text-align:left;cursor:pointer;font-weight:700;color:var(--text);
-    }
-    .nav a:hover,.nav button:hover{background:var(--soft);border-color:#e7edf5}
-    .hero{display:flex;justify-content:space-between;gap:14px;align-items:flex-start}
-    .hero h2{margin:0;font-size:18px}
-    .hero p{margin:8px 0 0;color:var(--muted);line-height:1.55}
-    .section-head{
-      display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px;
-    }
-    .section-head h3{
-      margin:0;font-size:14px;color:var(--muted);text-transform:uppercase;letter-spacing:.2px;
-    }
-    .matches{
-      display:grid;
-      grid-template-columns:repeat(2,minmax(0,1fr));
-      gap:12px;
-    }
-    .mentor{
-  border:1px solid #e5e7eb;
-  border-radius:16px;
-  padding:14px;
-  background:#fff;
-}
-    .mentor-top{display:flex;gap:10px;align-items:flex-start}
-    .mentor-avatar{
-      width:42px;height:42px;border-radius:14px;
-      display:flex;align-items:center;justify-content:center;
-      background:linear-gradient(135deg, rgba(37,99,235,.16), rgba(11,59,137,.12));
-      color:var(--primary-dark);font-weight:900;flex:0 0 auto;
-    }
-    .mentor-meta{min-width:0}
-    .mentor-meta b{display:block;font-size:14px}
-    .mentor-meta span{
-      display:block;font-size:12px;color:var(--muted);
-      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-    }
-    .score{
-      margin-left:auto;
-      background:rgba(37,99,235,.08);
-      color:var(--primary-dark);
-      border:1px solid rgba(37,99,235,.18);
-      border-radius:999px;
-      padding:6px 10px;
-      font-size:12px;font-weight:800;
-    }
-    .tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-    .tag{
-      border:1px solid var(--line);
-      border-radius:999px;
-      padding:6px 10px;
-      font-size:12px;color:var(--muted);background:#fff;
-    }
-    .mentor-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
-    .empty{
-      border:1px dashed #d7dfeb;
-      border-radius:16px;
-      padding:14px;
-      background:linear-gradient(180deg,#fff,var(--soft));
-      color:var(--muted);
-    }
-    .empty b{display:block;color:var(--text);margin-bottom:6px}
-    .list{display:flex;flex-direction:column;gap:10px}
-    .req{
-      border:1px solid var(--line);
-      border-radius:16px;
-      padding:12px;
-      background:#fff;
-    }
-    .req-top{display:flex;justify-content:space-between;gap:10px;align-items:center}
-    .status{
-      border-radius:999px;
-      padding:6px 10px;
-      font-size:12px;font-weight:800;
-      border:1px solid var(--line);
-      background:var(--soft);
-      color:var(--muted);
-    }
-    .status.pending{background:rgba(234,179,8,.12);color:#92400e;border-color:rgba(234,179,8,.25)}
-    .status.accepted{background:rgba(34,197,94,.10);color:#166534;border-color:rgba(34,197,94,.25)}
-    .status.declined{background:rgba(239,68,68,.08);color:#b91c1c;border-color:rgba(239,68,68,.25)}
-    .muted{color:var(--muted)}
-    .small{font-size:12px}
-    .toast{
-      position:fixed;left:50%;bottom:18px;transform:translateX(-50%);
-      background:rgba(15,23,42,.92);color:#fff;padding:10px 12px;border-radius:14px;
-      display:none;z-index:50;
-    }
-    .toast.show{display:block}
-    .modal-backdrop{
-      display:none;position:fixed;inset:0;background:rgba(2,6,23,.55);
-      z-index:60;align-items:center;justify-content:center;padding:18px;
-    }
-    .modal{
-      width:100%;max-width:560px;background:#fff;border:1px solid var(--line);
-      border-radius:18px;box-shadow:0 20px 50px rgba(2,6,23,.16);overflow:hidden;
-    }
-    .modal-head,.modal-foot{padding:14px 16px}
-    .modal-head{
-      border-bottom:1px solid var(--line);
-      display:flex;justify-content:space-between;align-items:center;gap:10px;
-    }
-    .modal-body{padding:16px}
-    .modal-foot{
-      border-top:1px solid var(--line);
-      background:var(--soft);
-      display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;
-    }
-    textarea{
-      width:100%;min-height:120px;padding:12px;border-radius:14px;
-      border:1px solid var(--line);resize:vertical;
-    }
-    @media (max-width:1200px){
-      .layout{grid-template-columns:310px 1fr}
-      .sticky-right{position:static;grid-column:1 / -1}
-    }
-    @media (max-width:980px){
-      .layout{grid-template-columns:1fr}
-      .sticky-left,.sticky-right{position:static}
-      .topbar{position:static}
-      .matches{grid-template-columns:1fr}
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+      .sticky-col { position: static; }
+      .matches-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
-  <div class="app">
-    <header class="topbar">
-     <a href="index.html" class="brand">
+<div class="mh-wrap">
 
-<img
-  src="logo.png"
-  alt="MentifyHub logo"
-  style="
-    width:42px;
-    height:42px;
-    object-fit:contain;
-  "
->
-
-<div>
-  <h1>MentifyHub</h1>
-  <p>Mentee dashboard</p>
-</div>
-
-</a>
-      <div class="top-actions">
-        <span class="pill" id="envChip">Connecting...</span>
-        <a class="btn" href="mentor-directory.html">Browse mentors</a>
+  <!-- Topbar -->
+  <header class="mh-topbar">
+    <a href="index.html" class="mh-brand">
+      <img src="logo.png" alt="MentifyHub" class="mh-brand-logo"/>
+      <div class="mh-brand-text">
+        <strong>MentifyHub</strong>
+        <span>Mentee dashboard</span>
       </div>
-    </header>
+    </a>
+    <nav class="mh-nav">
+      <span class="mh-chip" id="envChip">Connecting…</span>
+      <a class="mh-btn" href="mentor-directory.html">Browse mentors</a>
+      <a class="mh-btn" href="messages.html">Messages</a>
+      <a class="mh-btn" href="sessions.html">Sessions</a>
+    </nav>
+  </header>
 
-    <div class="layout">
-      <aside class="card sticky-left">
-        <div class="profile-top">
-          <div class="avatar" id="avatar">U</div>
-          <div>
-            <h2 id="welcomeName">Welcome</h2>
-            <p id="welcomeSub">Loading profile...</p>
-          </div>
-        </div>
+  <div class="layout">
 
-        <div class="progress-row">
-          <span>Profile completeness</span>
-          <b id="completePct">—%</b>
-        </div>
-        <div class="bar"><div class="bar-fill" id="completeBar"></div></div>
-        <div class="progress-row">
-  <span>Mentorship progress</span>
-  <b id="mentorshipPct">—%</b>
-</div>
-
-<div class="bar">
-  <div class="bar-fill" id="mentorshipBar"></div>
-</div>
-
-        <div class="side-actions">
-          <a class="btn" href="mentee-onboarding.html">Edit profile</a>
-          <button class="btn" id="signOutBtn" type="button">Sign out</button>
-        </div>
-
-        <div class="nav">
-          <button type="button" onclick="scrollIntoViewById('journeyCard')">Dashboard <span>•</span></button>
-          <a href="mentor-directory.html">Mentor directory <span id="matchCount">—</span></a>
-          <button type="button" onclick="scrollIntoViewById('activityCard')">Requests <span id="reqCount">—</span></button>
-          <a href="messages.html">Messages <span>Open</span></a>
-        </div>
-      </aside>
-
-      <main>
-        <section class="card" id="journeyCard">
-          <div class="hero">
-            <div>
-              <h2>Your mentoring journey</h2>
-              <p id="journeyText">Loading your matches...</p>
-            </div>
-            <button class="btn primary" id="refreshBtn" type="button">Refresh matches</button>
-          </div>
-        </section>
-
-        <section class="card" style="margin-top:16px">
-          <div class="section-head">
-            <h3>Top mentor matches</h3>
-            <span class="pill">Matching: Tags • Field • Level • Timezone</span>
-          </div>
-
-          <div class="muted small" id="matchesSub">Loading mentors...</div>
-
-          <div class="matches" id="matches" style="margin-top:12px"></div>
-
-          <div class="empty" id="emptyMatches" style="display:none;margin-top:12px">
-            <b>No matches yet</b>
-            <div id="emptyMatchesText">Complete your onboarding and add mentors so we can recommend matches.</div>
-            <div class="mentor-actions" style="margin-top:10px">
-              <a class="btn" href="mentee-onboarding.html">Complete onboarding</a>
-              <a class="btn" href="mentor-directory.html">Browse mentors</a>
-            </div>
-          </div>
-        </section>
-      </main>
-
-      <aside class="card sticky-right" id="activityCard">
-        <div class="section-head">
-          <h3>My activity</h3>
-          <button class="btn" id="reloadReqBtn" type="button">Reload</button>
-        </div>
-
+    <!-- Left sidebar -->
+    <aside class="mh-card mh-card-body sticky-col">
+      <div class="flex gap-12 items-center">
+        <div class="mh-avatar sidebar-avatar" id="avatar">U</div>
         <div>
-          <b>Requests</b>
-          <div class="muted" id="reqSub" style="margin-top:8px">Loading...</div>
-
-          <div class="empty" id="reqEmpty" style="margin-top:12px">
-            <b>No requests</b>
-            <div>Pick a mentor and send a short message about your goal.</div>
-            <div class="mentor-actions" style="margin-top:10px">
-              <a class="btn primary" href="mentor-directory.html">Go to matches</a>
-            </div>
-          </div>
-
-          <div class="list" id="reqList" style="display:none;margin-top:12px"></div>
+          <div style="font-weight:700;font-size:15px" id="welcomeName">Welcome</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px" id="welcomeSub">Loading…</div>
         </div>
-
-        <div class="mentor-actions" style="margin-top:16px">
-          <b>Upcoming sessions</b>
-
-<div class="muted" style="margin-top:8px">
-Sessions will appear after a mentor accepts your request.
-</div>
-
-<div id="upcomingSessions" class="empty" style="margin-top:12px">
-
-<b>No sessions scheduled</b>
-
-<div>
-After acceptance, you'll be able to propose times based on timezone and availability.
-</div>
-
-<div class="mentor-actions" style="margin-top:10px">
-<a class="btn" href="sessions.html">Open sessions</a>
-</div>
-
-</div>
-
-  <div class="modal-backdrop" id="requestBackdrop">
-    <div class="modal">
-      <div class="modal-head">
-        <strong id="requestModalTitle">Request mentorship</strong>
-        <button class="btn" id="closeRequestModalBtn" type="button">Close</button>
       </div>
-      <div class="modal-body">
-        <label for="requestMessage" style="display:block;font-weight:700;margin-bottom:8px">Message to mentor</label>
-        <textarea id="requestMessage"></textarea>
-        <div class="muted small" id="requestModalMeta" style="margin-top:10px"></div>
+
+      <div style="margin-top:16px">
+        <div class="flex justify-between items-center" style="font-size:12px;color:var(--muted);font-weight:600;margin-bottom:6px">
+          <span>Profile completeness</span>
+          <b id="completePct" style="color:var(--text)">—%</b>
+        </div>
+        <div class="mh-bar-wrap"><div class="mh-bar-fill" id="completeBar"></div></div>
+
+        <div class="flex justify-between items-center" style="font-size:12px;color:var(--muted);font-weight:600;margin-top:12px;margin-bottom:6px">
+          <span>Mentorship progress</span>
+          <b id="mentorshipPct" style="color:var(--text)">—%</b>
+        </div>
+        <div class="mh-bar-wrap"><div class="mh-bar-fill" id="mentorshipBar"></div></div>
       </div>
-      <div class="modal-foot">
-        <button class="btn" id="cancelRequestBtn" type="button">Cancel</button>
-        <button class="btn primary" id="sendRequestBtn" type="button">Send request</button>
+
+      <div class="flex gap-8 mt-12">
+        <a class="mh-btn" style="flex:1" href="mentee-onboarding.html">Edit profile</a>
+        <button class="mh-btn mh-btn-danger" id="signOutBtn" type="button">Sign out</button>
       </div>
+
+      <nav class="side-nav">
+        <button type="button" onclick="scrollIntoViewById('journeyCard')">Dashboard <span class="nav-badge">•</span></button>
+        <a href="mentor-directory.html">Mentor directory <span class="nav-badge" id="matchCount">—</span></a>
+        <button type="button" onclick="scrollIntoViewById('activityCard')">Requests <span class="nav-badge" id="reqCount">—</span></button>
+        <a href="messages.html">Messages <span class="nav-badge">Open</span></a>
+      </nav>
+    </aside>
+
+    <!-- Main content -->
+    <main>
+      <div class="journey-banner" id="journeyCard">
+        <div>
+          <h2>Your mentoring journey</h2>
+          <p id="journeyText">Loading your matches…</p>
+        </div>
+        <button class="mh-btn mh-btn-primary" id="refreshBtn" type="button">Refresh matches</button>
+      </div>
+
+      <div class="mh-card mh-card-body">
+        <div class="mh-section-head">
+          <h3>Top mentor matches</h3>
+          <span class="mh-chip" style="font-size:11px">Tags · Field · Level · Timezone</span>
+        </div>
+        <div style="font-size:12px;color:var(--muted)" id="matchesSub">Loading mentors…</div>
+        <div class="matches-grid" id="matches"></div>
+        <div class="mh-empty" id="emptyMatches" style="display:none;margin-top:12px">
+          <strong>No matches yet</strong>
+          Complete your onboarding and add tags so we can recommend mentors.
+          <div class="flex gap-8 mt-12" style="justify-content:center">
+            <a class="mh-btn" href="mentee-onboarding.html">Complete onboarding</a>
+            <a class="mh-btn" href="mentor-directory.html">Browse mentors</a>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Right sidebar -->
+    <aside class="mh-card mh-card-body sticky-col right" id="activityCard">
+      <div class="mh-section-head">
+        <h3>My activity</h3>
+        <button class="mh-btn mh-btn-sm" id="reloadReqBtn" type="button">Reload</button>
+      </div>
+
+      <div style="font-weight:700;font-size:13px;margin-bottom:8px">Requests</div>
+      <div style="font-size:12px;color:var(--muted)" id="reqSub">Loading…</div>
+
+      <div class="mh-empty" id="reqEmpty" style="margin-top:10px">
+        <strong>No requests</strong>
+        Pick a mentor and send a short message about your goal.
+        <div style="margin-top:10px">
+          <a class="mh-btn mh-btn-primary mh-btn-full" href="mentor-directory.html">Go to directory</a>
+        </div>
+      </div>
+
+      <div id="reqList" style="display:none;margin-top:10px"></div>
+
+      <div style="margin-top:18px">
+        <div style="font-weight:700;font-size:13px;margin-bottom:8px">Upcoming sessions</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Sessions appear after a mentor accepts your request.</div>
+        <div id="upcomingSessions" class="mh-empty">
+          <strong>No sessions scheduled</strong>
+          After acceptance, you'll be able to propose session times.
+          <div style="margin-top:10px">
+            <a class="mh-btn mh-btn-full" href="sessions.html">Open sessions</a>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<!-- Request modal -->
+<div class="mh-modal-backdrop" id="requestBackdrop">
+  <div class="mh-modal">
+    <div class="mh-card-header">
+      <strong id="requestModalTitle">Request mentorship</strong>
+      <button class="mh-btn mh-btn-sm" id="closeRequestModalBtn" type="button">✕</button>
+    </div>
+    <div style="padding:18px">
+      <label class="mh-label" for="requestMessage">Message to mentor</label>
+      <textarea class="mh-textarea" id="requestMessage" style="min-height:140px"></textarea>
+      <div style="font-size:12px;color:var(--muted);margin-top:8px" id="requestModalMeta"></div>
+    </div>
+    <div class="mh-card-footer">
+      <button class="mh-btn" id="cancelRequestBtn" type="button">Cancel</button>
+      <button class="mh-btn mh-btn-primary" id="sendRequestBtn" type="button">Send request</button>
     </div>
   </div>
+</div>
 
-  <div class="toast" id="toast"></div>
+<div class="mh-toast" id="toast"></div>
 
- <script>
-  const SUPABASE_URL = "https://mscgaaaobxiuzqsukvjc.supabase.co";
+<script>
+  const SUPABASE_URL      = "https://mscgaaaobxiuzqsukvjc.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y";
+  const TABLES = { mentees:"mentees", mentors:"mentors", requests:"mentorship_requests" };
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const $ = id => document.getElementById(id);
 
-  const TABLES = {
- mentees: "mentees",
- mentors: "mentors",
- requests: "mentorship_requests"
-};
+  let currentUser=null, menteeProfile=null, allMentors=[], lastRequests=[], requestTarget=null;
 
-const sb = supabase.createClient(
- SUPABASE_URL,
- SUPABASE_ANON_KEY
-);
+  function showToast(msg){ const t=$("toast"); t.textContent=msg; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),2600); }
+  function safeArr(v){ if(Array.isArray(v)) return v; if(typeof v==="string") return v.split(",").map(s=>s.trim()).filter(Boolean); return []; }
+  function normalize(s){ return String(s||"").trim().toLowerCase(); }
+  function esc(s){ return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+  function initialsOf(name,fb="U"){ const ini=String(name||"").split(" ").filter(Boolean).slice(0,2).map(w=>w[0]).join("").toUpperCase(); return ini||fb; }
+  function scrollIntoViewById(id){ document.getElementById(id)?.scrollIntoView({behavior:"smooth",block:"start"}); }
+  window.scrollIntoViewById=scrollIntoViewById;
 
-const $ = (id) => document.getElementById(id);
-
-let currentUser = null;
-let menteeProfile = null;
-let allMentors = [];
-let lastRequests = [];
-let requestTarget = null;
-
-async function ensureMenteeProfile(){
-
-let tries = 0;
-let profile = null;
-
-while(!profile && tries < 5){
-
-const { data, error } = await sb
-.from(TABLES.mentees)
-.select("*")
-.eq("user_id", currentUser.id)
-.maybeSingle();
-
-if(error){
-console.error(error);
-}
-
-profile = data || null;
-
-/* wait before trying again */
-if(!profile){
-await new Promise(r => setTimeout(r,200));
-}
-
-tries++;
-
-}
-
-return profile;
-
-
-}
-
-  function showToast(msg){
-    const t = $("toast");
-    t.textContent = msg;
-    t.classList.add("show");
-    setTimeout(() => t.classList.remove("show"), 2600);
-  }
-
-  function safeArr(v){
-    if (Array.isArray(v)) return v;
-    if (typeof v === "string") return v.split(",").map(s => s.trim()).filter(Boolean);
-    return [];
-  }
-
-  function normalize(s){
-    return String(s || "").trim().toLowerCase();
-  }
-
-  function esc(s){
-    return String(s ?? "").replace(/[&<>"']/g, c => ({
-      "&":"&amp;",
-      "<":"&lt;",
-      ">":"&gt;",
-      '"':"&quot;",
-      "'":"&#39;"
-    }[c]));
-  }
-
-  function initialsOf(name, fallback = "U"){
-    const ini = String(name || "")
-      .split(" ")
-      .filter(Boolean)
-      .slice(0, 2)
-      .map(w => w[0])
-      .join("")
-      .toUpperCase();
-    return ini || fallback;
-  }
-
-  function scrollIntoViewById(id){
-    document.getElementById(id)?.scrollIntoView({ behavior:"smooth", block:"start" });
-  }
-  window.scrollIntoViewById = scrollIntoViewById;
-
-  function buildSupabaseClient(){
-    if (!window.supabase || typeof window.supabase.createClient !== "function") return null;
-    try{
-      return window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    }catch(e){
-      console.error(e);
-      return null;
+  async function ensureMenteeProfile(){
+    let tries=0,profile=null;
+    while(!profile&&tries<5){
+      const {data,error}=await sb.from(TABLES.mentees).select("*").eq("user_id",currentUser.id).maybeSingle();
+      if(error) console.error(error);
+      profile=data||null;
+      if(!profile) await new Promise(r=>setTimeout(r,200));
+      tries++;
     }
+    return profile;
   }
 
   function calcCompleteness(mentee){
-  const checks = [
-    !!mentee.goal,
-    !!mentee.level,
-    !!mentee.current_role,
-    !!mentee.field_experience_level,
-    !!mentee.preferred_language,
-    !!mentee.field,
-    safeArr(mentee.help_needed).length >= 1,
-    !!mentee.timeline,
-    !!mentee.preferred_session_type,
-    safeArr(mentee.tags).length >= 3,
-    !!mentee.country,
-    !!mentee.timezone,
-    !!mentee.availability,
-    !!mentee.communication
-  ];
+    const checks=[!!mentee.goal,!!mentee.level,!!mentee.current_role,!!mentee.field_experience_level,!!mentee.preferred_language,!!mentee.field,safeArr(mentee.help_needed).length>=1,!!mentee.timeline,!!mentee.preferred_session_type,safeArr(mentee.tags).length>=3,!!mentee.country,!!mentee.timezone,!!mentee.availability,!!mentee.communication];
+    return Math.round(checks.filter(Boolean).length/checks.length*100);
+  }
 
-  const filled = checks.filter(Boolean).length;
-  return Math.round((filled / checks.length) * 100);
-}
-
-  function scoreMentor(mentee, mentor){
-    const mTags = new Set(safeArr(mentee.tags).map(normalize));
-    const rTags = new Set(safeArr(mentor.tags).map(normalize));
-    const overlap = [...mTags].filter(t => rTags.has(t));
-    const tagScore = mTags.size ? (overlap.length / mTags.size) : 0;
-
-    const fieldScore = mentee.field && mentor.field
-      ? (normalize(mentee.field) === normalize(mentor.field) ? 1 : 0)
-      : 0;
-
-    const levelMap = { beginner:1, intermediate:2, advanced:3 };
-    const menteeLevel = levelMap[normalize(mentee.level)] || 0;
-
-    const exp = normalize(mentor.experience);
-    let mentorLevel = 0;
-    if (exp.includes("senior") || exp.includes("9")) mentorLevel = 3;
-    else if (exp.includes("mid") || exp.includes("4")) mentorLevel = 2;
-    else if (exp.includes("early") || exp.includes("1")) mentorLevel = 1;
-
-    const levelFit = (menteeLevel && mentorLevel) ? (mentorLevel >= menteeLevel ? 1 : 0.3) : 0;
-
-    const tzScore = mentee.timezone && mentor.timezone
-      ? (normalize(mentee.timezone) === normalize(mentor.timezone) ? 1 : 0.5)
-      : 0;
-
-    const availScore = mentee.availability && mentor.availability
-      ? (normalize(mentee.availability) === normalize(mentor.availability) ? 1 : 0.6)
-      : 0;
-
-    return Math.round((tagScore * 45) + (fieldScore * 20) + (levelFit * 15) + (tzScore * 10) + (availScore * 10));
+  function scoreMentor(mentee,mentor){
+    const mTags=new Set(safeArr(mentee.tags).map(normalize));
+    const rTags=new Set(safeArr(mentor.tags).map(normalize));
+    const overlap=[...mTags].filter(t=>rTags.has(t));
+    const tagScore=mTags.size?(overlap.length/mTags.size):0;
+    const fieldScore=mentee.field&&mentor.field?(normalize(mentee.field)===normalize(mentor.field)?1:0):0;
+    const levelMap={beginner:1,intermediate:2,advanced:3};
+    const menteeLevel=levelMap[normalize(mentee.level)]||0;
+    const exp=normalize(mentor.experience);
+    let mentorLevel=0;
+    if(exp.includes("senior")||exp.includes("9")) mentorLevel=3;
+    else if(exp.includes("mid")||exp.includes("4")) mentorLevel=2;
+    else if(exp.includes("early")||exp.includes("1")) mentorLevel=1;
+    const levelFit=(menteeLevel&&mentorLevel)?(mentorLevel>=menteeLevel?1:0.3):0;
+    const tzScore=mentee.timezone&&mentor.timezone?(normalize(mentee.timezone)===normalize(mentor.timezone)?1:0.5):0;
+    const availScore=mentee.availability&&mentor.availability?(normalize(mentee.availability)===normalize(mentor.availability)?1:0.6):0;
+    return Math.round(tagScore*45+fieldScore*20+levelFit*15+tzScore*10+availScore*10);
   }
 
   function defaultRequestMessage(mentorName){
-    const goal = menteeProfile?.goal || "my mentoring goals";
-    const field = menteeProfile?.field || "my field";
-    return `Hi ${mentorName},
-
-I’m a mentee on MentifyHub and I’d love to request mentorship. My main goal is: ${goal}.
-
-I’m focused on ${field} and I’d appreciate your guidance on the next steps and how to build skill/experience.
-
-Thank you!`;
+    const goal=menteeProfile?.goal||"my mentoring goals";
+    const field=menteeProfile?.field||"my field";
+    return `Hi ${mentorName},\n\nI'm a mentee on MentifyHub and I'd love to request mentorship. My main goal is: ${goal}.\n\nI'm focused on ${field} and I'd appreciate your guidance on the next steps.\n\nThank you!`;
   }
 
   async function guardAuth(){
-    if (!sb){
-      $("envChip").textContent = "Supabase not configured";
-      $("journeyText").textContent = "Supabase client could not be created.";
-      $("matchesSub").textContent = "Check Supabase script and credentials.";
-      return false;
-    }
-
-    const { data: { session }, error } = await sb.auth.getSession();
-
-    if (error){
-      console.error(error);
-      $("envChip").textContent = "Session error";
-      return false;
-    }
-
-    if (!session){
-      window.location.href = "auth.html?mode=signin";
-      return false;
-    }
-
-    currentUser = session.user;
-    $("envChip").textContent = "Live";
+    const {data:{session},error}=await sb.auth.getSession();
+    if(error){ console.error(error); $("envChip").textContent="Session error"; return false; }
+    if(!session){ window.location.href="auth.html?mode=signin"; return false; }
+    currentUser=session.user;
+    $("envChip").textContent="Live";
     return true;
   }
 
   async function loadMenteeProfile(){
-    const { data, error } = await sb
-      .from(TABLES.mentees)
-      .select("*")
-      .eq("user_id", currentUser.id)
-      .maybeSingle();
-
-    if (error) console.error(error);
-    menteeProfile = data || null;
-
-    const name = menteeProfile?.full_name || currentUser.user_metadata?.full_name || currentUser.email || "Welcome";
-    $("welcomeName").textContent = "Welcome";
-    $("welcomeSub").textContent = menteeProfile ? name : "Complete onboarding to load your profile";
-    $("avatar").textContent = initialsOf(name, "U");
-
-    const pct = menteeProfile ? calcCompleteness(menteeProfile) : 0;
-    $("completePct").textContent = pct + "%";
-    $("completeBar").style.width = pct + "%";
-
+    const {data,error}=await sb.from(TABLES.mentees).select("*").eq("user_id",currentUser.id).maybeSingle();
+    if(error) console.error(error);
+    menteeProfile=data||null;
+    const name=menteeProfile?.full_name||currentUser.user_metadata?.full_name||currentUser.email||"Welcome";
+    $("welcomeName").textContent="Welcome";
+    $("welcomeSub").textContent=menteeProfile?name:"Complete onboarding to load your profile";
+    $("avatar").textContent=initialsOf(name,"U");
+    const pct=menteeProfile?calcCompleteness(menteeProfile):0;
+    $("completePct").textContent=pct+"%";
+    $("completeBar").style.width=pct+"%";
     updateJourneyText();
   }
 
   function updateJourneyText(){
-    const pct = menteeProfile ? calcCompleteness(menteeProfile) : 0;
-    const hasRequests = lastRequests.length > 0;
-    const pending = lastRequests.some(r => (r.status || "").toLowerCase() === "pending");
-    const accepted = lastRequests.some(r => (r.status || "").toLowerCase() === "accepted");
-
-    if (!menteeProfile || pct < 60){
-      $("journeyText").textContent = "Step 1: Complete onboarding to unlock accurate matches.";
-      return;
-    }
-    if (!hasRequests){
-      $("journeyText").textContent = "Step 2: Review your top matches and send a mentorship request.";
-      return;
-    }
-    if (accepted){
-      $("journeyText").textContent = "Step 3: You have an accepted request — next: schedule your first session.";
-      return;
-    }
-    if (pending){
-      $("journeyText").textContent = "Step 3: Request sent — waiting for mentor acceptance.";
-      return;
-    }
-    $("journeyText").textContent = "You’re on track — review matches and manage your requests.";
+    const pct=menteeProfile?calcCompleteness(menteeProfile):0;
+    const pending=lastRequests.some(r=>(r.status||"").toLowerCase()==="pending");
+    const accepted=lastRequests.some(r=>(r.status||"").toLowerCase()==="accepted");
+    if(!menteeProfile||pct<60){ $("journeyText").textContent="Step 1: Complete onboarding to unlock accurate matches."; return; }
+    if(!lastRequests.length){ $("journeyText").textContent="Step 2: Review your top matches and send a mentorship request."; return; }
+    if(accepted){ $("journeyText").textContent="Step 3: You have an accepted request — next: schedule your first session."; return; }
+    if(pending){ $("journeyText").textContent="Step 3: Request sent — waiting for mentor acceptance."; return; }
+    $("journeyText").textContent="You're on track — review matches and manage your requests.";
   }
 
   async function loadMentors(){
-    $("matchesSub").textContent = "Loading mentors...";
-
-    const { data, error } = await sb
-      .from(TABLES.mentors)
-      .select("*")
-      .order("created_at", { ascending:false })
-      .limit(100);
-
-    if (error){
-      console.error(error);
-      $("matchesSub").textContent = "Could not load mentors (check RLS).";
-      return;
-    }
-
-    allMentors = data || [];
-    $("matchCount").textContent = String(allMentors.length);
-    $("matchesSub").textContent = allMentors.length ? `${allMentors.length} mentors loaded` : "No mentors available yet.";
+    $("matchesSub").textContent="Loading mentors…";
+    const {data,error}=await sb.from(TABLES.mentors).select("*").order("created_at",{ascending:false}).limit(100);
+    if(error){ console.error(error); $("matchesSub").textContent="Could not load mentors."; return; }
+    allMentors=data||[];
+    $("matchCount").textContent=String(allMentors.length);
+    $("matchesSub").textContent=allMentors.length?`${allMentors.length} mentors available`:"No mentors yet.";
   }
 
   function renderMatches(){
-    const host = $("matches");
-    host.innerHTML = "";
-
-    if (!menteeProfile){
-      $("emptyMatches").style.display = "block";
-      $("emptyMatchesText").textContent = "Complete onboarding first so we can recommend mentors.";
-      return;
-    }
-
-    if (!allMentors.length){
-      $("emptyMatches").style.display = "block";
-      $("emptyMatchesText").textContent = "No mentors have completed onboarding yet.";
-      return;
-    }
-
-    const scored = allMentors
-      .map(m => ({ m, score: scoreMentor(menteeProfile, m) }))
-      .sort((a,b) => b.score - a.score)
-      .slice(0, 8);
-
-    if (!scored.length){
-      $("emptyMatches").style.display = "block";
-      $("emptyMatchesText").textContent = "No matches yet. Update your profile tags and field.";
-      return;
-    }
-
-    $("emptyMatches").style.display = "none";
-
-    host.innerHTML = scored.map(({m, score}) => {
-      const name = m.full_name || "Mentor";
-      const headline = m.headline || "Mentor";
-      const field = m.field || "—";
-      const tags = safeArr(m.tags).slice(0, 6);
-      const alreadyRequested = lastRequests.some(r => String(r.mentor_id) === String(m.user_id));
-
+    const host=$("matches");
+    host.innerHTML="";
+    if(!menteeProfile){ $("emptyMatches").style.display="block"; return; }
+    if(!allMentors.length){ $("emptyMatches").style.display="block"; return; }
+    const scored=allMentors.map(m=>({m,score:scoreMentor(menteeProfile,m)})).sort((a,b)=>b.score-a.score).slice(0,8);
+    if(!scored.length){ $("emptyMatches").style.display="block"; return; }
+    $("emptyMatches").style.display="none";
+    host.innerHTML=scored.map(({m,score})=>{
+      const name=m.full_name||"Mentor";
+      const tags=safeArr(m.tags).slice(0,4);
+      const alreadyRequested=lastRequests.some(r=>String(r.mentor_id)===String(m.user_id));
       return `
-        <article class="mentor">
-          <div class="mentor-top">
-            <div class="mentor-avatar">${esc(initialsOf(name, "M"))}</div>
-            <div class="mentor-meta">
+        <div class="match-card">
+          <div class="match-top">
+            <div class="mh-avatar">${esc(initialsOf(name,"M"))}</div>
+            <div class="match-meta" style="min-width:0;flex:1">
               <b>${esc(name)}</b>
-              <span>${esc(headline)} • ${esc(field)}</span>
+              <span>${esc(m.headline||"")} · ${esc(m.field||"—")}</span>
             </div>
-            <div class="score">${score}%</div>
+            <div class="match-score">${score}%</div>
           </div>
-
-          <div class="tags">
-            ${tags.map(t => `<span class="tag">${esc(t)}</span>`).join("")}
+          <div class="flex wrap gap-8" style="margin-top:8px">
+            ${tags.map(t=>`<span class="mh-tag">${esc(t)}</span>`).join("")}
           </div>
-
-        <div class="mentor-actions">
-
-<button
-class="btn primary"
-type="button"
-${alreadyRequested ? "disabled" : ""}
-onclick="openRequestModal('${m.user_id}','${name}')">
-
-${alreadyRequested ? "Requested" : "Request"}
-
-</button>
-
-<button
-class="btn"
-onclick="event.stopPropagation(); window.location.href='mentor-profile.html?id=${m.user_id}'">
-
-View profile
-
-</button>
-
-</div>
-        </article>
-      `;
+          <div class="match-actions">
+            <button class="mh-btn mh-btn-primary mh-btn-sm" type="button" ${alreadyRequested?"disabled":""}
+              onclick="openRequestModal('${m.user_id}','${name}')">
+              ${alreadyRequested?"Requested":"Request"}
+            </button>
+            <a class="mh-btn mh-btn-sm" href="mentor-profile.html?id=${m.user_id}">View profile</a>
+          </div>
+        </div>`;
     }).join("");
   }
 
   async function loadRequests(){
-    $("reqSub").textContent = "Loading...";
-
-    const { data, error } = await sb
-      .from(TABLES.requests)
-      .select("*")
-      .eq("mentee_id", currentUser.id)
-      .order("created_at", { ascending:false })
-      .limit(10);
-
-    if (error){
-      console.error(error);
-      $("reqSub").textContent = "Could not load requests.";
-      return;
-    }
-
-    lastRequests = data || [];
-    $("reqCount").textContent = String(lastRequests.length);
-
-    if (!lastRequests.length){
-      $("reqSub").textContent = "No requests yet.";
-      $("reqEmpty").style.display = "block";
-      $("reqList").style.display = "none";
-      updateJourneyText();
-      return;
-    }
-
-    $("reqSub").textContent = `${lastRequests.length} recent request(s)`;
-    $("reqEmpty").style.display = "none";
-    $("reqList").style.display = "flex";
-
-    $("reqList").innerHTML = lastRequests.map(r => `
-      <div class="req">
-        <div class="req-top">
-          <b>Request</b>
-          <span class="status ${(r.status || "pending").toLowerCase()}">${esc(r.status || "pending")}</span>
+    $("reqSub").textContent="Loading…";
+    const {data,error}=await sb.from(TABLES.requests).select("*").eq("mentee_id",currentUser.id).order("created_at",{ascending:false}).limit(10);
+    if(error){ console.error(error); $("reqSub").textContent="Could not load requests."; return; }
+    lastRequests=data||[];
+    $("reqCount").textContent=String(lastRequests.length);
+    if(!lastRequests.length){ $("reqSub").textContent="No requests yet."; $("reqEmpty").style.display="block"; $("reqList").style.display="none"; updateJourneyText(); return; }
+    $("reqSub").textContent=`${lastRequests.length} request(s)`;
+    $("reqEmpty").style.display="none";
+    $("reqList").style.display="block";
+    $("reqList").innerHTML=lastRequests.map(r=>`
+      <div class="req-item">
+        <div class="req-item-top">
+          <b style="font-size:13px">Request</b>
+          <span class="mh-badge mh-badge-${(r.status||"pending").toLowerCase()}">${esc(r.status||"pending")}</span>
         </div>
-        <div class="muted" style="margin-top:8px;line-height:1.5">${esc(r.message || "")}</div>
-        <div class="small muted" style="margin-top:8px">${new Date(r.created_at || Date.now()).toLocaleString()}</div>
-      </div>
-    `).join("");
-
+        <div style="color:var(--muted);font-size:12px;margin-top:6px;line-height:1.5">${esc(r.message||"")}</div>
+        <div style="color:var(--subtle);font-size:11px;margin-top:6px">${new Date(r.created_at||Date.now()).toLocaleString()}</div>
+      </div>`).join("");
     updateJourneyText();
   }
 
-  function openRequestModal(mentorId, mentorName){
-    if (!mentorId){
-      showToast("Mentor profile missing user ID.");
-      return;
-    }
-    requestTarget = { mentorId, mentorName };
-    $("requestModalTitle").textContent = `Request mentorship — ${mentorName}`;
-    $("requestModalMeta").textContent = "Your request will appear in the mentor dashboard immediately.";
-    $("requestMessage").value = defaultRequestMessage(mentorName);
-    $("requestBackdrop").style.display = "flex";
+  function openRequestModal(mentorId,mentorName){
+    if(!mentorId){ showToast("Mentor profile missing."); return; }
+    requestTarget={mentorId,mentorName};
+    $("requestModalTitle").textContent=`Request mentorship — ${mentorName}`;
+    $("requestModalMeta").textContent="Your request will appear in the mentor dashboard immediately.";
+    $("requestMessage").value=defaultRequestMessage(mentorName);
+    $("requestBackdrop").classList.add("open");
   }
-  window.openRequestModal = openRequestModal;
+  window.openRequestModal=openRequestModal;
 
-  function closeRequestModal(){
-    requestTarget = null;
-    $("requestBackdrop").style.display = "none";
-  }
+  function closeRequestModal(){ requestTarget=null; $("requestBackdrop").classList.remove("open"); }
 
   async function sendRequest(){
-    if (!requestTarget || !currentUser || !sb){
-      showToast("Not signed in.");
-      return;
-    }
-
-    const msg = $("requestMessage").value.trim();
-    if (msg.length < 10){
-      showToast("Please write a short message.");
-      return;
-    }
-
-    const btn = $("sendRequestBtn");
-    btn.disabled = true;
-    btn.textContent = "Sending...";
-
+    if(!requestTarget||!currentUser||!sb){ showToast("Not signed in."); return; }
+    const msg=$("requestMessage").value.trim();
+    if(msg.length<10){ showToast("Please write a short message."); return; }
+    const btn=$("sendRequestBtn");
+    btn.disabled=true; btn.textContent="Sending…";
     try{
-      const { data: existing, error: existingErr } = await sb
-        .from(TABLES.requests)
-        .select("id,status")
-        .eq("mentee_id", currentUser.id)
-        .eq("mentor_id", requestTarget.mentorId)
-        .limit(1);
-
-      if (existingErr) throw existingErr;
-      if (existing && existing.length > 0){
-        showToast("You already sent a request to this mentor.");
-        return;
-      }
-
-      const { data: mentorRow, error: mentorErr } = await sb
-        .from(TABLES.mentors)
-        .select("active_slots")
-        .eq("user_id", requestTarget.mentorId)
-        .maybeSingle();
-
-      if (mentorErr) throw mentorErr;
-
-      const maxSlots = Number(mentorRow?.active_slots || 1);
-
-      const { count: acceptedCount, error: countErr } = await sb
-        .from(TABLES.requests)
-        .select("*", { count:"exact", head:true })
-        .eq("mentor_id", requestTarget.mentorId)
-        .eq("status", "accepted");
-
-      if (countErr) throw countErr;
-
-      if ((acceptedCount || 0) >= maxSlots){
-        showToast("This mentor has no open slots right now.");
-        return;
-      }
-
-      const { error } = await sb
-        .from(TABLES.requests)
-        .insert({
-          mentee_id: currentUser.id,
-          mentor_id: requestTarget.mentorId,
-          message: msg,
-          status: "pending"
-        });
-
-      if (error) throw error;
-
-      showToast("Request sent ✅");
+      const {data:existing,error:existingErr}=await sb.from(TABLES.requests).select("id,status").eq("mentee_id",currentUser.id).eq("mentor_id",requestTarget.mentorId).limit(1);
+      if(existingErr) throw existingErr;
+      if(existing&&existing.length>0){ showToast("You already sent a request to this mentor."); return; }
+      const {data:mentorRow}=await sb.from(TABLES.mentors).select("active_slots").eq("user_id",requestTarget.mentorId).maybeSingle();
+      const maxSlots=Number(mentorRow?.active_slots||1);
+      const {count:acceptedCount}=await sb.from(TABLES.requests).select("*",{count:"exact",head:true}).eq("mentor_id",requestTarget.mentorId).eq("status","accepted");
+      if((acceptedCount||0)>=maxSlots){ showToast("This mentor has no open slots right now."); return; }
+      const {error}=await sb.from(TABLES.requests).insert({mentee_id:currentUser.id,mentor_id:requestTarget.mentorId,message:msg,status:"pending"});
+      if(error) throw error;
+      showToast("Request sent ✓");
       closeRequestModal();
       await loadRequests();
       renderMatches();
-    }catch(e){
-      console.error(e);
-      showToast("Could not send request.");
-    }finally{
-      btn.disabled = false;
-      btn.textContent = "Send request";
-    }
+    }catch(e){ console.error(e); showToast("Could not send request."); }
+    finally{ btn.disabled=false; btn.textContent="Send request"; }
   }
 
-  $("closeRequestModalBtn").addEventListener("click", closeRequestModal);
-  $("cancelRequestBtn").addEventListener("click", closeRequestModal);
-  $("sendRequestBtn").addEventListener("click", sendRequest);
-  $("requestBackdrop").addEventListener("click", (e) => {
-    if (e.target === $("requestBackdrop")) closeRequestModal();
-  });
+  $("closeRequestModalBtn").addEventListener("click",closeRequestModal);
+  $("cancelRequestBtn").addEventListener("click",closeRequestModal);
+  $("sendRequestBtn").addEventListener("click",sendRequest);
+  $("requestBackdrop").addEventListener("click",e=>{ if(e.target===$("requestBackdrop")) closeRequestModal(); });
+  $("refreshBtn").addEventListener("click",async()=>{ await loadMentors(); renderMatches(); showToast("Matches refreshed"); });
+  $("reloadReqBtn").addEventListener("click",async()=>{ await loadRequests(); renderMatches(); showToast("Updated"); });
+  $("signOutBtn").addEventListener("click",async()=>{ try{ await sb.auth.signOut(); window.location.replace("auth.html?mode=signin"); }catch(err){ console.error(err); showToast("Could not sign out"); } });
 
-  $("refreshBtn").addEventListener("click", async () => {
+  async function loadMentorshipProgress(){
+    const {data:requests}=await sb.from("mentorship_requests").select("id").eq("mentee_id",currentUser.id).eq("status","accepted");
+    if(!requests||!requests.length){ $("mentorshipPct").textContent="0%"; $("mentorshipBar").style.width="0%"; return; }
+    const requestIds=requests.map(r=>r.id);
+    const {data:progressRows}=await sb.from("mentorship_progress").select("progress_percent,request_id").in("request_id",requestIds);
+    if(!progressRows||!progressRows.length){ $("mentorshipPct").textContent="0%"; $("mentorshipBar").style.width="0%"; return; }
+    const avg=Math.round(progressRows.reduce((sum,row)=>sum+(row.progress_percent||0),0)/progressRows.length);
+    $("mentorshipPct").textContent=avg+"%"; $("mentorshipBar").style.width=avg+"%";
+  }
+
+  async function loadSessions(){
+    const {data}=await sb.from("sessions").select("*").eq("mentee_id",currentUser.id).order("scheduled_for",{ascending:false});
+    if(!data||!data.length) return;
+    const next=data[0];
+    $("upcomingSessions").innerHTML=`
+      <div style="padding:12px;border:1px solid var(--line);border-radius:var(--radius-sm);background:#fff">
+        <div style="font-weight:700;font-size:13px">Next session</div>
+        <div style="color:var(--muted);font-size:12px;margin-top:4px">${new Date(next.scheduled_for).toLocaleString()}</div>
+        <div style="color:var(--muted);font-size:12px;margin-top:2px">Duration: ${next.duration_minutes} minutes</div>
+        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+          <a class="mh-btn mh-btn-primary mh-btn-sm" href="${next.meeting_link}" target="_blank">Join meeting</a>
+          <a class="mh-btn mh-btn-sm" href="sessions.html">Open sessions</a>
+        </div>
+      </div>`;
+  }
+
+  window.addEventListener("load", async () => {
+    const ok = await guardAuth();
+    if(!ok) return;
+    menteeProfile = await ensureMenteeProfile();
+    await loadMenteeProfile();
+    await new Promise(r=>setTimeout(r,120));
     await loadMentors();
-    renderMatches();
-    showToast("Matches refreshed");
-  });
-
-  $("reloadReqBtn").addEventListener("click", async () => {
     await loadRequests();
+    await loadMentorshipProgress();
+    await loadSessions();
     renderMatches();
-    showToast("Requests updated");
   });
-
-  $("signOutBtn").addEventListener("click", async () => {
-    try{
-      if (!sb) return;
-      await sb.auth.signOut();
-      window.location.replace("auth.html?mode=signin");
-    }catch(err){
-      console.error("Logout error:", err);
-      showToast("Could not sign out");
-    }
-  });
-async function loadMentorshipProgress(){
-
-  /* get ALL accepted requests for this mentee */
-
-  const { data: requests, error: reqError } = await sb
-    .from("mentorship_requests")
-    .select("id")
-    .eq("mentee_id", currentUser.id)
-    .eq("status","accepted");
-
-  if(reqError){
-    console.error(reqError);
-    return;
-  }
-
-  if(!requests || requests.length === 0){
-
-    $("mentorshipPct").textContent = "0%";
-    $("mentorshipBar").style.width = "0%";
-    return;
-
-  }
-
-  /* collect request ids */
-
-  const requestIds = requests.map(r => r.id);
-
-  /* fetch progress linked to those requests */
-
-  const { data: progressRows, error } = await sb
-    .from("mentorship_progress")
-    .select("progress_percent, request_id")
-    .in("request_id", requestIds);
-
-  if(error){
-    console.error(error);
-    return;
-  }
-
-  console.log("progress rows", progressRows);
-
-  if(!progressRows || progressRows.length === 0){
-
-    $("mentorshipPct").textContent = "0%";
-    $("mentorshipBar").style.width = "0%";
-    return;
-
-  }
-
-  /* calculate average progress */
-
-  const avg = Math.round(
-
-    progressRows.reduce((sum,row)=>
-
-      sum + (row.progress_percent || 0)
-
-    ,0)
-
-    / progressRows.length
-
-  );
-
-  $("mentorshipPct").textContent = avg + "%";
-  $("mentorshipBar").style.width = avg + "%";
-
-}
-
-
-/* ---------------- NEW FUNCTION ADDED ---------------- */
-
-async function loadSessions(){
-
-  const { data, error } = await sb
-    .from("sessions")
-    .select("*")
-    .eq("mentee_id", currentUser.id)
-    .order("scheduled_for",{ascending:false}); // FIXED
-
-  if(error){
-    console.error(error);
-    return;
-  }
-
-  if(!data || data.length === 0){
-    return;
-  }
-
-  const next = data[0];
-
-  const box = document.getElementById("upcomingSessions");
-
-  box.innerHTML = `
-
-<div style="
-border:1px solid #e5e7eb;
-border-radius:14px;
-padding:14px;
-background:#fff;
-">
-
-<b>Next session</b>
-
-<div class="muted" style="margin-top:6px">
-${new Date(next.scheduled_for).toLocaleString()}
-</div>
-
-<div class="muted small" style="margin-top:6px">
-Duration: ${next.duration_minutes} minutes
-</div>
-
-<div style="
-margin-top:16px;
-display:flex;
-gap:10px;
-flex-wrap:wrap;
-">
-
-<a class="btn solid" href="${next.meeting_link}" target="_blank">
-Join meeting
-</a>
-
-<a class="btn" href="sessions.html">
-Open sessions
-</a>
-
-</div>
-
-</div>
-
-`;
-
-}
-
-
-/* ---------------- ONLY 1 LINE ADDED BELOW ---------------- */
-
-window.addEventListener("load", async () => {
-
-const ok = await guardAuth();
-if (!ok) return;
-
-/* ensure profile exists first */
-menteeProfile = await ensureMenteeProfile();
-
-await loadMenteeProfile();
-
-/* small delay helps Supabase finish syncing */
-await new Promise(r => setTimeout(r,120));
-
-await loadMentors();
-await loadRequests();
-
-await loadMentorshipProgress();
-await loadSessions();
-
-/* NOW render */
-renderMatches();
-
-});
 </script>
 </body>
 </html>

@@ -734,48 +734,31 @@ const request_id = insertedRequest?.id;
     }
 
     console.log("Mentor email:", mentor?.email);
-
-    // ✅ 3. CALL EDGE FUNCTION (SEND EMAIL)
     
-   if (mentor?.email) {
-  try {
+    // ✅ SIMPLE EMAIL NOTIFICATION (MAILTO)
+if (mentor?.email) {
 
-    console.log("🚀 Calling Edge Function...");
-    console.log("Sending email to:", mentor.email);
-    console.log("Request ID:", request_id);
+  const subject = encodeURIComponent("New Mentorship Request");
 
-    const res = await fetch(
-      "https://mscgaaaobxiuzqsukvjc.supabase.co/functions/v1/notify-mentor",
-      {
-        method: "POST",
-        headers: {
-  "Content-Type": "application/json",
-  "apikey": SUPABASE_ANON_KEY,
-  "Authorization": `Bearer ${SUPABASE_ANON_KEY}`
-        },
-        body: JSON.stringify({
-          mentor_email: mentor.email,
-          mentee_name:
-            USER?.user_metadata?.full_name ||
-            USER?.email ||
-            "A mentee",
-          request_id: request_id
-        })
-      }
-    );
-    console.log("Response status:", res.status);
+  const body = encodeURIComponent(
+`Hello,
 
-    if (!res.ok) {
-      const errText = await res.text();
-      console.error("❌ Email failed:", errText);
-    } else {
-      const data = await res.json();
-      console.log("✅ Email success:", data);
-    }
+You have a new mentorship request on MentifyHub.
 
-  } catch (notifyErr) {
-    console.error("Email send error:", notifyErr);
-  }
+Mentee: ${USER.email}
+
+Message:
+${msg}
+
+View request:
+https://mentifyhub.com/mentor-dashboard.html?request_id=${request_id}
+`
+  );
+
+  window.open(
+    `mailto:${mentor.email}?subject=${subject}&body=${body}`,
+    "_blank"
+  );
 }
 
         REQUESTED.add(CURRENT.user_id);

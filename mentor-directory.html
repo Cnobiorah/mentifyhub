@@ -568,7 +568,7 @@ class="avatar"
 
 <button class="btn primary"
 ${already ? "disabled" : ""}
-onclick="openRequestModal('${m.user_id}','${name}')">
+onclick='openModal(${JSON.stringify(m).replace(/"/g, "&quot;")})'
 
 ${already ? "Requested" : "Request"}
 
@@ -686,6 +686,9 @@ View profile
     }
 
     async function sendRequest(){
+      
+       console.log("CURRENT:", CURRENT);
+
       if(!sb) { alert("Add Supabase keys first."); return; }
       if(!USER || !CURRENT) return;
 
@@ -734,37 +737,46 @@ const request_id = insertedRequest?.id;
 
     // ✅ 3. CALL EDGE FUNCTION (SEND EMAIL)
     
-    if (mentor?.email) {
-      try {
-        
-   const res = await fetch(
-  "https://mscgaaaobxiuzqsukvjc.supabase.co/functions/v1/notify-mentor",
-  {
-    method: "POST",
-    mode: "cors",
-    headers: {
-      "Content-Type": "application/json",
-      "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y",
-      "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y"
-    },
-    body: JSON.stringify({
-  mentor_email: mentor.email,
-  mentee_name:
-    USER?.user_metadata?.full_name ||
-    USER?.email ||
-    "A mentee",
-  request_id: request_id
-})
-  }
-);
+   if (mentor?.email) {
+  try {
 
-const data = await res.json();
-console.log("Email response:", data);
+    console.log("🚀 Calling Edge Function...");
+    console.log("Sending email to:", mentor.email);
+    console.log("Request ID:", request_id);
 
-      } catch (notifyErr) {
-        console.error("Email send error:", notifyErr);
+    const res = await fetch(
+      "https://mscgaaaobxiuzqsukvjc.supabase.co/functions/v1/notify-mentor",
+      {
+        method: "POST",
+        headers: {
+  "Content-Type": "application/json",
+  "apikey": SUPABASE_ANON_KEY,
+  "Authorization": `Bearer ${SUPABASE_ANON_KEY}`
+        },
+        body: JSON.stringify({
+          mentor_email: mentor.email,
+          mentee_name:
+            USER?.user_metadata?.full_name ||
+            USER?.email ||
+            "A mentee",
+          request_id: request_id
+        })
       }
+    );
+    console.log("Response status:", res.status);
+
+    if (!res.ok) {
+      const errText = await res.text();
+      console.error("❌ Email failed:", errText);
+    } else {
+      const data = await res.json();
+      console.log("✅ Email success:", data);
     }
+
+  } catch (notifyErr) {
+    console.error("Email send error:", notifyErr);
+  }
+}
 
         REQUESTED.add(CURRENT.user_id);
         toast("Request sent!");

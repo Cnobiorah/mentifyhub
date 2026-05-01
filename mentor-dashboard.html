@@ -362,10 +362,11 @@
 
     els.list.querySelectorAll(".req-card").forEach(card => {
       const id = card.getAttribute("data-id");
+      const requestRow = requests.find(r => r.id === id);
       card.querySelectorAll("button[data-act]").forEach(btn => {
         btn.addEventListener("click", async () => {
           const nextStatus = btn.getAttribute("data-act")==="accept" ? "accepted" : "declined";
-          await updateRequestStatus(id, nextStatus, btn, user, r);
+          await updateRequestStatus(id, nextStatus, btn, user, requestRow);
         });
       });
     });

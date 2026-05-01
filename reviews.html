@@ -240,7 +240,7 @@
     $("sessionList").innerHTML=SESSIONS.map(s=>{
       const reviewed=REVIEWED_IDS.has(s.id);
       return `
-        <div class="session-card ${reviewed?"opacity:0.6":""}" onclick="selectSession('${s.id}')">
+        <div class="session-card" style="${reviewed?"opacity:0.65;pointer-events:none":""}" onclick="selectSession('${s.id}')">
           <div style="display:flex;justify-content:space-between;align-items:flex-start">
             <div>
               <b>${fmt(s.scheduled_for)}</b>
@@ -265,7 +265,7 @@
     $("reviewSessionLabel").textContent=fmt(SELECTED?.scheduled_for);
     $("reviewForm").style.display="block";
     $("reviewForm").scrollIntoView({behavior:"smooth",block:"start"});
-    document.querySelectorAll(".session-card").forEach(c=>c.classList.toggle("active",c.onclick.toString().includes(id)));
+    document.querySelectorAll(".session-card").forEach(c=>c.classList.toggle("active",c.getAttribute("onclick")?.includes(id)||false));
   }
   window.selectSession=selectSession;
 

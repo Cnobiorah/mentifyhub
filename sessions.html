@@ -190,7 +190,7 @@
   function openRequest(id){
     CURRENT=REQUESTS.find(r=>r.id===id);
     document.querySelectorAll(".req-item").forEach(el=>{
-      el.classList.toggle("active", el.textContent.includes(id.substring(0,6)));
+      el.classList.toggle("active", el.getAttribute("onclick")?.includes(id)||false);
     });
     $("sessionEmpty").style.display="none";
     $("sessionPane").style.display="block";

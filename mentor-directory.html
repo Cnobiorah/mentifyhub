@@ -302,6 +302,17 @@
       const {data:insertedRequest,error}=await sb.from(TABLES.requests).insert(payload).select().single();
       if(error) throw error;
       const request_id=insertedRequest?.id;
+
+      // In-app notification for mentor
+      await sb.from("notifications").insert({
+        user_id:    CURRENT.user_id,
+        title:      "New mentorship request",
+        message:    `${USER?.email || "A mentee"} has sent you a mentorship request.`,
+        type:       "request",
+        is_read:    false,
+        request_id: request_id||null
+      });
+
       const {data:mentor}=await sb.from("mentors").select("email,full_name").eq("user_id",CURRENT.user_id).single();
       if(mentor?.email){
         try{

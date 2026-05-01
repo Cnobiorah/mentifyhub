@@ -403,8 +403,39 @@
       const maxSlots=Number(mentorRow?.active_slots||1);
       const {count:acceptedCount}=await sb.from(TABLES.requests).select("*",{count:"exact",head:true}).eq("mentor_id",requestTarget.mentorId).eq("status","accepted");
       if((acceptedCount||0)>=maxSlots){ showToast("This mentor has no open slots right now."); return; }
-      const {error}=await sb.from(TABLES.requests).insert({mentee_id:currentUser.id,mentor_id:requestTarget.mentorId,message:msg,status:"pending"});
+      const {data:insertedReq, error}=await sb.from(TABLES.requests).insert({mentee_id:currentUser.id,mentor_id:requestTarget.mentorId,message:msg,status:"pending"}).select().single();
       if(error) throw error;
+
+      // 1. Create in-app notification for the mentor
+      await sb.from("notifications").insert({
+        user_id:   requestTarget.mentorId,
+        title:     "New mentorship request",
+        message:   `${currentUser.user_metadata?.full_name || currentUser.email || "A mentee"} has sent you a mentorship request.`,
+        type:      "request",
+        is_read:   false,
+        request_id: insertedReq?.id || null
+      });
+
+      // 2. Send email notification via edge function
+      try{
+        const {data:mentorRow} = await sb.from(TABLES.mentors).select("email,full_name").eq("user_id", requestTarget.mentorId).maybeSingle();
+        if(mentorRow?.email){
+          await fetch("https://mscgaaaobxiuzqsukvjc.supabase.co/functions/v1/notify-mentor", {
+            method: "POST",
+            headers: {
+              "Content-Type":  "application/json",
+              "apikey":        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y",
+              "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y"
+            },
+            body: JSON.stringify({
+              mentor_email: mentorRow.email,
+              mentee_name:  currentUser.user_metadata?.full_name || currentUser.email,
+              request_id:   insertedReq?.id
+            })
+          });
+        }
+      }catch(emailErr){ console.error("Email notification error:", emailErr); }
+
       showToast("Request sent ✓");
       closeRequestModal();
       await loadRequests();

@@ -59,10 +59,66 @@
     }
     .tip b { display: block; color: var(--text); margin-bottom: 4px; font-size: 13px; }
 
+    /* Bell / notifications */
+    .bell-wrap { position: relative; }
+    .bell-btn {
+      width: 38px; height: 38px; border-radius: 12px;
+      border: 1px solid var(--line); background: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 17px; cursor: pointer; transition: box-shadow .15s ease;
+      position: relative;
+    }
+    .bell-btn:hover { box-shadow: var(--shadow); }
+    .bell-badge {
+      position: absolute; top: -5px; right: -5px;
+      width: 18px; height: 18px; border-radius: 50%;
+      background: #ef4444; color: #fff;
+      font-size: 10px; font-weight: 800;
+      display: none; align-items: center; justify-content: center;
+      border: 2px solid #fff;
+    }
+    .notif-panel {
+      position: absolute; top: calc(100% + 10px); right: 0;
+      width: 340px; background: #fff;
+      border: 1px solid var(--line); border-radius: var(--radius);
+      box-shadow: var(--shadow-lg); z-index: 50;
+      display: none; overflow: hidden;
+    }
+    .notif-panel.open { display: block; animation: mh-modal-in .15s ease; }
+    .notif-head {
+      padding: 12px 16px; border-bottom: 1px solid var(--line);
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 13px; font-weight: 700;
+    }
+    .notif-list { max-height: 360px; overflow-y: auto; }
+    .notif-item {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 12px 16px; border-bottom: 1px solid var(--line);
+      transition: background .1s ease; cursor: pointer;
+    }
+    .notif-item:last-child { border-bottom: none; }
+    .notif-item:hover { background: var(--soft); }
+    .notif-item.unread { background: rgba(29,78,216,.04); }
+    .notif-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      flex-shrink: 0; margin-top: 5px;
+    }
+    .notif-item.unread .notif-dot { background: var(--accent2); }
+    .notif-item:not(.unread) .notif-dot { background: var(--line); }
+    .notif-body b     { display: block; font-size: 13px; font-weight: 700; color: var(--text); }
+    .notif-body span  { display: block; font-size: 12px; color: var(--muted); margin-top: 2px; line-height: 1.4; }
+    .notif-body small { display: block; font-size: 11px; color: var(--subtle); margin-top: 4px; }
+    .notif-empty { padding: 24px; text-align: center; font-size: 13px; color: var(--muted); }
+    .notif-footer {
+      padding: 10px 16px; border-top: 1px solid var(--line);
+      background: var(--soft); text-align: center;
+    }
+
     @media (max-width: 980px) {
       .layout { grid-template-columns: 1fr; }
       .sticky-side { position: static; }
       .stats-row { grid-template-columns: repeat(2, 1fr); }
+      .notif-panel { width: 300px; right: -60px; }
     }
   </style>
 </head>
@@ -84,6 +140,27 @@
       <a class="mh-btn" href="messages.html">Messages</a>
       <a class="mh-btn" href="sessions.html">Sessions</a>
       <a class="mh-btn" href="mentor-onboarding.html">Edit profile</a>
+
+      <!-- Notification bell -->
+      <div class="bell-wrap">
+        <button class="bell-btn" id="bellBtn" type="button" title="Notifications">
+          🔔
+          <span class="bell-badge" id="bellBadge"></span>
+        </button>
+        <div class="notif-panel" id="notifPanel">
+          <div class="notif-head">
+            <span>Notifications</span>
+            <button class="mh-btn mh-btn-sm mh-btn-ghost" id="markAllBtn" type="button">Mark all read</button>
+          </div>
+          <div class="notif-list" id="notifList">
+            <div class="notif-empty">Loading…</div>
+          </div>
+          <div class="notif-footer">
+            <button class="mh-btn mh-btn-sm mh-btn-ghost" id="refreshNotifBtn" type="button">Refresh</button>
+          </div>
+        </div>
+      </div>
+
       <button class="mh-btn mh-btn-danger" id="signOutBtn" type="button">Sign out</button>
     </nav>
   </header>
@@ -313,6 +390,113 @@
     els.statProgress.textContent = (data && data.length ? data[0].progress_percent : 0) + "%";
   }
 
+  // ── Notifications ─────────────────────────────────────────────
+  const bellBtn        = document.getElementById("bellBtn");
+  const bellBadge      = document.getElementById("bellBadge");
+  const notifPanel     = document.getElementById("notifPanel");
+  const notifList      = document.getElementById("notifList");
+  const markAllBtn     = document.getElementById("markAllBtn");
+  const refreshNotifBtn= document.getElementById("refreshNotifBtn");
+
+  let NOTIFS = [];
+
+  function fmtNotifTime(iso){
+    try{
+      const d = new Date(iso);
+      const now = new Date();
+      const diff = Math.floor((now - d) / 1000);
+      if(diff < 60)   return "just now";
+      if(diff < 3600) return Math.floor(diff/60) + "m ago";
+      if(diff < 86400)return Math.floor(diff/3600) + "h ago";
+      return d.toLocaleDateString(undefined,{month:"short",day:"numeric"});
+    }catch{ return ""; }
+  }
+
+  async function loadNotifications(user){
+    const { data, error } = await sb
+      .from("notifications")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(30);
+
+    if(error){ console.error(error); return; }
+    NOTIFS = data || [];
+    renderNotifications();
+    updateBadge();
+  }
+
+  function renderNotifications(){
+    if(!NOTIFS.length){
+      notifList.innerHTML = `<div class="notif-empty">No notifications yet.<br/>Requests will appear here.</div>`;
+      return;
+    }
+    notifList.innerHTML = NOTIFS.map(n => `
+      <div class="notif-item ${n.is_read ? "" : "unread"}" data-id="${n.id}" onclick="markRead('${n.id}')">
+        <div class="notif-dot"></div>
+        <div class="notif-body">
+          <b>${escapeHtml(n.title || "New notification")}</b>
+          <span>${escapeHtml(n.message || "")}</span>
+          <small>${fmtNotifTime(n.created_at)}</small>
+        </div>
+      </div>`).join("");
+  }
+
+  function updateBadge(){
+    const unread = NOTIFS.filter(n => !n.is_read).length;
+    if(unread > 0){
+      bellBadge.textContent = unread > 9 ? "9+" : String(unread);
+      bellBadge.style.display = "flex";
+    } else {
+      bellBadge.style.display = "none";
+    }
+  }
+
+  async function markRead(id){
+    await sb.from("notifications").update({ is_read: true }).eq("id", id);
+    NOTIFS = NOTIFS.map(n => n.id === id ? { ...n, is_read: true } : n);
+    renderNotifications();
+    updateBadge();
+  }
+  window.markRead = markRead;
+
+  async function markAllRead(user){
+    await sb.from("notifications").update({ is_read: true }).eq("user_id", user.id).eq("is_read", false);
+    NOTIFS = NOTIFS.map(n => ({ ...n, is_read: true }));
+    renderNotifications();
+    updateBadge();
+  }
+
+  // Toggle panel
+  bellBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    notifPanel.classList.toggle("open");
+  });
+  document.addEventListener("click", (e) => {
+    if(!bellBtn.contains(e.target) && !notifPanel.contains(e.target)){
+      notifPanel.classList.remove("open");
+    }
+  });
+
+  // Subscribe to real-time new notifications
+  function subscribeNotifications(user){
+    sb.channel("notifications-mentor-" + user.id)
+      .on("postgres_changes", {
+        event:  "INSERT",
+        schema: "public",
+        table:  "notifications",
+        filter: `user_id=eq.${user.id}`
+      }, (payload) => {
+        NOTIFS.unshift(payload.new);
+        renderNotifications();
+        updateBadge();
+        // Flash the bell
+        bellBtn.style.transform = "scale(1.2)";
+        setTimeout(() => bellBtn.style.transform = "", 300);
+      })
+      .subscribe();
+  }
+
   els.signOutBtn.addEventListener("click", async () => {
     if(!sb) return;
     await sb.auth.signOut();
@@ -326,6 +510,10 @@
     await loadMentorDisplayName(user);
     await loadRequests(user);
     await loadProgress(user);
+    await loadNotifications(user);
+    subscribeNotifications(user);
+    markAllBtn.addEventListener("click", () => markAllRead(user));
+    refreshNotifBtn.addEventListener("click", () => loadNotifications(user));
   })();
 </script>
 </body>

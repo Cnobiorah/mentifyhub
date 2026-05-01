@@ -91,6 +91,26 @@
       <a class="mh-btn" href="mentor-directory.html">Browse mentors</a>
       <a class="mh-btn" href="messages.html">Messages</a>
       <a class="mh-btn" href="sessions.html">Sessions</a>
+      <a class="mh-btn" href="reviews.html">⭐ Reviews</a>
+
+      <!-- Notification bell -->
+      <div class="bell-wrap" style="position:relative">
+        <button class="bell-btn" id="bellBtn" type="button" title="Notifications"
+          style="width:38px;height:38px;border-radius:12px;border:1px solid var(--line);background:#fff;display:flex;align-items:center;justify-content:center;font-size:17px;cursor:pointer;position:relative;">
+          🔔
+          <span id="bellBadge" style="display:none;position:absolute;top:-5px;right:-5px;width:18px;height:18px;border-radius:50%;background:#ef4444;color:#fff;font-size:10px;font-weight:800;align-items:center;justify-content:center;border:2px solid #fff;"></span>
+        </button>
+        <div id="notifPanel" style="display:none;position:absolute;top:calc(100% + 10px);right:0;width:340px;background:#fff;border:1px solid var(--line);border-radius:20px;box-shadow:0 20px 48px rgba(15,23,42,.10);z-index:50;overflow:hidden;">
+          <div style="padding:12px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:700;">
+            <span>Notifications</span>
+            <button class="mh-btn mh-btn-sm" id="markAllBtn" type="button">Mark all read</button>
+          </div>
+          <div id="notifList" style="max-height:360px;overflow-y:auto;"></div>
+          <div style="padding:10px 16px;border-top:1px solid var(--line);background:var(--soft);text-align:center;">
+            <button class="mh-btn mh-btn-sm" id="refreshNotifBtn" type="button">Refresh</button>
+          </div>
+        </div>
+      </div>
     </nav>
   </header>
 
@@ -489,6 +509,131 @@
       </div>`;
   }
 
+  // ── Notifications ──────────────────────────────────────────
+  let NOTIFS = [];
+
+  function fmtNotifTime(iso){
+    try{
+      const d=new Date(iso), now=new Date(), diff=Math.floor((now-d)/1000);
+      if(diff<60) return "just now";
+      if(diff<3600) return Math.floor(diff/60)+"m ago";
+      if(diff<86400) return Math.floor(diff/3600)+"h ago";
+      return d.toLocaleDateString(undefined,{month:"short",day:"numeric"});
+    }catch{ return ""; }
+  }
+
+  async function loadNotifications(){
+    const {data,error}=await sb.from("notifications").select("*").eq("user_id",currentUser.id).order("created_at",{ascending:false}).limit(30);
+    if(error){ console.error(error); return; }
+    NOTIFS=data||[];
+    renderNotifications();
+    updateBadge();
+  }
+
+  function renderNotifications(){
+    const list=$("notifList");
+    if(!NOTIFS.length){ list.innerHTML=`<div style="padding:24px;text-align:center;font-size:13px;color:var(--muted)">No notifications yet.</div>`; return; }
+    list.innerHTML=NOTIFS.map(n=>`
+      <div onclick="markRead('${n.id}')" style="display:flex;align-items:flex-start;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);cursor:pointer;background:${n.is_read?'#fff':'rgba(29,78,216,.04)'};">
+        <div style="width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px;background:${n.is_read?'var(--line)':'var(--accent2)'}"></div>
+        <div>
+          <b style="display:block;font-size:13px;font-weight:700;color:var(--text)">${esc(n.title||"")}</b>
+          <span style="display:block;font-size:12px;color:var(--muted);margin-top:2px;line-height:1.4">${esc(n.message||"")}</span>
+          <small style="display:block;font-size:11px;color:var(--subtle);margin-top:4px">${fmtNotifTime(n.created_at)}</small>
+        </div>
+      </div>`).join("");
+  }
+
+  function updateBadge(){
+    const unread=NOTIFS.filter(n=>!n.is_read).length;
+    const badge=$("bellBadge");
+    if(unread>0){ badge.textContent=unread>9?"9+":String(unread); badge.style.display="flex"; }
+    else{ badge.style.display="none"; }
+  }
+
+  async function markRead(id){
+    await sb.from("notifications").update({is_read:true}).eq("id",id);
+    NOTIFS=NOTIFS.map(n=>n.id===id?{...n,is_read:true}:n);
+    renderNotifications(); updateBadge();
+  }
+  window.markRead=markRead;
+
+  function subscribeNotifications(){
+    sb.channel("notifs-mentee-"+currentUser.id)
+      .on("postgres_changes",{event:"INSERT",schema:"public",table:"notifications",filter:`user_id=eq.${currentUser.id}`},(payload)=>{
+        NOTIFS.unshift(payload.new);
+        renderNotifications(); updateBadge();
+        const bell=$("bellBtn");
+        bell.style.transform="scale(1.2)";
+        setTimeout(()=>bell.style.transform="",300);
+      }).subscribe();
+  }
+
+  // Bell toggle
+  document.addEventListener("DOMContentLoaded",()=>{
+    const bellBtn=$("bellBtn"), notifPanel=$("notifPanel");
+    if(bellBtn) bellBtn.addEventListener("click",(e)=>{
+      e.stopPropagation();
+      notifPanel.style.display=notifPanel.style.display==="block"?"none":"block";
+    });
+    document.addEventListener("click",(e)=>{
+      if(bellBtn&&!bellBtn.contains(e.target)&&!notifPanel.contains(e.target)) notifPanel.style.display="none";
+    });
+    const markAllBtn=$("markAllBtn");
+    if(markAllBtn) markAllBtn.addEventListener("click",async()=>{
+      await sb.from("notifications").update({is_read:true}).eq("user_id",currentUser.id).eq("is_read",false);
+      NOTIFS=NOTIFS.map(n=>({...n,is_read:true}));
+      renderNotifications(); updateBadge();
+    });
+    const refreshNotifBtn=$("refreshNotifBtn");
+    if(refreshNotifBtn) refreshNotifBtn.addEventListener("click",loadNotifications);
+  });
+
+  // ── Onboarding prompt ──────────────────────────────────────
+  function showOnboardingPrompt(pct){
+    if(pct>=80) return;
+    const banner=document.createElement("div");
+    banner.style.cssText="padding:14px 18px;border-radius:14px;border:1px solid rgba(29,78,216,.20);background:rgba(29,78,216,.06);display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:16px;";
+    banner.innerHTML=`
+      <div>
+        <b style="font-size:14px;font-weight:700;color:var(--accent)">Complete your profile — ${pct}% done</b>
+        <p style="font-size:13px;color:var(--muted);margin-top:3px">A complete profile unlocks accurate mentor matches and makes it easier for mentors to accept your requests.</p>
+      </div>
+      <a class="mh-btn mh-btn-primary" href="mentee-onboarding.html">Finish profile →</a>`;
+    const journeyCard=$("journeyCard");
+    if(journeyCard) journeyCard.parentElement.insertBefore(banner, journeyCard);
+  }
+
+  // ── Progress tracking for mentee ───────────────────────────
+  async function loadMenteeProgressDetails(){
+    const {data:requests}=await sb.from("mentorship_requests").select("id,mentor_id,status").eq("mentee_id",currentUser.id).eq("status","accepted");
+    if(!requests||!requests.length) return;
+    const requestIds=requests.map(r=>r.id);
+    const {data:progressRows}=await sb.from("mentorship_progress").select("*").in("request_id",requestIds).order("updated_at",{ascending:false});
+    if(!progressRows||!progressRows.length) return;
+
+    // Build progress section
+    const section=document.createElement("div");
+    section.className="mh-card mh-card-body";
+    section.style.marginTop="16px";
+    section.innerHTML=`
+      <div class="mh-section-head"><h3>My mentorship progress</h3></div>
+      <div id="progressDetails" style="display:flex;flex-direction:column;gap:10px;margin-top:10px">
+        ${progressRows.map(p=>`
+          <div style="padding:12px;border:1px solid var(--line);border-radius:14px;background:#fff;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+              <b style="font-size:13px;font-weight:700">${new Date(p.updated_at||p.created_at).toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"})}</b>
+              <span class="mh-badge mh-badge-accepted">${p.progress_percent||0}% complete</span>
+            </div>
+            <div class="mh-bar-wrap"><div class="mh-bar-fill" style="width:${p.progress_percent||0}%"></div></div>
+            ${p.notes?`<p style="font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5">${esc(p.notes)}</p>`:""}
+          </div>`).join("")}
+      </div>`;
+
+    const activityCard=$("activityCard");
+    if(activityCard) activityCard.parentElement.insertBefore(section, activityCard);
+  }
+
   window.addEventListener("load", async () => {
     const ok = await guardAuth();
     if(!ok) return;
@@ -499,7 +644,17 @@
     await loadRequests();
     await loadMentorshipProgress();
     await loadSessions();
+    await loadNotifications();
+    await loadMenteeProgressDetails();
+    subscribeNotifications();
     renderMatches();
+
+    // Show onboarding prompt if profile incomplete
+    const pct = menteeProfile ? (function(){
+      const checks=[!!menteeProfile.goal,!!menteeProfile.level,!!menteeProfile.current_role,!!menteeProfile.field_experience_level,!!menteeProfile.preferred_language,!!menteeProfile.field,Array.isArray(menteeProfile.help_needed)?menteeProfile.help_needed.length>=1:!!menteeProfile.help_needed,!!menteeProfile.timeline,!!menteeProfile.preferred_session_type,(menteeProfile.tags||[]).length>=3,!!menteeProfile.country,!!menteeProfile.timezone,!!menteeProfile.availability,!!menteeProfile.communication];
+      return Math.round(checks.filter(Boolean).length/checks.length*100);
+    })() : 0;
+    showOnboardingPrompt(pct);
   });
 </script>
 </body>

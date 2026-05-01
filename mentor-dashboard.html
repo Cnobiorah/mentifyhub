@@ -365,17 +365,58 @@
       card.querySelectorAll("button[data-act]").forEach(btn => {
         btn.addEventListener("click", async () => {
           const nextStatus = btn.getAttribute("data-act")==="accept" ? "accepted" : "declined";
-          await updateRequestStatus(id, nextStatus, btn, user);
+          await updateRequestStatus(id, nextStatus, btn, user, r);
         });
       });
     });
   }
 
-  async function updateRequestStatus(id, status, btn, user){
+  async function updateRequestStatus(id, status, btn, user, requestRow){
     try{
       if(btn){ btn.disabled=true; btn.textContent=status==="accepted"?"Accepting…":"Declining…"; }
       const { error } = await sb.from(TABLES.requests).update({status}).eq("id",id);
       if(error) throw error;
+
+      // Notify the mentee
+      const menteeId = requestRow?.mentee_id;
+      if(menteeId){
+        const mentorName = (await sb.from(TABLES.mentors).select("full_name").eq("user_id",user.id).maybeSingle())?.data?.full_name || "Your mentor";
+        const title   = status==="accepted" ? "Mentorship request accepted! 🎉" : "Mentorship request declined";
+        const message = status==="accepted"
+          ? `${mentorName} has accepted your mentorship request. You can now message them and schedule a session.`
+          : `${mentorName} has declined your mentorship request. You can browse other mentors in the directory.`;
+
+        // In-app notification
+        await sb.from("notifications").insert({
+          user_id:    menteeId,
+          title,
+          message,
+          type:       status,
+          is_read:    false,
+          request_id: id
+        });
+
+        // Email notification
+        try{
+          const { data: menteeRow } = await sb.from(TABLES.mentees).select("email").eq("user_id", menteeId).maybeSingle();
+          if(menteeRow?.email){
+            await fetch("https://mscgaaaobxiuzqsukvjc.supabase.co/functions/v1/notify-mentor", {
+              method: "POST",
+              headers: {
+                "Content-Type":  "application/json",
+                "apikey":        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y",
+                "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y"
+              },
+              body: JSON.stringify({
+                mentor_email: menteeRow.email,
+                mentee_name:  title,
+                request_id:   id
+              })
+            });
+          }
+        }catch(emailErr){ console.error("Email error:", emailErr); }
+      }
+
       await loadRequests(user);
     }catch(error){ console.error(error); showNote(error.message||"Could not update request."); }
   }
@@ -514,6 +555,22 @@
     subscribeNotifications(user);
     markAllBtn.addEventListener("click", () => markAllRead(user));
     refreshNotifBtn.addEventListener("click", () => loadNotifications(user));
+
+    // Onboarding prompt for incomplete mentor profiles
+    try{
+      const {data:m}=await sb.from(TABLES.mentors).select("*").eq("user_id",user.id).maybeSingle();
+      if(m){
+        const checks=[!!m.headline,!!m.current_title,!!m.experience,!!m.years_experience,!!m.bio,!!m.field,(m.best_for||[]).length>=1,(m.tags||[]).length>=3,!!m.preferred_level,!!m.mentorship_style,!!m.session_duration,m.active_slots!=null,!!m.pricing_type,!!m.communication,!!m.country,!!m.timezone,!!m.availability];
+        const pct=Math.round(checks.filter(Boolean).length/checks.length*100);
+        if(pct<80){
+          const banner=document.createElement("div");
+          banner.style.cssText="padding:14px 18px;border-radius:14px;border:1px solid rgba(29,78,216,.20);background:rgba(29,78,216,.06);display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:16px;";
+          banner.innerHTML=`<div><b style="font-size:14px;font-weight:700;color:var(--accent)">Complete your mentor profile — ${pct}% done</b><p style="font-size:13px;color:var(--muted);margin-top:3px">A complete profile helps mentees find and trust you. Finish your profile to improve your match score.</p></div><a class="mh-btn mh-btn-primary" href="mentor-onboarding.html">Finish profile →</a>`;
+          const list=document.getElementById("list");
+          if(list) list.parentElement.insertBefore(banner,list.parentElement.firstChild);
+        }
+      }
+    }catch(e){ console.error(e); }
   })();
 </script>
 </body>

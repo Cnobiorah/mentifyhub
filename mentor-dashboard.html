@@ -397,11 +397,11 @@
           request_id: id
         });
 
-        // Email notification
+        // Email notification to mentee
         try{
           const { data: menteeRow } = await sb.from(TABLES.mentees).select("email").eq("user_id", menteeId).maybeSingle();
           if(menteeRow?.email){
-            await fetch("https://mscgaaaobxiuzqsukvjc.supabase.co/functions/v1/notify-mentor", {
+            await fetch("https://mscgaaaobxiuzqsukvjc.supabase.co/functions/v1/notify-mentee", {
               method: "POST",
               headers: {
                 "Content-Type":  "application/json",
@@ -409,8 +409,9 @@
                 "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y"
               },
               body: JSON.stringify({
-                mentor_email: menteeRow.email,
-                mentee_name:  title,
+                mentee_email: menteeRow.email,
+                mentor_name:  mentorName,
+                status:       status,
                 request_id:   id
               })
             });

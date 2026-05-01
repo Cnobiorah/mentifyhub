@@ -149,6 +149,11 @@
             </select>
           </div>
           <div class="mh-field">
+            <label class="mh-label">Profile photo</label>
+            <input class="mh-input" type="file" id="photo" accept="image/*"/>
+            <p class="help">Upload a clear photo so mentors can put a face to your name.</p>
+          </div>
+          <div class="mh-field">
             <label class="mh-label">LinkedIn / portfolio / CV link</label>
             <input class="mh-input" id="profileLink" placeholder="https://linkedin.com/in/yourname"/>
           </div>
@@ -387,7 +392,17 @@
   async function collectData(){ const data=currentFormState(); data.tags=uniqueNormalized(data.tags); data.help_needed=data.help_needed?[data.help_needed]:[]; return data; }
 
   async function saveToSupabase(user,data){
-    const payload={ user_id:user.id,full_name:(user.user_metadata&&user.user_metadata.full_name)?user.user_metadata.full_name:(user.email||""),email:user.email||null,goal:data.goal||null,goal_text:data.goal_text||null,level:data.level||null,current_role:data.current_role||null,field_experience_level:data.field_experience_level||null,profile_link:data.profile_link||null,preferred_language:data.preferred_language||null,field:data.field||null,subfield:data.subfield||null,help_needed:safeArr(data.help_needed),timeline:data.timeline||null,preferred_session_type:data.preferred_session_type||null,tags:safeArr(data.tags),country:data.country||null,timezone:data.timezone||null,availability:data.availability||null,communication:data.communication||null };
+    let photo_url = null;
+    const file = document.getElementById("photo")?.files?.[0];
+    if(file){
+      const fileName = `${user.id}-${Date.now()}-${file.name}`;
+      const { error: uploadError } = await sb.storage.from("mentor-images").upload(fileName, file);
+      if(!uploadError){
+        const { data: urlData } = sb.storage.from("mentor-images").getPublicUrl(fileName);
+        photo_url = urlData.publicUrl;
+      }
+    }
+    const payload={ user_id:user.id,...(photo_url&&{profile_image:photo_url}),full_name:(user.user_metadata&&user.user_metadata.full_name)?user.user_metadata.full_name:(user.email||""),email:user.email||null,goal:data.goal||null,goal_text:data.goal_text||null,level:data.level||null,current_role:data.current_role||null,field_experience_level:data.field_experience_level||null,profile_link:data.profile_link||null,preferred_language:data.preferred_language||null,field:data.field||null,subfield:data.subfield||null,help_needed:safeArr(data.help_needed),timeline:data.timeline||null,preferred_session_type:data.preferred_session_type||null,tags:safeArr(data.tags),country:data.country||null,timezone:data.timezone||null,availability:data.availability||null,communication:data.communication||null };
     const {error}=await sb.from(TABLES.mentees).upsert(payload,{onConflict:"user_id"});
     if(error) throw error;
   }
@@ -396,6 +411,15 @@
     try{
       const {data,error}=await sb.from(TABLES.mentees).select("*").eq("user_id",user.id).maybeSingle();
       if(error) throw error; if(!data) return false;
+      if(data.profile_image){
+        const photoInput = document.getElementById("photo");
+        if(photoInput){
+          const preview = document.createElement("div");
+          preview.style.cssText = "margin-top:8px;display:flex;align-items:center;gap:10px;";
+          preview.innerHTML = `<img src="${data.profile_image}" style="width:48px;height:48px;border-radius:50%;object-fit:cover;border:1px solid var(--line)"/><span style="font-size:12px;color:var(--muted)">Current photo — upload a new one to replace it</span>`;
+          photoInput.parentElement.appendChild(preview);
+        }
+      }
       document.getElementById("goal").value=data.goal||""; document.getElementById("level").value=data.level||"";
       document.getElementById("goalText").value=data.goal_text||""; document.getElementById("currentRole").value=data.current_role||"";
       document.getElementById("fieldExperienceLevel").value=data.field_experience_level||"";

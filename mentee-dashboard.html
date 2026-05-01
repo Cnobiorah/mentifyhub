@@ -292,7 +292,18 @@
     const name=menteeProfile?.full_name||currentUser.user_metadata?.full_name||currentUser.email||"Welcome";
     $("welcomeName").textContent="Welcome";
     $("welcomeSub").textContent=menteeProfile?name:"Complete onboarding to load your profile";
-    $("avatar").textContent=initialsOf(name,"U");
+    if(menteeProfile?.profile_image){
+      const img=document.createElement("img");
+      img.src=menteeProfile.profile_image;
+      img.style.cssText="width:52px;height:52px;border-radius:18px;object-fit:cover;border:1px solid var(--line);flex-shrink:0;";
+      const av=$("avatar");
+      av.textContent="";
+      av.style.background="none";
+      av.style.border="none";
+      av.appendChild(img);
+    } else {
+      $("avatar").textContent=initialsOf(name,"U");
+    }
     const pct=menteeProfile?calcCompleteness(menteeProfile):0;
     $("completePct").textContent=pct+"%";
     $("completeBar").style.width=pct+"%";

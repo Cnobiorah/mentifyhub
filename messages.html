@@ -287,6 +287,49 @@
       if(error) throw error;
       $("messageBody").value="";
       await loadMessages();
+
+      // Notify the recipient
+      const recipientId = USER.id === CURRENT.mentor_id ? CURRENT.mentee_id : CURRENT.mentor_id;
+      const senderName  = USER.user_metadata?.full_name || USER.email || "Your contact";
+      const preview     = body.length > 100 ? body.slice(0, 100) + "…" : body;
+
+      // 1. In-app bell notification
+      try{
+        await sb.from("notifications").insert({
+          user_id:    recipientId,
+          title:      `New message from ${senderName}`,
+          message:    preview,
+          type:       "message",
+          is_read:    false,
+          request_id: CURRENT.id
+        });
+      }catch(notifErr){ console.error("Notification error:", notifErr); }
+
+      // 2. Email notification
+      try{
+        // Get recipient email
+        const isRecipientMentor = recipientId === CURRENT.mentor_id;
+        const table = isRecipientMentor ? "mentors" : "mentees";
+        const { data: recipientRow } = await sb.from(table).select("email").eq("user_id", recipientId).maybeSingle();
+
+        if(recipientRow?.email){
+          await fetch("https://mscgaaaobxiuzqsukvjc.supabase.co/functions/v1/notify-message", {
+            method: "POST",
+            headers: {
+              "Content-Type":  "application/json",
+              "apikey":        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y",
+              "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y"
+            },
+            body: JSON.stringify({
+              recipient_email: recipientRow.email,
+              sender_name:     senderName,
+              message_preview: preview,
+              request_id:      CURRENT.id
+            })
+          });
+        }
+      }catch(emailErr){ console.error("Email error:", emailErr); }
+
     }catch(e){ console.error(e); alert(e.message||"Could not send message"); }
     finally{ btn.disabled=false; btn.textContent="Send"; }
   }

@@ -350,8 +350,8 @@
       if(error) throw error;
       try{ await sb.from(TABLES.profiles).upsert({ user_id:data.user?.id, role, full_name:fullName, email },{ onConflict:'user_id' }); }catch(_){}
       setBusy(false);
-      setNote('success','Check your email! 📧','We sent a confirmation link to ' + email + '. Click it to activate your account, then come back to sign in.');
       setMode('signin');
+      showConfirmPopup(email);
     }catch(err){
       setBusy(false);
       const msg = String(err?.message||'').toLowerCase();
@@ -389,6 +389,41 @@
       setNote('success','Reset email sent','Check your inbox to reset your password.');
     }catch(err){ setNote('error','Error', err.message); }
   };
+</script>
+
+<!-- Email confirmation popup -->
+<div id="confirmPopup" style="display:none;position:fixed;inset:0;z-index:100;background:rgba(15,23,42,.55);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#fff;border-radius:24px;border:1px solid var(--line);box-shadow:0 20px 60px rgba(15,23,42,.15);width:100%;max-width:400px;overflow:hidden;animation:mh-modal-in .2s ease;">
+    <div style="background:linear-gradient(160deg,#1d4ed8,#0b3b89);padding:28px;text-align:center;">
+      <div style="font-size:44px;margin-bottom:10px;">📧</div>
+      <h2 style="color:#fff;font-size:20px;font-weight:800;margin:0 0 6px;letter-spacing:-.2px;">Check your inbox!</h2>
+      <p style="color:rgba(255,255,255,.78);font-size:13px;margin:0;">A confirmation link is on its way</p>
+    </div>
+    <div style="padding:24px 28px;">
+      <p style="font-size:14px;color:var(--muted);line-height:1.7;margin:0 0 6px;">We sent a confirmation email to:</p>
+      <p id="confirmEmail" style="font-size:14px;font-weight:700;color:var(--text);margin:0 0 16px;word-break:break-all;"></p>
+      <p style="font-size:13px;color:var(--muted);line-height:1.6;margin:0 0 20px;">Click the link in the email to activate your account, then come back here to sign in.</p>
+      <div style="background:var(--soft);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:12px;color:var(--muted);margin-bottom:20px;">
+        💡 Can't find it? Check your <b>spam or junk folder</b>.
+      </div>
+      <button onclick="closeConfirmPopup()" class="mh-btn mh-btn-primary mh-btn-full mh-btn-lg" type="button">Got it, I'll check my email</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  function showConfirmPopup(email){
+    document.getElementById('confirmEmail').textContent = email;
+    const popup = document.getElementById('confirmPopup');
+    popup.style.display = 'flex';
+  }
+  function closeConfirmPopup(){
+    document.getElementById('confirmPopup').style.display = 'none';
+  }
+  // Close on backdrop click
+  document.getElementById('confirmPopup').addEventListener('click', function(e){
+    if(e.target === this) closeConfirmPopup();
+  });
 </script>
 </body>
 </html>

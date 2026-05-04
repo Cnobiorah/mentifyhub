@@ -161,7 +161,12 @@
       </div>
       <div class="mh-field">
         <label class="mh-label" for="password">Password</label>
-        <input class="mh-input" id="password" type="password" placeholder="••••••••" autocomplete="current-password"/>
+        <div style="position:relative;">
+          <input class="mh-input" id="password" type="password" placeholder="••••••••" autocomplete="current-password" style="padding-right:42px;"/>
+          <button type="button" id="togglePassword"
+            style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;padding:0;line-height:1;"
+            title="Show/hide password">👁</button>
+        </div>
         <div class="forgot-row">
           <a class="forgot-link" href="#" id="forgotPassword">Forgot password?</a>
         </div>
@@ -357,6 +362,19 @@
       setNote('error','Authentication failed', err?.message||'Check your Supabase keys.');
     }
   };
+
+  // Password toggle
+  document.getElementById('togglePassword').addEventListener('click', () => {
+    const pw = document.getElementById('password');
+    const btn = document.getElementById('togglePassword');
+    if(pw.type === 'password'){
+      pw.type = 'text';
+      btn.textContent = '🙈';
+    } else {
+      pw.type = 'password';
+      btn.textContent = '👁';
+    }
+  });
 
   document.getElementById('forgotPassword').onclick = async (e) => {
     e.preventDefault();

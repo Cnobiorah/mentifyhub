@@ -494,6 +494,107 @@
 
   function updateProfileCompleteness(){ const p=calcProfileCompleteness(currentFormState()); barFill.style.width=p+"%"; pct.textContent=p+"%"; }
 
+  // Required fields per step
+  const REQUIRED = {
+    1: [
+      { id:"headline",    label:"Headline / Role" },
+      { id:"currentTitle",label:"Current title" },
+      { id:"experience",  label:"Mentor level" },
+      { id:"yearsExperience", label:"Years of experience" },
+      { id:"languages",   label:"Preferred language" },
+      { id:"bio",         label:"Short bio" }
+    ],
+    2: [
+      { id:"field", label:"Primary field" }
+    ],
+    3: [
+      { id:"preferredLevel",    label:"Preferred mentee level" },
+      { id:"format",            label:"Mentorship style" },
+      { id:"sessionType",       label:"Preferred session type" },
+      { id:"sessionDuration",   label:"Session duration" },
+      { id:"capacity",          label:"Active mentee slots" },
+      { id:"pricingType",       label:"Pricing" },
+      { id:"communication",     label:"Communication" }
+    ],
+    4: [
+      { id:"country",       label:"Country" },
+      { id:"timezone",      label:"Timezone" },
+      { id:"availability",  label:"Availability" }
+    ]
+  };
+
+  function validateStep(stepNum){
+    const required = REQUIRED[stepNum] || [];
+    const missing = [];
+
+    // Check regular fields
+    required.forEach(({id, label}) => {
+      const el = document.getElementById(id);
+      if(!el) return;
+      const val = el.value.trim();
+      if(!val){
+        missing.push(label);
+        el.style.borderColor = "#ef4444";
+        el.style.boxShadow   = "0 0 0 3px rgba(239,68,68,.14)";
+      } else {
+        el.style.borderColor = "";
+        el.style.boxShadow   = "";
+      }
+    });
+
+    // Step 2 extra: check tags and dropdowns
+    if(stepNum === 2){
+      const tags = Array.from(document.querySelectorAll("#tagbox .tag"));
+      if(tags.length < 3){
+        missing.push("At least 3 expertise tags");
+        document.getElementById("tagbox").style.borderColor = "#ef4444";
+      } else {
+        document.getElementById("tagbox").style.borderColor = "";
+      }
+
+      const bestFor = getDropdownValues("bestForMenu");
+      if(!bestFor.length){
+        missing.push("Who do you help best");
+        document.getElementById("bestForTrigger").style.borderColor = "#ef4444";
+      } else {
+        document.getElementById("bestForTrigger").style.borderColor = "";
+      }
+
+      const areas = getDropdownValues("mentoringAreasMenu");
+      if(!areas.length){
+        missing.push("Mentoring areas");
+        document.getElementById("mentoringAreasTrigger").style.borderColor = "#ef4444";
+      } else {
+        document.getElementById("mentoringAreasTrigger").style.borderColor = "";
+      }
+    }
+
+    if(missing.length){
+      showValidationError(missing);
+      return false;
+    }
+
+    clearValidationError();
+    return true;
+  }
+
+  function showValidationError(missing){
+    let banner = document.getElementById("validationBanner");
+    if(!banner){
+      banner = document.createElement("div");
+      banner.id = "validationBanner";
+      banner.style.cssText = "padding:12px 16px;border-radius:12px;border:1px solid var(--declined-line);background:var(--declined-bg);color:var(--declined-fg);font-size:13px;margin-top:14px;line-height:1.6;";
+      document.querySelector(".form-actions").after(banner);
+    }
+    banner.innerHTML = `<b>Please fill in the following required fields:</b><br/>• ${missing.join("<br/>• ")}`;
+    banner.scrollIntoView({behavior:"smooth", block:"nearest"});
+  }
+
+  function clearValidationError(){
+    const banner = document.getElementById("validationBanner");
+    if(banner) banner.remove();
+  }
+
   function showStep(n){
     current=Math.min(Math.max(n,1),total);
     steps.forEach(s=>s.classList.toggle("hidden",Number(s.dataset.step)!==current));
@@ -501,12 +602,17 @@
     chip.textContent=`Step ${current} of ${total}`;
     backBtn.disabled=current===1;
     nextBtn.textContent=current===total?"Publish profile":"Next →";
+    clearValidationError();
     updateProfileCompleteness();
   }
 
   navItems.forEach(i=>i.addEventListener("click",()=>showStep(Number(i.dataset.nav))));
-  backBtn.addEventListener("click",()=>showStep(current-1));
-  nextBtn.addEventListener("click",()=>{ if(current<total) showStep(current+1); else publishAndRedirect(); });
+  backBtn.addEventListener("click",()=>{ clearValidationError(); showStep(current-1); });
+  nextBtn.addEventListener("click",()=>{
+    if(!validateStep(current)) return;
+    if(current<total) showStep(current+1);
+    else publishAndRedirect();
+  });
   saveBtn.addEventListener("click",saveDraft);
   saveTop.addEventListener("click",saveDraft);
 

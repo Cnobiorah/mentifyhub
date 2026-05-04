@@ -350,7 +350,7 @@
       if(error) throw error;
       try{ await sb.from(TABLES.profiles).upsert({ user_id:data.user?.id, role, full_name:fullName, email },{ onConflict:'user_id' }); }catch(_){}
       setBusy(false);
-      setNote('success','Account created','You can now sign in.');
+      setNote('success','Check your email! 📧','We sent a confirmation link to ' + email + '. Click it to activate your account, then come back to sign in.');
       setMode('signin');
     }catch(err){
       setBusy(false);

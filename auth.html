@@ -332,6 +332,15 @@
       if(mode==='signin'){
         const { data, error } = await sb.auth.signInWithPassword({ email, password });
         if(error) throw error;
+        // Save profile on first sign in
+        try{
+          await sb.from(TABLES.profiles).upsert({
+            user_id:   data.user.id,
+            role:      (data.user.user_metadata?.role || role),
+            full_name: (data.user.user_metadata?.full_name || ""),
+            email:     data.user.email
+          }, { onConflict:'user_id' });
+        }catch(profileErr){ console.error("Profile save error:", profileErr); }
         await routeAfterAuth(data.user);
         setBusy(false);
         return;
@@ -348,7 +357,6 @@
         }
       });
       if(error) throw error;
-      try{ await sb.from(TABLES.profiles).upsert({ user_id:data.user?.id, role, full_name:fullName, email },{ onConflict:'user_id' }); }catch(_){}
       setBusy(false);
       setMode('signin');
       showConfirmPopup(email);

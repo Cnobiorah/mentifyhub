@@ -722,7 +722,11 @@
   async function publishAndRedirect(){
     const user=await requireSession(); if(!user) return;
     const data=await collectData();
-    try{ await saveToSupabase(user,data); localStorage.removeItem("mentor_onboarding_draft"); window.location.href="mentor-dashboard.html"; }
+    try{
+      await saveToSupabase(user,data);
+      localStorage.removeItem("mentor_onboarding_draft");
+      window.location.href="mentor-dashboard.html";
+    }
     catch(e){ console.error(e); alert("Could not publish. Draft saved locally."); }
   }
 

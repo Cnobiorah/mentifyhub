@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MentifyHub — Testing & Feedback Results</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,700;0,9..144,900;1,9..144,400&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --green:#1a7a4a; --green2:#25a562; --green3:#e8f5ee;
+      --dark:#0d1f13; --card:#ffffff; --bg:#f2f7f4;
+      --muted:#6b7c74; --line:#dce8e1; --accent:#ff6b35;
+      --radius:18px;
+      --shadow:0 2px 12px rgba(13,31,19,.07),0 1px 3px rgba(13,31,19,.05);
+      --shadow-lg:0 8px 32px rgba(13,31,19,.10);
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html{scroll-behavior:smooth;}
+    body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--dark);min-height:100vh;}
+
+    /* Hero */
+    .hero{background:var(--dark);padding:48px 40px 44px;position:relative;overflow:hidden;}
+    .hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 700px 400px at 85% 50%,rgba(37,165,98,.16) 0%,transparent 65%),radial-gradient(ellipse 300px 300px at 5% 85%,rgba(26,122,74,.12) 0%,transparent 60%);pointer-events:none;}
+    .hero-inner{max-width:1200px;margin:0 auto;position:relative;z-index:1;}
+    .hero-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:999px;border:1px solid rgba(37,165,98,.35);background:rgba(37,165,98,.10);color:var(--green2);font-size:12px;font-weight:600;letter-spacing:.3px;margin-bottom:18px;}
+    .hero-badge .dot{width:6px;height:6px;border-radius:50%;background:var(--green2);animation:blink 1.5s ease-in-out infinite;}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+    .hero h1{font-family:'Fraunces',serif;font-size:clamp(28px,4vw,52px);font-weight:900;color:#fff;line-height:1.08;letter-spacing:-.5px;margin-bottom:12px;}
+    .hero h1 em{font-style:italic;color:var(--green2);}
+    .hero p{font-size:14px;color:rgba(255,255,255,.58);max-width:520px;line-height:1.65;margin-bottom:28px;}
+    .hero-stats{display:flex;gap:32px;flex-wrap:wrap;}
+    .hero-stat .val{font-family:'Fraunces',serif;font-size:32px;font-weight:900;color:#fff;line-height:1;letter-spacing:-.5px;}
+    .hero-stat .lbl{font-size:11px;color:rgba(255,255,255,.42);margin-top:5px;font-weight:500;}
+    .hero-stat .sub{font-size:10px;color:rgba(255,255,255,.28);margin-top:3px;}
+
+    /* Action bar */
+    .action-bar{background:#fff;border-bottom:1px solid var(--line);padding:12px 40px;}
+    .action-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:space-between;}
+    .action-left{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+    .upload-btn{display:inline-flex;align-items:center;gap:8px;padding:9px 18px;border-radius:10px;border:1.5px dashed var(--green);background:var(--green3);color:var(--green);font-size:13px;font-weight:600;cursor:pointer;transition:background .15s;font-family:inherit;}
+    .upload-btn:hover{background:#d5efe2;}
+    .upload-btn input{display:none;}
+    .download-btn{display:inline-flex;align-items:center;gap:8px;padding:9px 18px;border-radius:10px;border:1px solid rgba(26,122,74,.35);background:rgba(26,122,74,.08);color:var(--green);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;font-family:inherit;}
+    .download-btn:hover{background:rgba(26,122,74,.14);}
+    .download-btn:disabled{opacity:.5;cursor:not-allowed;}
+    .upload-status{font-size:12px;color:var(--muted);}
+    .upload-status.ok{color:var(--green);font-weight:600;}
+    .upload-status.err{color:#dc2626;font-weight:600;}
+
+    /* Main */
+    .main{max-width:1200px;margin:0 auto;padding:32px 40px 60px;}
+    .section-label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1.8px;color:var(--green);margin-bottom:14px;display:flex;align-items:center;gap:10px;}
+    .section-label::after{content:'';flex:1;height:1px;background:var(--line);}
+
+    /* Stat cards */
+    .stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px;}
+    .stat-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);}
+    .stat-card .s-icon{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:17px;margin-bottom:12px;}
+    .stat-card .s-val{font-family:'Fraunces',serif;font-size:28px;font-weight:900;color:var(--dark);line-height:1;letter-spacing:-.5px;}
+    .stat-card .s-lbl{font-size:12px;color:var(--muted);margin-top:5px;font-weight:500;}
+    .stat-card .s-sub{font-size:11px;font-weight:600;margin-top:6px;}
+    .s-green{color:var(--green);} .s-orange{color:var(--accent);} .s-muted{color:var(--muted);}
+
+    /* Chart cards */
+    .chart-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+    .chart-grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:16px;}
+    .chart-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow);}
+    .chart-card h3{font-size:13px;font-weight:800;color:var(--dark);margin-bottom:3px;letter-spacing:-.1px;}
+    .chart-card p{font-size:11px;color:var(--muted);margin-bottom:16px;line-height:1.5;}
+    .chart-wrap{position:relative;}
+
+    /* Issues */
+    .issues-list{display:flex;flex-direction:column;gap:10px;}
+    .issue-label{display:flex;justify-content:space-between;font-size:12px;font-weight:500;color:var(--dark);margin-bottom:5px;}
+    .issue-bar-bg{height:7px;border-radius:999px;background:var(--bg);overflow:hidden;}
+    .issue-bar-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--green2),var(--green));transition:width .6s ease;}
+
+    /* Feed */
+    .feed-box{display:flex;flex-direction:column;gap:10px;max-height:380px;overflow-y:auto;padding-right:4px;}
+    .feed-box::-webkit-scrollbar{width:4px;}
+    .feed-box::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px;}
+    .feed-item{padding:12px 14px 12px 20px;border:1px solid var(--line);border-left:3px solid var(--green2);border-radius:10px;background:#fff;font-size:13px;color:var(--dark);line-height:1.6;}
+    .feed-item-meta{display:flex;gap:8px;margin-top:6px;}
+    .feed-tag{padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;background:var(--green3);color:var(--green);border:1px solid rgba(26,122,74,.15);}
+
+    /* Executive */
+    .exec-card{background:var(--dark);border-radius:var(--radius);padding:26px 30px;margin-bottom:16px;position:relative;overflow:hidden;}
+    .exec-card::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 400px 300px at 90% 50%,rgba(37,165,98,.12) 0%,transparent 70%);pointer-events:none;}
+    .exec-card h2{font-family:'Fraunces',serif;font-size:20px;font-weight:900;color:#fff;margin-bottom:8px;position:relative;}
+    .exec-card p{font-size:13px;color:rgba(255,255,255,.68);line-height:1.75;max-width:820px;position:relative;}
+
+    /* Insights */
+    .insights-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;}
+    .insight-card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow);display:flex;align-items:flex-start;gap:12px;}
+    .insight-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+    .insight-card b{display:block;font-size:12px;font-weight:800;color:var(--dark);margin-bottom:3px;}
+    .insight-card span{font-size:11px;color:var(--muted);line-height:1.5;}
+
+    /* Analysis */
+    .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;}
+    .analysis-card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);}
+    .analysis-card h3{font-size:13px;font-weight:800;margin-bottom:12px;}
+    .analysis-item{display:flex;align-items:flex-start;gap:9px;font-size:12px;color:var(--dark);line-height:1.55;margin-bottom:8px;}
+    .a-bullet{width:18px;height:18px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;margin-top:1px;}
+    .a-green{background:var(--green3);color:var(--green);}
+    .a-orange{background:#fff3e8;color:var(--accent);}
+
+    /* Next steps */
+    .next-steps-card{background:var(--dark);border-radius:var(--radius);padding:24px 28px;margin-bottom:28px;position:relative;overflow:hidden;}
+    .next-steps-card::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 300px 200px at 8% 50%,rgba(37,165,98,.15) 0%,transparent 60%);pointer-events:none;}
+    .next-steps-card h3{font-family:'Fraunces',serif;font-size:18px;font-weight:700;color:#fff;margin-bottom:14px;position:relative;}
+    .ns-list{display:flex;flex-direction:column;gap:10px;position:relative;}
+    .ns-item{display:flex;align-items:flex-start;gap:12px;}
+    .ns-num{width:22px;height:22px;border-radius:7px;background:rgba(37,165,98,.22);border:1px solid rgba(37,165,98,.32);color:var(--green2);font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+    .ns-item span{font-size:13px;color:rgba(255,255,255,.72);line-height:1.6;}
+    .ns-item span b{color:#fff;}
+    .ns-empty{font-size:13px;color:rgba(255,255,255,.35);font-style:italic;position:relative;margin-bottom:12px;}
+    .ns-input-wrap{margin-top:14px;padding:12px 14px;border-radius:10px;border:1px dashed rgba(37,165,98,.32);background:rgba(37,165,98,.05);position:relative;}
+    .ns-input-label{font-size:10px;color:rgba(255,255,255,.38);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+    .ns-input-wrap textarea{width:100%;background:transparent;border:none;outline:none;color:rgba(255,255,255,.78);font-family:inherit;font-size:12px;resize:none;min-height:70px;line-height:1.6;}
+    .ns-input-wrap textarea::placeholder{color:rgba(255,255,255,.25);}
+    .ns-add-btn{margin-top:8px;padding:7px 16px;border-radius:8px;border:1px solid rgba(37,165,98,.38);background:rgba(37,165,98,.14);color:var(--green2);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .15s;}
+    .ns-add-btn:hover{background:rgba(37,165,98,.25);}
+
+    /* Empty */
+    .empty-state{padding:24px;text-align:center;color:var(--muted);font-size:12px;border:1.5px dashed var(--line);border-radius:12px;background:#fff;}
+    .empty-state strong{display:block;font-size:13px;color:var(--dark);margin-bottom:5px;}
+
+    /* Responsive */
+    @media(max-width:1100px){.stat-row{grid-template-columns:repeat(2,1fr);}.chart-grid-3{grid-template-columns:1fr 1fr;}.insights-grid{grid-template-columns:1fr 1fr;}}
+    @media(max-width:768px){.hero,.action-bar,.main{padding-left:18px;padding-right:18px;}.chart-grid-2,.chart-grid-3,.two-col{grid-template-columns:1fr;}.stat-row{grid-template-columns:1fr 1fr;}.insights-grid{grid-template-columns:1fr;}.action-inner{flex-direction:column;align-items:flex-start;}}
+    @media(max-width:480px){.stat-row{grid-template-columns:1fr;}}
+    @media print{.action-bar,.ns-input-wrap,.ns-add-btn{display:none!important;}body{background:#fff!important;}.hero{-webkit-print-color-adjust:exact;print-color-adjust:exact;}.chart-card,.stat-card,.exec-card,.insight-card,.analysis-card,.next-steps-card{break-inside:avoid;}.feed-box{max-height:none!important;overflow:visible!important;}}
+  </style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-badge"><span class="dot"></span> Live testing results — v0.9 Beta</div>
+    <h1>MentifyHub<br/><em>Testing &amp; Feedback</em></h1>
+    <p>Real feedback from real testers. See how people experience the platform, what works, and what needs improving.</p>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="val" id="hTotal">—</div><div class="lbl">Total responses</div></div>
+      <div class="hero-stat"><div class="val" id="hMentors">—</div><div class="lbl">Mentor testers</div></div>
+      <div class="hero-stat"><div class="val" id="hMentees">—</div><div class="lbl">Mentee testers</div></div>
+      <div class="hero-stat"><div class="val" id="hComplete">—</div><div class="lbl">Task completion</div><div class="sub" id="hCompleteSub"></div></div>
+    </div>
+  </div>
+</div>
+
+<div class="action-bar">
+  <div class="action-inner">
+    <div class="action-left">
+      <label class="upload-btn">⬆ Upload Google Forms CSV<input type="file" accept=".csv" id="csvInput"/></label>
+      <span class="upload-status" id="uploadStatus">Upload your exported CSV from Google Forms to populate all charts and analysis</span>
+    </div>
+    <button class="download-btn" id="downloadBtn" onclick="downloadPDF()">⬇ Download Report PDF</button>
+  </div>
+</div>
+
+<div class="main">
+
+  <div class="section-label">Executive Summary</div>
+  <div class="exec-card">
+    <h2>Testing round overview</h2>
+    <p id="execSummary">Upload your CSV to generate an automatic written summary of this testing round based on your real data.</p>
+  </div>
+
+  <div class="section-label">Key Insights</div>
+  <div class="insights-grid" id="insightsGrid">
+    <div class="insight-card"><div class="insight-icon" style="background:#f2f7f4">📊</div><div><b>Awaiting data</b><span>Upload your CSV to see key findings</span></div></div>
+    <div class="insight-card"><div class="insight-icon" style="background:#f2f7f4">📊</div><div><b>Awaiting data</b><span>Upload your CSV to see key findings</span></div></div>
+    <div class="insight-card"><div class="insight-icon" style="background:#f2f7f4">📊</div><div><b>Awaiting data</b><span>Upload your CSV to see key findings</span></div></div>
+  </div>
+
+  <div class="section-label">Overview</div>
+  <div class="stat-row">
+    <div class="stat-card"><div class="s-icon" style="background:#e8f5ee">✅</div><div class="s-val" id="sCompleted">—</div><div class="s-lbl">Completed task fully</div><div class="s-sub s-muted" id="sCompletedSub"></div></div>
+    <div class="stat-card"><div class="s-icon" style="background:#fff3e8">⚡</div><div class="s-val" id="sEase">—</div><div class="s-lbl">Avg ease of use (1–5)</div><div class="s-sub s-muted" id="sEaseSub"></div></div>
+    <div class="stat-card"><div class="s-icon" style="background:#e8f0ff">🎯</div><div class="s-val" id="sOutcome">—</div><div class="s-lbl">Avg task outcome (1–5)</div><div class="s-sub s-muted" id="sOutcomeSub"></div></div>
+    <div class="stat-card"><div class="s-icon" style="background:#fef9e8">💚</div><div class="s-val" id="sWouldUse">—</div><div class="s-lbl">Would use again</div><div class="s-sub s-muted" id="sWouldUseSub"></div></div>
+  </div>
+
+  <div class="section-label">Tester Overview</div>
+  <div class="chart-grid-3">
+    <div class="chart-card"><h3>Tester role</h3><p>Distribution of mentor vs mentee testers</p><div class="chart-wrap" style="height:180px"><canvas id="cRole"></canvas></div></div>
+    <div class="chart-card"><h3>Testing type</h3><p>End-to-end flow vs specific feature testing</p><div class="chart-wrap" style="height:180px"><canvas id="cTestType"></canvas></div></div>
+    <div class="chart-card"><h3>Task completion</h3><p>Did testers complete their task?</p><div class="chart-wrap" style="height:180px"><canvas id="cCompletion"></canvas></div></div>
+  </div>
+
+  <div class="section-label">What Was Tested</div>
+  <div class="chart-grid-2">
+    <div class="chart-card"><h3>Mentor flow — parts tested</h3><p>Features tested by mentor testers</p><div class="chart-wrap" style="height:220px"><canvas id="cMentorFlow"></canvas></div></div>
+    <div class="chart-card"><h3>Mentee flow — parts tested</h3><p>Features tested by mentee testers</p><div class="chart-wrap" style="height:220px"><canvas id="cMenteeFlow"></canvas></div></div>
+  </div>
+
+  <div class="section-label">Quality Ratings</div>
+  <div class="chart-grid-2">
+    <div class="chart-card"><h3>Overall task outcome</h3><p>1 = Completely failed &nbsp;·&nbsp; 5 = Fully successful</p><div class="chart-wrap" style="height:200px"><canvas id="cOutcome"></canvas></div></div>
+    <div class="chart-card"><h3>Ease of completion</h3><p>1 = Very difficult &nbsp;·&nbsp; 5 = Very easy</p><div class="chart-wrap" style="height:200px"><canvas id="cEase"></canvas></div></div>
+  </div>
+  <div class="chart-grid-3">
+    <div class="chart-card"><h3>Interface clarity</h3><p>1 = Very confusing &nbsp;·&nbsp; 5 = Very clear</p><div class="chart-wrap" style="height:190px"><canvas id="cClarity"></canvas></div></div>
+    <div class="chart-card"><h3>Speed rating</h3><p>1 = Very slow &nbsp;·&nbsp; 5 = Very fast</p><div class="chart-wrap" style="height:190px"><canvas id="cSpeed"></canvas></div></div>
+    <div class="chart-card"><h3>Feature value</h3><p>1 = Not valuable &nbsp;·&nbsp; 5 = Very valuable</p><div class="chart-wrap" style="height:190px"><canvas id="cValue"></canvas></div></div>
+  </div>
+
+  <div class="section-label">Issues &amp; Experience</div>
+  <div class="chart-grid-2">
+    <div class="chart-card"><h3>Where did you experience issues?</h3><p>Areas where testers encountered problems</p><div class="issues-list" id="issuesList"><div class="empty-state"><strong>No data yet</strong>Upload your CSV to see issue breakdown</div></div></div>
+    <div class="chart-card"><h3>System performance</h3><p>Speed and responsiveness ratings</p><div class="chart-wrap" style="height:220px"><canvas id="cPerf"></canvas></div></div>
+  </div>
+  <div class="chart-grid-2">
+    <div class="chart-card"><h3>Would you use MentifyHub again?</h3><p>Overall sentiment from testers</p><div class="chart-wrap" style="height:200px"><canvas id="cWouldUse"></canvas></div></div>
+    <div class="chart-card"><h3>Feature value distribution</h3><p>How valuable testers found the features they tested</p><div class="chart-wrap" style="height:200px"><canvas id="cValueDist"></canvas></div></div>
+  </div>
+
+  <div class="section-label">Analysis</div>
+  <div class="two-col">
+    <div class="analysis-card"><h3 style="color:var(--green)">✅ What's Working Well</h3><div id="workingList"><div class="empty-state" style="padding:16px"><strong>No data yet</strong>Upload CSV to generate</div></div></div>
+    <div class="analysis-card"><h3 style="color:var(--accent)">🔧 What Needs Improvement</h3><div id="improvementList"><div class="empty-state" style="padding:16px"><strong>No data yet</strong>Upload CSV to generate</div></div></div>
+  </div>
+
+  <div class="section-label">Tester Feedback</div>
+  <div class="chart-card" style="margin-bottom:16px">
+    <h3>What exactly should be improved?</h3><p>Open-ended feedback from testers — verbatim responses</p>
+    <div class="feed-box" id="feedbackFeed"><div class="empty-state"><strong>No feedback yet</strong>Upload your CSV to see tester comments</div></div>
+  </div>
+
+  <div class="section-label">Tester Goals</div>
+  <div class="chart-card" style="margin-bottom:16px">
+    <h3>What were you trying to achieve in this test?</h3><p>What each tester set out to accomplish</p>
+    <div class="feed-box" id="goalsFeed"><div class="empty-state"><strong>No data yet</strong>Upload your CSV to see tester goals</div></div>
+  </div>
+
+  <div class="section-label">Next Steps</div>
+  <div class="next-steps-card">
+    <h3>🚀 What we're fixing next</h3>
+    <div class="ns-list" id="nsList"></div>
+    <p class="ns-empty" id="nsEmpty">Upload your CSV — priority fixes will be suggested automatically based on your data. You can also add your own below.</p>
+    <div class="ns-input-wrap">
+      <div class="ns-input-label">✏ Add your own next steps — one per line</div>
+      <textarea id="nsInput" placeholder="e.g. Fix messaging notification delay&#10;Shorten onboarding form&#10;Improve mentor filter options"></textarea>
+      <button class="ns-add-btn" onclick="addNextSteps()">✓ Add to next steps</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+function esc(s){ return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function clean(v){ const s=String(v??'').trim(); return ['na','n/a','none','nil',''].includes(s.toLowerCase())?null:s; }
+function cnt(arr,val){ return arr.filter(v=>String(v).trim().toLowerCase()===val.toLowerCase()).length; }
+function cntIn(arr,val){ return arr.filter(v=>String(v).toLowerCase().includes(val.toLowerCase())).length; }
+function avg(arr){ const n=arr.map(v=>parseFloat(v)).filter(v=>!isNaN(v)); return n.length?+(n.reduce((a,b)=>a+b,0)/n.length).toFixed(1):0; }
+function rDist(arr){ return [1,2,3,4,5].map(n=>arr.filter(v=>parseFloat(v)===n).length); }
+function pct(n,d){ return d?Math.round(n/d*100):0; }
+function starsStr(n){ return '★'.repeat(Math.round(n))+'☆'.repeat(5-Math.round(n)); }
+
+Chart.defaults.font.family="'Plus Jakarta Sans',sans-serif";
+Chart.defaults.font.size=11;
+Chart.defaults.color='#6b7c74';
+
+const PAL=['#1a7a4a','#25a562','#52c98a','#8fddb5','#c2edda','#ff6b35','#f5c842','#3b82f6','#8b5cf6','#ec4899'];
+const RC=['#ef4444','#f97316','#f5c842','#84cc16','#22c55e'];
+const RL=['1 – Very poor','2 – Poor','3 – Moderate','4 – Good','5 – Excellent'];
+let CH={};
+function kill(id){ if(CH[id]){ CH[id].destroy(); delete CH[id]; } }
+
+function donut(id,labels,data){
+  kill(id); const ctx=$(id)?.getContext('2d'); if(!ctx) return;
+  CH[id]=new Chart(ctx,{ type:'doughnut',
+    data:{ labels, datasets:[{ data, backgroundColor:PAL, borderWidth:2, borderColor:'#fff' }] },
+    options:{ responsive:true, maintainAspectRatio:false, cutout:'60%',
+      plugins:{ legend:{ position:'bottom', labels:{ padding:10, boxWidth:10, borderRadius:3, font:{size:11} } } } }
+  });
+}
+
+function rBar(id,data){
+  kill(id); const ctx=$(id)?.getContext('2d'); if(!ctx) return;
+  CH[id]=new Chart(ctx,{ type:'bar',
+    data:{ labels:['1','2','3','4','5'],
+      datasets:data.map((v,i)=>({ label:RL[i], data:[0,0,0,0,0].map((_,j)=>j===i?v:0), backgroundColor:RC[i], borderRadius:5, borderSkipped:false })) },
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ display:true, position:'bottom', labels:{ padding:8, boxWidth:10, borderRadius:3, font:{size:10} } },
+        tooltip:{ callbacks:{ label:c=>` ${c.dataset.label}: ${c.raw}` } } },
+      scales:{ x:{ grid:{display:false}, stacked:true }, y:{ grid:{color:'rgba(0,0,0,.04)'}, beginAtZero:true, ticks:{stepSize:1}, stacked:true } } }
+  });
+}
+
+function hBar(id,labels,data){
+  kill(id); const ctx=$(id)?.getContext('2d'); if(!ctx) return;
+  CH[id]=new Chart(ctx,{ type:'bar',
+    data:{ labels, datasets:[{ data, backgroundColor:PAL.slice(0,data.length), borderRadius:5, borderSkipped:false }] },
+    options:{ responsive:true, maintainAspectRatio:false, indexAxis:'y',
+      plugins:{ legend:{display:false} },
+      scales:{ x:{ grid:{color:'rgba(0,0,0,.04)'}, beginAtZero:true, ticks:{stepSize:1} }, y:{ grid:{display:false}, ticks:{font:{size:10}} } } }
+  });
+}
+
+function findCol(rows,kws){
+  if(!rows.length) return [];
+  const keys=Object.keys(rows[0]);
+  const found=keys.find(k=>kws.some(w=>k.toLowerCase().trim().includes(w.toLowerCase())));
+  return found?rows.map(r=>String(r[found]??'').trim()):[];
+}
+
+let REPORT=null, customSteps=[];
+
+function processData(rows){
+  const total=rows.length; if(!total) return;
+  const roles     =findCol(rows,['tester role']);
+  const testType  =findCol(rows,['type of testing']);
+  const flowParts =findCol(rows,['which part of the flow']);
+  const goals     =findCol(rows,['trying to achieve in this test']);
+  const completion=findCol(rows,['did you complete']);
+  const outcome   =findCol(rows,['overall outcome']);
+  const ease      =findCol(rows,['easy was it to complete','how easy']);
+  const clarity   =findCol(rows,['clear and understandable']);
+  const speed     =findCol(rows,['time it took to complete','rate the time']);
+  const perf      =findCol(rows,['system performance']);
+  const issues    =findCol(rows,['experience issues','where did you']);
+  const value     =findCol(rows,['valuable is this feature','how valuable']);
+  const wouldUse  =findCol(rows,['use mentifyhub again','would you use mentifyhub']);
+  const improve   =findCol(rows,['what exactly should be improved','should be improved']);
+
+  const mentors=cnt(roles,'mentor'), mentees=cnt(roles,'mentee');
+  const cYes=cnt(completion,'yes'), cPart=cnt(completion,'partially'), cNo=cnt(completion,'no');
+  const cPct=pct(cYes,total);
+  const aEase=avg(ease), aOut=avg(outcome), aClarity=avg(clarity), aSpeed=avg(speed), aValue=avg(value);
+  const wYes=cnt(wouldUse,'yes'), wMaybe=cnt(wouldUse,'maybe'), wNo=cnt(wouldUse,'no');
+
+  const mFlow=roles.map((r,i)=>r.toLowerCase()==='mentor'?flowParts[i]||'':'');
+  const eFlow=roles.map((r,i)=>r.toLowerCase()==='mentee'?flowParts[i]||'':'');
+
+  // Hero
+  $('hTotal').textContent=total;
+  $('hMentors').textContent=mentors;
+  $('hMentees').textContent=mentees;
+  $('hComplete').textContent=cPct+'%';
+  $('hCompleteSub').textContent=`${cYes} of ${total} completed${cPart>0?` · ${cPart} partial`:''}`;
+
+  // Stats
+  $('sCompleted').textContent=cYes;
+  $('sCompletedSub').textContent=pct(cYes,total)+'% of testers';
+  $('sEase').textContent=aEase;
+  $('sEaseSub').textContent=aEase>=4?'Good ✓':aEase>=3?'Moderate':'Needs work';
+  $('sEaseSub').className=`s-sub ${aEase>=4?'s-green':aEase>=3?'s-muted':'s-orange'}`;
+  $('sOutcome').textContent=aOut;
+  $('sOutcomeSub').textContent=aOut>=4?'Strong ✓':aOut>=3?'Moderate':'Needs work';
+  $('sOutcomeSub').className=`s-sub ${aOut>=4?'s-green':aOut>=3?'s-muted':'s-orange'}`;
+  $('sWouldUse').textContent=wYes;
+  $('sWouldUseSub').textContent=pct(wYes,total)+'% of testers';
+  $('sWouldUseSub').className=`s-sub ${pct(wYes,total)>=70?'s-green':'s-orange'}`;
+
+  // Charts
+  donut('cRole',['Mentor','Mentee'],[mentors,mentees]);
+  donut('cTestType',['End-to-end','Specific feature'],[cntIn(testType,'end'),cntIn(testType,'specific')]);
+  donut('cCompletion',['Yes','Partially','No'],[cYes,cPart,cNo]);
+  donut('cWouldUse',['Yes','Maybe','No'],[wYes,wMaybe,wNo]);
+  donut('cPerf',['Very fast','Slight delay','Noticeable delay','Slow','Very slow'],
+    ['very fast and smooth','slight delay','noticeable delay',' slow','very slow'].map(p=>cntIn(perf,p)));
+  rBar('cOutcome',rDist(outcome)); rBar('cEase',rDist(ease)); rBar('cClarity',rDist(clarity));
+  rBar('cSpeed',rDist(speed)); rBar('cValue',rDist(value)); rBar('cValueDist',rDist(value));
+  const mP=['Create account','Complete onboarding','Review requests','Accept/decline request','Messaging','Sessions','Multiple parts'];
+  const eP=['Create account','Complete onboarding','Find mentor','Send request','Messaging','Sessions','Multiple parts'];
+  hBar('cMentorFlow',mP,mP.map(p=>cntIn(mFlow,p)));
+  hBar('cMenteeFlow',eP,eP.map(p=>cntIn(eFlow,p)));
+
+  // Issues
+  const issueOpts=['No issues','Navigation','Form/input issues','Button/action didn\'t work','Page loading','Matching results','Messaging issue','Scheduling issue','Other'];
+  const issueCounts=issueOpts.map(o=>({label:o,count:cntIn(issues,o.toLowerCase().includes('no issue')?'no issues':o)})).filter(x=>x.count>0);
+  const maxIssue=Math.max(...issueCounts.map(x=>x.count),1);
+  $('issuesList').innerHTML=issueCounts.length?issueCounts.map(({label,count})=>`
+    <div><div class="issue-label"><span>${esc(label)}</span><span style="font-weight:700">${count} (${pct(count,total)}%)</span></div>
+    <div class="issue-bar-bg"><div class="issue-bar-fill" style="width:${Math.round(count/maxIssue*100)}%"></div></div></div>`).join('')
+    :'<div class="empty-state"><strong>No issues reported</strong>All testers had a smooth experience</div>';
+
+  // Feedback
+  const validFb=improve.map((f,i)=>({text:clean(f),role:roles[i]})).filter(x=>x.text&&x.text.length>3);
+  $('feedbackFeed').innerHTML=validFb.length?validFb.map(fb=>`
+    <div class="feed-item">${esc(fb.text)}<div class="feed-item-meta"><span class="feed-tag">${esc(fb.role||'Tester')}</span></div></div>`).join('')
+    :'<div class="empty-state"><strong>No open-ended feedback</strong>No text responses in this dataset</div>';
+
+  // Goals
+  const validGoals=goals.map((g,i)=>({text:clean(g),role:roles[i]})).filter(x=>x.text&&x.text.length>3);
+  $('goalsFeed').innerHTML=validGoals.length?validGoals.map(g=>`
+    <div class="feed-item">${esc(g.text)}<div class="feed-item-meta"><span class="feed-tag">${esc(g.role||'Tester')}</span></div></div>`).join('')
+    :'<div class="empty-state"><strong>No goals data</strong>No goal responses in this dataset</div>';
+
+  // Summary
+  const fbText=improve.join(' ').toLowerCase();
+  const topIssue=issueCounts.filter(x=>!x.label.toLowerCase().includes('no issue')).sort((a,b)=>b.count-a.count)[0];
+  const easeDesc=aEase>=4?'strong':aEase>=3?'moderate':'low';
+  const summary=`v0.9 Beta testing was completed by ${total} tester${total===1?'':'s'} — ${mentors} mentor${mentors===1?'':'s'} and ${mentees} mentee${mentees===1?'':'s'}. Overall task completion was ${cPct>=80?'strong':'moderate'} at ${cPct}%, with ${cYes} tester${cYes===1?'':'s'} completing fully${cPart>0?`, ${cPart} partially,`:''} and ${cNo} unable to complete. Ease of use was rated ${easeDesc} at ${aEase}/5, interface clarity at ${aClarity}/5, and overall task outcome at ${aOut}/5. ${wYes} of ${total} testers (${pct(wYes,total)}%) said they would use MentifyHub again.${topIssue?` The most commonly reported issue was: ${topIssue.label.toLowerCase()}.`:' No major issues were reported.'}`;
+  $('execSummary').textContent=summary;
+
+  // Insights
+  const insights=[
+    { icon:cPct>=70?'✅':'⚠️', bg:cPct>=70?'#e8f5ee':'#fff3e8', title:`${cPct}% task completion`,
+      text:cPct>=80?'Strong — most testers completed their task without issues':cPct>=60?'Moderate — some friction in the flow needs attention':'Low — significant blockers need to be addressed urgently' },
+    { icon:aEase>=4?'🎯':aEase>=3?'🟡':'🔴', bg:aEase>=4?'#e8f0ff':'#fff3e8', title:`${aEase}/5 ease of use`,
+      text:aEase>=4?'Testers found the platform easy to navigate and use':aEase>=3?'Moderate ease — some flows need simplification':'Difficulty was a common theme — UX review needed' },
+    { icon:pct(wYes,total)>=80?'💚':pct(wYes,total)>=60?'💛':'🔴', bg:pct(wYes,total)>=70?'#e8f5ee':'#fff3e8', title:`${pct(wYes,total)}% would use MentifyHub again`,
+      text:pct(wYes,total)>=80?'Very high retention intent — testers are enthusiastic':pct(wYes,total)>=60?'Good sentiment — address key pain points':'Low retention intent — significant improvements needed' },
+  ];
+  $('insightsGrid').innerHTML=insights.map(x=>`<div class="insight-card"><div class="insight-icon" style="background:${x.bg}">${x.icon}</div><div><b>${esc(x.title)}</b><span>${esc(x.text)}</span></div></div>`).join('');
+
+  // Working / improvements
+  const working=[];
+  if(cPct>=70)            working.push(`High task completion rate (${cPct}%) — core flows work as intended`);
+  if(aEase>=4)            working.push(`Ease of use rated ${aEase}/5 — testers find the platform intuitive`);
+  if(aClarity>=4)         working.push(`Interface clarity rated ${aClarity}/5 — design is communicating well`);
+  if(aValue>=4)           working.push(`Feature value rated ${aValue}/5 — testers see clear utility`);
+  if(pct(wYes,total)>=70) working.push(`${pct(wYes,total)}% of testers would use MentifyHub again`);
+  if(!working.length)     working.push('Collect more responses to generate a working analysis');
+
+  const impr=[];
+  if(cPct<80)            impr.push(`Task completion at ${cPct}% — ${cPart+cNo} tester(s) couldn't fully complete`);
+  if(aEase<4)            impr.push(`Ease of use rated ${aEase}/5 — some flows are causing friction`);
+  if(topIssue)           impr.push(`Most reported issue: "${topIssue.label}" — needs to be prioritised`);
+  if(wMaybe>0)           impr.push(`${wMaybe} tester(s) said "maybe" — address their hesitations`);
+  if(wNo>0)              impr.push(`${wNo} tester(s) would not return — review their feedback closely`);
+  if(fbText.includes('onboarding'))     impr.push('Onboarding process mentioned in feedback — consider simplifying');
+  if(fbText.includes('notif'))          impr.push('Notification experience flagged — review delivery speed');
+  if(fbText.includes('ux')||fbText.includes('interface')) impr.push('UX/interface improvements flagged in open feedback');
+  if(!impr.length)       impr.push('No major issues identified — great result!');
+
+  $('workingList').innerHTML=working.map(w=>`<div class="analysis-item"><div class="a-bullet a-green">✓</div><span>${esc(w)}</span></div>`).join('');
+  $('improvementList').innerHTML=impr.map(i=>`<div class="analysis-item"><div class="a-bullet a-orange">!</div><span>${esc(i)}</span></div>`).join('');
+
+  // Auto next steps
+  const autoSteps=[];
+  if(topIssue) autoSteps.push(`<b>Fix top reported issue:</b> ${topIssue.label} — prioritise for next build`);
+  if(cPct<80)  autoSteps.push(`<b>Improve task completion:</b> Review where testers dropped off and simplify those flows`);
+  if(aEase<4)  autoSteps.push(`<b>Ease of use:</b> Conduct a UX review on flows that scored below 4`);
+  if(fbText.includes('onboarding')) autoSteps.push(`<b>Onboarding:</b> Reduce form length or split into clearer steps`);
+  if(fbText.includes('notif'))      autoSteps.push(`<b>Notifications:</b> Review edge function delivery speed and reliability`);
+  autoSteps.push(`<b>Run another round:</b> Collect more responses to validate improvements after fixes`);
+  renderNextSteps(autoSteps);
+
+  REPORT={
+    total,mentors,mentees,cPct,cYes,cPart,cNo,
+    aOut,aEase,aClarity,aSpeed,aValue,
+    wYes,wMaybe,wNo,summary,
+    working,impr,issueCounts,
+    validFb,validGoals,autoSteps,
+    perfCounts:['Very fast and smooth','Slight delay','Noticeable delay','Slow','Very slow / frustrating'].map(p=>({label:p,count:cntIn(perf,p)})).filter(x=>x.count>0),
+  };
+}
+
+function renderNextSteps(autoSteps){
+  const all=[...(autoSteps||REPORT?.autoSteps||[]),...customSteps];
+  $('nsList').innerHTML=all.length?all.map((s,i)=>`<div class="ns-item"><div class="ns-num">${i+1}</div><span>${s}</span></div>`).join(''):'';
+  $('nsEmpty').style.display=all.length?'none':'block';
+}
+
+function addNextSteps(){
+  const raw=$('nsInput').value.trim(); if(!raw) return;
+  customSteps=[...customSteps,...raw.split('\n').map(l=>esc(l.trim())).filter(Boolean)];
+  $('nsInput').value='';
+  renderNextSteps(REPORT?.autoSteps||[]);
+  const btn=document.querySelector('.ns-add-btn');
+  btn.textContent='✓ Added!';
+  setTimeout(()=>btn.textContent='✓ Add to next steps',2000);
+}
+
+$('csvInput').addEventListener('change',function(e){
+  const file=e.target.files[0]; if(!file) return;
+  $('uploadStatus').textContent='Parsing CSV…';
+  $('uploadStatus').className='upload-status';
+  Papa.parse(file,{
+    header:true,skipEmptyLines:true,
+    complete(res){
+      if(!res.data?.length){ $('uploadStatus').textContent='No data found in this CSV file. Please check your export.'; $('uploadStatus').className='upload-status err'; return; }
+      try{ processData(res.data); $('uploadStatus').textContent=`✓ ${res.data.length} responses loaded successfully`; $('uploadStatus').className='upload-status ok'; }
+      catch(err){ console.error(err); $('uploadStatus').textContent='Error processing CSV: '+err.message; $('uploadStatus').className='upload-status err'; }
+    },
+    error(err){ $('uploadStatus').textContent='Could not read file: '+err.message; $('uploadStatus').className='upload-status err'; }
+  });
+});
+
+function downloadPDF(){
+  if(!REPORT){ alert('Please upload your CSV first to generate the report.'); return; }
+  const btn=$('downloadBtn'); btn.textContent='⏳ Generating…'; btn.disabled=true;
+  setTimeout(()=>{ try{ buildPDF(); }catch(e){ console.error(e); alert('PDF generation failed. Please try again.'); } btn.textContent='⬇ Download Report PDF'; btn.disabled=false; },120);
+}
+
+function buildPDF(){
+  const {jsPDF}=window.jspdf;
+  const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  const PW=210,PH=297,ML=14,MR=14,TW=PW-ML-MR;
+  let y=0;
+  const GD=[13,31,19],GR=[26,122,74],G2=[37,165,98],GL=[232,245,238];
+  const GY=[107,124,116],GLT=[242,247,244],WH=[255,255,255],OR=[255,107,53],LN=[220,232,225];
+  const fill=r=>pdf.setFillColor(...r);
+  const draw=r=>pdf.setDrawColor(...r);
+  const tc=r=>pdf.setTextColor(...r);
+  const fw=(n,s)=>{pdf.setFont('helvetica',n);pdf.setFontSize(s);};
+  function checkY(n=20){if(y+n>PH-14){pdf.addPage();y=15;}}
+  function sHead(t){
+    checkY(16); fw('bold',12); tc(GR); pdf.text(t,ML,y); y+=3;
+    draw(GL); pdf.setLineWidth(0.4); pdf.line(ML,y,PW-MR,y); y+=6;
+  }
+  function tRow(cells,widths,ry,bg,hdr=false){
+    fill(bg); pdf.rect(ML,ry,TW,7,'F');
+    draw(LN); pdf.setLineWidth(0.2); pdf.rect(ML,ry,TW,7,'D');
+    fw(hdr?'bold':'normal',8.5); tc(hdr?WH:[51,65,85]);
+    let x=ML; cells.forEach((c,i)=>{pdf.text(String(c??''),x+2.5,ry+4.8);x+=widths[i];});
+  }
+  function simpleTable(headers,rows,widths){
+    const n=Math.max(rows.length,1);
+    checkY(7*(n+1)+4);
+    tRow(headers,widths,y,GD,true); y+=7;
+    if(rows.length){ rows.forEach((row,i)=>{tRow(row,widths,y,i%2===0?WH:GLT);y+=7;}); }
+    else { fill(GLT); pdf.rect(ML,y,TW,7,'F'); fw('italic',8.5); tc(GY); pdf.text('No data available',ML+3,y+4.8); y+=7; }
+    y+=8;
+  }
+
+  // HEADER
+  fill(GD); pdf.rect(0,0,PW,50,'F');
+  fw('bold',22); tc(WH); pdf.text('MentifyHub',ML,17);
+  fw('bold',13); tc(G2); pdf.text('Testing & Feedback Report — v0.9 Beta',ML,26);
+  fw('normal',9); tc(GY); pdf.text('May 2026  ·  Based on uploaded survey data',ML,33);
+  fw('normal',9); tc([155,191,172]);
+  pdf.text(pdf.splitTextToSize('Real feedback from real testers. See how people experience MentifyHub, what works, and what needs improving.',TW),ML,40);
+  y=58;
+
+  // STATS
+  const stats=[{val:REPORT.total,lbl:'Total responses'},{val:REPORT.mentors,lbl:'Mentor testers'},{val:REPORT.mentees,lbl:'Mentee testers'},{val:REPORT.cPct+'%',lbl:'Task completion'},{val:REPORT.wYes+'/'+REPORT.total,lbl:'Would use again'}];
+  const sw=TW/stats.length;
+  fill(GLT); draw(LN); pdf.setLineWidth(0.2); pdf.rect(ML,y,TW,18,'FD');
+  stats.forEach((s,i)=>{
+    const cx=ML+sw*i+sw/2;
+    fw('bold',15); tc(i===3&&REPORT.cPct<70?OR:GR); pdf.text(String(s.val),cx,y+8,{align:'center'});
+    fw('normal',7.5); tc(GY); pdf.text(s.lbl,cx,y+14,{align:'center'});
+    if(i<stats.length-1){draw(LN);pdf.setLineWidth(0.2);pdf.line(ML+sw*(i+1),y+2,ML+sw*(i+1),y+16);}
+  }); y+=24;
+
+  // SUMMARY
+  sHead('Executive Summary');
+  fw('normal',9.5); tc([51,65,85]);
+  const sLines=pdf.splitTextToSize(REPORT.summary,TW);
+  pdf.text(sLines,ML,y); y+=sLines.length*4.5+8;
+
+  // RATINGS
+  sHead('Quality Ratings');
+  simpleTable(['Metric','Score','Stars'],[
+    ['Overall task outcome',REPORT.aOut+'/5',starsStr(REPORT.aOut)],
+    ['Ease of completion',REPORT.aEase+'/5',starsStr(REPORT.aEase)],
+    ['Interface clarity',REPORT.aClarity+'/5',starsStr(REPORT.aClarity)],
+    ['Speed rating',REPORT.aSpeed+'/5',starsStr(REPORT.aSpeed)],
+    ['Feature value',REPORT.aValue+'/5',starsStr(REPORT.aValue)],
+  ],[TW*0.52,TW*0.16,TW*0.32]);
+
+  // COMPLETION
+  sHead('Task Completion Breakdown');
+  simpleTable(['Status','Count','%'],[
+    ['Completed fully',REPORT.cYes,pct(REPORT.cYes,REPORT.total)+'%'],
+    ['Partially completed',REPORT.cPart,pct(REPORT.cPart,REPORT.total)+'%'],
+    ['Did not complete',REPORT.cNo,pct(REPORT.cNo,REPORT.total)+'%'],
+  ],[TW*0.55,TW*0.22,TW*0.23]);
+
+  // PERFORMANCE
+  checkY(40); sHead('System Performance');
+  simpleTable(['Performance Level','Count','%'],
+    REPORT.perfCounts.map(p=>[p.label,p.count,pct(p.count,REPORT.total)+'%']),
+    [TW*0.62,TW*0.2,TW*0.18]);
+
+  // ISSUES
+  checkY(40); sHead('Issues Reported');
+  simpleTable(['Issue Area','Count','%'],
+    REPORT.issueCounts.map(x=>[x.label,x.count,pct(x.count,REPORT.total)+'%']),
+    [TW*0.62,TW*0.2,TW*0.18]);
+
+  // PAGE 2: ANALYSIS
+  pdf.addPage(); y=15;
+  sHead('Analysis');
+  const hw=TW/2-3;
+  fill([240,250,244]); draw([194,237,218]); pdf.setLineWidth(0.4);
+  fw('bold',10); tc(GR); pdf.rect(ML,y,hw,7,'FD'); pdf.text("What's Working Well",ML+3,y+4.8);
+  let wy=y+7;
+  fill([255,248,245]); draw([255,212,194]);
+  fw('bold',10); tc(OR); pdf.rect(ML+hw+6,y,hw,7,'FD'); pdf.text("What Needs Improvement",ML+hw+9,y+4.8);
+  let iy=y+7;
+  REPORT.working.forEach(w=>{
+    const lines=pdf.splitTextToSize('• '+w,hw-6); const rh=lines.length*4+5;
+    fill([240,250,244]); draw([194,237,218]); pdf.rect(ML,wy,hw,rh,'FD');
+    fw('normal',8.5); tc([51,65,85]); pdf.text(lines,ML+3,wy+4); wy+=rh;
+  });
+  REPORT.impr.forEach(im=>{
+    const lines=pdf.splitTextToSize('• '+im,hw-6); const rh=lines.length*4+5;
+    fill([255,248,245]); draw([255,212,194]); pdf.rect(ML+hw+6,iy,hw,rh,'FD');
+    fw('normal',8.5); tc([51,65,85]); pdf.text(lines,ML+hw+9,iy+4); iy+=rh;
+  });
+  y=Math.max(wy,iy)+10;
+
+  // FEEDBACK
+  checkY(30); sHead('Tester Feedback');
+  if(REPORT.validFb.length){
+    REPORT.validFb.forEach((fb,i)=>{
+      const lines=pdf.splitTextToSize('"'+fb.text+'"',TW-8); const rh=lines.length*4.5+9;
+      checkY(rh+10);
+      fill(i%2===0?GLT:WH); pdf.rect(ML,y,TW,rh,'F');
+      fill(G2); pdf.rect(ML,y,2.5,rh,'F');
+      fw('italic',8.5); tc([51,65,85]); pdf.text(lines,ML+6,y+5.5); y+=rh;
+      fw('normal',8); tc(GR); pdf.text('— '+(fb.role||'Tester')+' tester',ML+6,y+4); y+=8;
+    });
+  } else { fw('italic',9); tc(GY); pdf.text('No open-ended feedback in this dataset.',ML,y); y+=10; }
+
+  // GOALS
+  checkY(30); sHead('What Testers Were Trying to Achieve');
+  if(REPORT.validGoals.length){
+    simpleTable(['Role','Goal'],REPORT.validGoals.map(g=>[g.role||'Tester',g.text]),[TW*0.2,TW*0.8]);
+  } else { fw('italic',9); tc(GY); pdf.text('No goals data in this dataset.',ML,y); y+=10; }
+
+  // WOULD USE AGAIN
+  checkY(40); sHead('Would You Use MentifyHub Again?');
+  simpleTable(['Response','Count','%'],[
+    ['Yes',REPORT.wYes,pct(REPORT.wYes,REPORT.total)+'%'],
+    ['Maybe',REPORT.wMaybe,pct(REPORT.wMaybe,REPORT.total)+'%'],
+    ['No',REPORT.wNo,pct(REPORT.wNo,REPORT.total)+'%'],
+  ],[TW*0.55,TW*0.22,TW*0.23]);
+
+  // NEXT STEPS
+  checkY(30); sHead('Next Steps');
+  const allSteps=[...REPORT.autoSteps,...customSteps];
+  if(allSteps.length){
+    allSteps.forEach((step,i)=>{
+      const clean=step.replace(/<b>|<\/b>/g,'');
+      const lines=pdf.splitTextToSize(`${i+1}. ${clean}`,TW-10); const rh=lines.length*4+5;
+      checkY(rh+4);
+      fill(i%2===0?WH:GLT); pdf.rect(ML,y,TW,rh,'F');
+      draw(LN); pdf.rect(ML,y,TW,rh,'D');
+      fw('normal',8.5); tc([51,65,85]); pdf.text(lines,ML+3,y+4); y+=rh;
+    }); y+=8;
+  } else { fw('italic',9); tc(GY); pdf.text('No next steps defined yet.',ML,y); y+=10; }
+
+  // FOOTERS
+  const pages=pdf.internal.getNumberOfPages();
+  for(let p=1;p<=pages;p++){
+    pdf.setPage(p);
+    fill(GD); pdf.rect(0,PH-11,PW,11,'F');
+    fw('normal',7.5); tc([155,191,172]); pdf.text('MentifyHub — Testing & Feedback Report v0.9 Beta · May 2026',PW/2,PH-4.5,{align:'center'});
+    fw('normal',7); tc(GY); pdf.text(`Page ${p} of ${pages}`,PW-MR,PH-4.5,{align:'right'});
+  }
+  pdf.save('MentifyHub-Feedback-Report-v0.9-Beta.pdf');
+}
+</script>
+</body>
+</html>

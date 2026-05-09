@@ -736,5 +736,52 @@
     document.body.style.overflow = '';
   }
 </script>
+
+
+<!-- ── Bottom navigation (mobile) ──────────────── -->
+<nav class="mh-bottom-nav" id="bottomNav" role="navigation" aria-label="Mobile navigation">
+    <a href="#" id="bn-home" class="mh-bottom-nav-item active" onclick="goHome(event)">
+      <span class="bn-icon-wrap"><span class="bn-icon">🏠</span></span>
+      <span class="bn-label">Home</span>
+    </a>
+    <a href="mentor-directory.html" class="mh-bottom-nav-item">
+      <span class="bn-icon-wrap"><span class="bn-icon">🔍</span></span>
+      <span class="bn-label">Find</span>
+    </a>
+    <a href="messages.html" class="mh-bottom-nav-item">
+      <span class="bn-icon-wrap"><span class="bn-icon">💬</span></span>
+      <span class="bn-label">Chat</span>
+    </a>
+    <a href="sessions.html" class="mh-bottom-nav-item">
+      <span class="bn-icon-wrap"><span class="bn-icon">📅</span></span>
+      <span class="bn-label">Sessions</span>
+    </a>
+    <a href="reviews.html" class="mh-bottom-nav-item">
+      <span class="bn-icon-wrap"><span class="bn-icon">⭐</span></span>
+      <span class="bn-label">Reviews</span>
+    </a>
+</nav>
+<script>
+  // Resolve dashboard link based on role
+  (async function() {
+    const el = document.getElementById("bn-home");
+    if(!el) return;
+    try {
+      const sb2 = window.supabase || window.sb;
+      if(!sb2) { el.href = "index.html"; return; }
+      const {data:{session}} = await sb2.auth.getSession();
+      if(!session) { el.href = "auth.html"; return; }
+      const {data:mp} = await sb2.from("mentors").select("user_id").eq("user_id", session.user.id).maybeSingle();
+      el.href = mp ? "mentor-dashboard.html" : "mentee-dashboard.html";
+    } catch(e) { el.href = "mentor-dashboard.html"; }
+  })();
+  function goHome(e) {
+    e.preventDefault();
+    const el = document.getElementById("bn-home");
+    if(el && el.href && el.href !== "#" && !el.href.endsWith("#")) window.location.href = el.href;
+  }
+  // Add body class for bottom-nav padding
+  document.body.classList.add("has-bottom-nav");
+</script>
 </body>
 </html>

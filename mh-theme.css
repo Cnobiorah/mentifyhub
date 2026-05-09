@@ -722,3 +722,333 @@ img { display: block; max-width: 100%; }
   #mobileDrawer { display: none !important; }
   #navOverlay { display: none !important; }
 }
+
+
+/* ══════════════════════════════════════════════════
+   MOBILE ENHANCEMENT v3 — App-like experience
+   ══════════════════════════════════════════════════ */
+
+/* ── Bottom nav bar (mobile only) ───────────────── */
+
+.mh-bottom-nav {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 80;
+  background: rgba(255,255,255,.96);
+  border-top: 1px solid var(--line);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  padding: 8px 4px calc(8px + env(safe-area-inset-bottom));
+  gap: 0;
+  box-shadow: 0 -4px 24px rgba(15,23,42,.08);
+}
+
+.mh-bottom-nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 6px 4px;
+  border-radius: 12px;
+  text-decoration: none;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .2px;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  transition: color .15s ease, background .15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mh-bottom-nav-item .bn-icon {
+  font-size: 20px;
+  line-height: 1;
+  transition: transform .2s cubic-bezier(.34,1.56,.64,1);
+}
+
+.mh-bottom-nav-item.active {
+  color: var(--accent2);
+}
+
+.mh-bottom-nav-item.active .bn-icon {
+  transform: scale(1.15) translateY(-1px);
+}
+
+.mh-bottom-nav-item:active .bn-icon {
+  transform: scale(.92);
+}
+
+/* Active indicator dot */
+.mh-bottom-nav-item.active::after {
+  content: '';
+  display: block;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--accent2);
+  position: absolute;
+  bottom: 6px;
+}
+
+/* Pill highlight for active */
+.mh-bottom-nav-item.active .bn-icon-wrap {
+  background: rgba(29,78,216,.10);
+  border-radius: 10px;
+  padding: 3px 14px;
+}
+
+.mh-bottom-nav-item .bn-icon-wrap {
+  padding: 3px 14px;
+  transition: background .15s ease;
+}
+
+/* ── Safe-area padding when bottom nav is shown ── */
+
+body.has-bottom-nav {
+  padding-bottom: calc(64px + env(safe-area-inset-bottom));
+}
+
+/* ── Pull-to-refresh feel ────────────────────────── */
+
+@media (max-width: 768px) {
+  html { overscroll-behavior-y: contain; }
+}
+
+/* ── Topbar improvements for mobile ─────────────── */
+
+@media (max-width: 768px) {
+
+  /* Show bottom nav */
+  .mh-bottom-nav { display: flex; }
+
+  /* Tighten topbar */
+  .mh-topbar {
+    margin: 8px 8px 0;
+    padding: 10px 14px;
+    border-radius: 18px;
+    top: 8px;
+  }
+
+  /* Hide desktop nav links on mobile — show hamburger or nothing */
+  .mh-nav { display: none !important; }
+  .mh-hamburger { display: flex; }
+
+  /* Layout: stack all grids */
+  .layout,
+  .stats-row,
+  .how-grid,
+  .features,
+  .paths,
+  .info-grid,
+  .form-grid,
+  .filters {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Hero stacks */
+  .hero { grid-template-columns: 1fr !important; }
+  .hero-right { min-height: 200px !important; }
+  .hero-left { padding: 20px !important; }
+
+  /* Cards full-width */
+  .mh-wrap,
+  .mh-wrap-md,
+  .mh-wrap-sm {
+    padding: 12px 10px;
+  }
+
+  /* Prevent iOS input zoom */
+  .mh-input,
+  .mh-select,
+  .mh-textarea {
+    font-size: 16px !important;
+  }
+
+  /* Touch-friendly tap targets */
+  .mh-btn {
+    min-height: 44px;
+    padding: 10px 16px !important;
+  }
+
+  .mh-btn-sm {
+    min-height: 36px;
+    padding: 7px 12px !important;
+  }
+
+  /* Mentor grid → 1 col on narrow, 2 col on tablet */
+  .mentor-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Sessions layout fix */
+  .layout[style*="280px"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Sidebar becomes horizontal scroll list */
+  aside.mh-card {
+    position: static !important;
+  }
+
+  /* Sticky topbar */
+  .mh-topbar { position: sticky !important; }
+
+  /* Modal full-screen feel */
+  .mh-modal {
+    max-width: 100% !important;
+    margin: 0 !important;
+    border-radius: var(--radius) var(--radius) 0 0 !important;
+  }
+  .mh-modal-backdrop {
+    align-items: flex-end !important;
+    padding: 0 !important;
+  }
+
+  /* Stat boxes 2-up */
+  .stats-row {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  /* Section heads */
+  .mh-section-head { flex-wrap: wrap; }
+
+  /* Footer */
+  .mh-footer { flex-direction: column; gap: 8px; text-align: center; }
+  .mh-footer > div { justify-content: center; }
+
+  /* Filters bar becomes vertical stack */
+  .filters { flex-direction: column; }
+}
+
+@media (max-width: 480px) {
+  .stats-row { grid-template-columns: 1fr 1fr !important; }
+  .mh-topbar { margin: 6px 6px 0; }
+  .mh-wrap,
+  .mh-wrap-md,
+  .mh-wrap-sm { padding: 10px 8px; }
+
+  /* Hide label text in bottom nav on very small screens */
+  .mh-bottom-nav-item span.bn-label { display: none; }
+  .mh-bottom-nav-item .bn-icon-wrap { padding: 4px 18px; }
+}
+
+/* Tablet: 2-column mentor grid */
+@media (min-width: 480px) and (max-width: 768px) {
+  .mentor-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  .stats-row { grid-template-columns: repeat(2, 1fr) !important; }
+}
+
+/* ── Touch ripple effect ─────────────────────────── */
+
+.mh-btn,
+.mh-bottom-nav-item,
+.req-card,
+.mentor-card {
+  -webkit-tap-highlight-color: transparent;
+  tap-highlight-color: transparent;
+}
+
+/* ── Smooth scrolling & momentum ────────────────── */
+
+@media (max-width: 768px) {
+  .req-list,
+  #requestList {
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 8px;
+    padding-bottom: 8px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .req-list::-webkit-scrollbar,
+  #requestList::-webkit-scrollbar { display: none; }
+
+  .req-item {
+    flex-shrink: 0;
+    min-width: 140px;
+  }
+}
+
+/* ── Swipeable card feel ────────────────────────── */
+
+@media (max-width: 768px) {
+  .mh-card {
+    border-radius: var(--radius) !important;
+  }
+}
+
+
+/* ── Topbar: mobile clean-up when bottom nav present ── */
+
+/* When bottom nav is active, hide hamburger — nav is at bottom */
+@media (max-width: 768px) {
+  body.has-bottom-nav .mh-hamburger,
+  body.has-bottom-nav #hamburgerBtn {
+    display: none !important;
+  }
+
+  /* Compact topbar with just brand + user chip */
+  body.has-bottom-nav .mh-topbar {
+    justify-content: space-between;
+  }
+
+  /* Show only a minimal user indicator */
+  body.has-bottom-nav .mh-nav {
+    display: flex !important;
+    gap: 6px;
+    align-items: center;
+  }
+
+  /* Hide all nav buttons except user chip and sign-out */
+  body.has-bottom-nav .mh-nav .mh-btn:not(.mh-btn-danger):not(#signOutBtn):not([href="auth.html"]) {
+    display: none !important;
+  }
+
+  /* Show sign-out as icon-only on mobile topbar */
+  body.has-bottom-nav #signOutBtn {
+    display: inline-flex !important;
+    padding: 8px 12px !important;
+    font-size: 12px !important;
+  }
+
+  /* Chip shrinks */
+  body.has-bottom-nav .mh-chip,
+  body.has-bottom-nav #whoChip,
+  body.has-bottom-nav #envChip {
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 11px !important;
+  }
+}
+
+/* ── Bottom nav active glow ─────────────────────── */
+
+.mh-bottom-nav-item.active .bn-icon-wrap {
+  background: rgba(29,78,216,.10);
+  border-radius: 10px;
+}
+
+/* ── Smooth page transitions ────────────────────── */
+
+@media (max-width: 768px) {
+  .mh-wrap,
+  .mh-wrap-md,
+  .mh-wrap-sm {
+    animation: mh-page-in .2s ease;
+  }
+}
+
+@keyframes mh-page-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+

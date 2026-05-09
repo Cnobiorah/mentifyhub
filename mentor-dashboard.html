@@ -124,7 +124,7 @@
       .mh-input, .mh-select, .mh-textarea { font-size: 16px !important; }
       .mh-topbar { margin: 8px; padding: 10px 14px; }
       .mh-hamburger { order: -1; flex-shrink: 0; }
-      .mh-brand { position: absolute; left: 50%; transform: translateX(-50%); }
+      .mh-brand { position: static !important; transform: none !important; }
       .mh-topbar { position: relative; }
       #hamburgerBtn { display: flex !important; }
       .mh-nav.hide-mobile { display: none !important; }
@@ -162,7 +162,7 @@
 <div class="mh-wrap">
 
   <!-- Topbar -->
-  <header class="mh-topbar"><button class="mh-hamburger" id="hamburgerBtn" onclick="openDrawer()" aria-label="Menu" style="display:none;width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:transparent;cursor:pointer;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:0;flex-shrink:0;"><span style="display:block;width:18px;height:2px;background:var(--text,#0d1f13);border-radius:2px;"></span><span style="display:block;width:18px;height:2px;background:var(--text,#0d1f13);border-radius:2px;"></span><span style="display:block;width:18px;height:2px;background:var(--text,#0d1f13);border-radius:2px;"></span></button>
+  <header class="mh-topbar">
     <a href="index.html" class="mh-brand">
       <img src="logo.png" alt="MentifyHub" class="mh-brand-logo"/>
       <div class="mh-brand-text">
@@ -170,14 +170,13 @@
         <span>Mentor dashboard</span>
       </div>
     </a>
-    <nav class="mh-nav hide-mobile">
+    <nav class="mh-nav">
       <span class="mh-chip" id="whoChip">Checking session…</span>
       <a class="mh-btn" href="mentor-directory.html">Directory</a>
       <a class="mh-btn" href="messages.html">Messages</a>
       <a class="mh-btn" href="sessions.html">Sessions</a>
       <a class="mh-btn" href="mentor-onboarding.html">Edit profile</a>
-
-      <!-- Notification bell -->
+      <!-- Notification bell (desktop) -->
       <div class="bell-wrap">
         <button class="bell-btn" id="bellBtn" type="button" title="Notifications">
           🔔
@@ -196,9 +195,9 @@
           </div>
         </div>
       </div>
-
       <button class="mh-btn mh-btn-danger" id="signOutBtn" type="button">Sign out</button>
     </nav>
+    <!-- Mobile: sign out only shown via CSS, bell moved to bottom nav -->
   </header>
 
   <div class="layout">
@@ -662,28 +661,32 @@
 </script>
 
 
+
 <!-- ── Bottom navigation (mobile) ──────────────── -->
 <nav class="mh-bottom-nav" id="bottomNav" role="navigation" aria-label="Mobile navigation">
-    <a href="#" id="bn-home" class="mh-bottom-nav-item active" onclick="goHome(event)">
-      <span class="bn-icon-wrap"><span class="bn-icon">🏠</span></span>
-      <span class="bn-label">Home</span>
-    </a>
-    <a href="mentor-directory.html" class="mh-bottom-nav-item">
-      <span class="bn-icon-wrap"><span class="bn-icon">🔍</span></span>
-      <span class="bn-label">Find</span>
-    </a>
-    <a href="messages.html" class="mh-bottom-nav-item">
-      <span class="bn-icon-wrap"><span class="bn-icon">💬</span></span>
-      <span class="bn-label">Chat</span>
-    </a>
-    <a href="sessions.html" class="mh-bottom-nav-item">
-      <span class="bn-icon-wrap"><span class="bn-icon">📅</span></span>
-      <span class="bn-label">Sessions</span>
-    </a>
-    <a href="reviews.html" class="mh-bottom-nav-item">
-      <span class="bn-icon-wrap"><span class="bn-icon">⭐</span></span>
-      <span class="bn-label">Reviews</span>
-    </a>
+  <a href="#" id="bn-home" class="mh-bottom-nav-item  active">
+    <span class="bn-icon-wrap"><span class="bn-icon">🏠</span></span>
+    <span class="bn-label">Home</span>
+  </a>
+  <a href="mentor-directory.html" class="mh-bottom-nav-item">
+    <span class="bn-icon-wrap"><span class="bn-icon">🔍</span></span>
+    <span class="bn-label">Find</span>
+  </a>
+  <a href="messages.html" class="mh-bottom-nav-item">
+    <span class="bn-icon-wrap"><span class="bn-icon">💬</span></span>
+    <span class="bn-label">Chat</span>
+  </a>
+  <a href="sessions.html" class="mh-bottom-nav-item">
+    <span class="bn-icon-wrap"><span class="bn-icon">📅</span></span>
+    <span class="bn-label">Sessions</span>
+  </a>
+  <button type="button" class="mh-bottom-nav-item" id="bn-bell" onclick="toggleMobileBell()">
+    <span class="bn-icon-wrap" style="position:relative">
+      <span class="bn-icon">🔔</span>
+      <span id="bn-bell-badge" style="display:none;position:absolute;top:-2px;right:-2px;width:8px;height:8px;border-radius:50%;background:#ef4444;border:1.5px solid #fff;"></span>
+    </span>
+    <span class="bn-label">Alerts</span>
+  </button>
 </nav>
 <script>
   // Resolve dashboard link based on role
@@ -699,12 +702,35 @@
       el.href = mp ? "mentor-dashboard.html" : "mentee-dashboard.html";
     } catch(e) { el.href = "mentor-dashboard.html"; }
   })();
-  function goHome(e) {
-    e.preventDefault();
-    const el = document.getElementById("bn-home");
-    if(el && el.href && el.href !== "#" && !el.href.endsWith("#")) window.location.href = el.href;
+
+  // Sync bell badge with desktop bell badge
+  function syncBellBadge() {
+    const desktopBadge = document.getElementById("bellBadge");
+    const mobileBadge  = document.getElementById("bn-bell-badge");
+    if(!desktopBadge || !mobileBadge) return;
+    const count = desktopBadge.textContent?.trim();
+    const visible = desktopBadge.style.display !== "none" && desktopBadge.style.display !== "";
+    mobileBadge.style.display = (visible || count) ? "block" : "none";
   }
-  // Add body class for bottom-nav padding
+  // Poll every 2s to keep in sync
+  setInterval(syncBellBadge, 2000);
+  setTimeout(syncBellBadge, 1000);
+
+  // Open the notification panel on mobile (reuse desktop panel)
+  function toggleMobileBell() {
+    const panel = document.getElementById("notifPanel");
+    if(!panel) return;
+    // On mobile position it above the bottom nav
+    panel.style.position   = "fixed";
+    panel.style.bottom     = "70px";
+    panel.style.left       = "8px";
+    panel.style.right      = "8px";
+    panel.style.top        = "auto";
+    panel.style.width      = "auto";
+    panel.style.zIndex     = "200";
+    panel.style.display    = panel.style.display === "block" ? "none" : "block";
+  }
+
   document.body.classList.add("has-bottom-nav");
 </script>
 </body>

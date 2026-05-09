@@ -434,28 +434,32 @@
 </script>
 
 
+
 <!-- ── Bottom navigation (mobile) ──────────────── -->
 <nav class="mh-bottom-nav" id="bottomNav" role="navigation" aria-label="Mobile navigation">
-    <a href="#" id="bn-home" class="mh-bottom-nav-item" onclick="goHome(event)">
-      <span class="bn-icon-wrap"><span class="bn-icon">🏠</span></span>
-      <span class="bn-label">Home</span>
-    </a>
-    <a href="mentor-directory.html" class="mh-bottom-nav-item">
-      <span class="bn-icon-wrap"><span class="bn-icon">🔍</span></span>
-      <span class="bn-label">Find</span>
-    </a>
-    <a href="messages.html" class="mh-bottom-nav-item active">
-      <span class="bn-icon-wrap"><span class="bn-icon">💬</span></span>
-      <span class="bn-label">Chat</span>
-    </a>
-    <a href="sessions.html" class="mh-bottom-nav-item">
-      <span class="bn-icon-wrap"><span class="bn-icon">📅</span></span>
-      <span class="bn-label">Sessions</span>
-    </a>
-    <a href="reviews.html" class="mh-bottom-nav-item">
-      <span class="bn-icon-wrap"><span class="bn-icon">⭐</span></span>
-      <span class="bn-label">Reviews</span>
-    </a>
+  <a href="#" id="bn-home" class="mh-bottom-nav-item">
+    <span class="bn-icon-wrap"><span class="bn-icon">🏠</span></span>
+    <span class="bn-label">Home</span>
+  </a>
+  <a href="mentor-directory.html" class="mh-bottom-nav-item">
+    <span class="bn-icon-wrap"><span class="bn-icon">🔍</span></span>
+    <span class="bn-label">Find</span>
+  </a>
+  <a href="messages.html" class="mh-bottom-nav-item  active">
+    <span class="bn-icon-wrap"><span class="bn-icon">💬</span></span>
+    <span class="bn-label">Chat</span>
+  </a>
+  <a href="sessions.html" class="mh-bottom-nav-item">
+    <span class="bn-icon-wrap"><span class="bn-icon">📅</span></span>
+    <span class="bn-label">Sessions</span>
+  </a>
+  <button type="button" class="mh-bottom-nav-item" id="bn-bell" onclick="toggleMobileBell()">
+    <span class="bn-icon-wrap" style="position:relative">
+      <span class="bn-icon">🔔</span>
+      <span id="bn-bell-badge" style="display:none;position:absolute;top:-2px;right:-2px;width:8px;height:8px;border-radius:50%;background:#ef4444;border:1.5px solid #fff;"></span>
+    </span>
+    <span class="bn-label">Alerts</span>
+  </button>
 </nav>
 <script>
   // Resolve dashboard link based on role
@@ -471,12 +475,35 @@
       el.href = mp ? "mentor-dashboard.html" : "mentee-dashboard.html";
     } catch(e) { el.href = "mentor-dashboard.html"; }
   })();
-  function goHome(e) {
-    e.preventDefault();
-    const el = document.getElementById("bn-home");
-    if(el && el.href && el.href !== "#" && !el.href.endsWith("#")) window.location.href = el.href;
+
+  // Sync bell badge with desktop bell badge
+  function syncBellBadge() {
+    const desktopBadge = document.getElementById("bellBadge");
+    const mobileBadge  = document.getElementById("bn-bell-badge");
+    if(!desktopBadge || !mobileBadge) return;
+    const count = desktopBadge.textContent?.trim();
+    const visible = desktopBadge.style.display !== "none" && desktopBadge.style.display !== "";
+    mobileBadge.style.display = (visible || count) ? "block" : "none";
   }
-  // Add body class for bottom-nav padding
+  // Poll every 2s to keep in sync
+  setInterval(syncBellBadge, 2000);
+  setTimeout(syncBellBadge, 1000);
+
+  // Open the notification panel on mobile (reuse desktop panel)
+  function toggleMobileBell() {
+    const panel = document.getElementById("notifPanel");
+    if(!panel) return;
+    // On mobile position it above the bottom nav
+    panel.style.position   = "fixed";
+    panel.style.bottom     = "70px";
+    panel.style.left       = "8px";
+    panel.style.right      = "8px";
+    panel.style.top        = "auto";
+    panel.style.width      = "auto";
+    panel.style.zIndex     = "200";
+    panel.style.display    = panel.style.display === "block" ? "none" : "block";
+  }
+
   document.body.classList.add("has-bottom-nav");
 </script>
 </body>

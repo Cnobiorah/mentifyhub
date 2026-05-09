@@ -986,55 +986,69 @@ body.has-bottom-nav {
 }
 
 
-/* ── Topbar: mobile — brand left, sign-out right, nothing else ── */
+/* ── Topbar: mobile — logo LEFT, sign-out RIGHT, nothing else ── */
 
 @media (max-width: 768px) {
 
-  /* Topbar: clean two-item bar */
+  /* Topbar layout: flex, space-between, brand anchored left */
   .mh-topbar {
     justify-content: space-between !important;
     gap: 8px !important;
     padding: 10px 14px !important;
+    position: relative !important;
   }
 
-  /* Hide hamburger — bottom nav replaces it */
+  /* Brand always stays on the left — no centering trick */
+  .mh-brand {
+    position: static !important;
+    transform: none !important;
+    left: auto !important;
+    flex-shrink: 0;
+  }
+
+  /* Hide hamburger — bottom nav replaces all nav */
   .mh-hamburger,
   #hamburgerBtn {
     display: none !important;
   }
 
-  /* Hide the entire nav row by default */
+  /* Hide the entire nav by default */
   .mh-nav {
     display: none !important;
   }
 
-  /* When bottom nav is present, show nav but strip it right down */
+  /* When page has bottom nav: show nav rail but hide EVERYTHING except sign-out */
   body.has-bottom-nav .mh-nav {
     display: flex !important;
     align-items: center;
-    gap: 6px;
+    gap: 0;
     flex-wrap: nowrap;
   }
 
-  /* Hide EVERY nav child except sign-out button */
+  /* Nuke every child in the nav */
   body.has-bottom-nav .mh-nav > * {
     display: none !important;
   }
 
-  /* Only show the sign-out button */
-  body.has-bottom-nav .mh-nav > #signOutBtn,
-  body.has-bottom-nav .mh-nav > [id="signOutBtn"] {
+  /* Bring back ONLY the sign-out button */
+  body.has-bottom-nav .mh-nav > #signOutBtn {
     display: inline-flex !important;
     padding: 7px 12px !important;
     font-size: 12px !important;
     white-space: nowrap;
+    min-height: 36px !important;
   }
 
-  /* Brand stays left, never moves */
-  .mh-brand {
-    position: static !important;
-    transform: none !important;
-    left: auto !important;
+  /* Also hide the desktop bell-wrap — bell lives in bottom nav on mobile */
+  body.has-bottom-nav .mh-nav > .bell-wrap {
+    display: none !important;
+  }
+
+  /* Hide chips/status text — too cramped */
+  body.has-bottom-nav .mh-nav > .mh-chip,
+  body.has-bottom-nav .mh-nav > #whoChip,
+  body.has-bottom-nav .mh-nav > #envChip {
+    display: none !important;
   }
 }
 

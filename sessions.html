@@ -60,6 +60,13 @@
       .session-detail { padding: 16px; }
       .mh-btn { width: 100%; justify-content: center; margin-bottom: 6px; }
     }
+
+    /* Hamburger — hidden on desktop, shown on mobile */
+    #hamburgerBtn { display: none !important; }
+    @media (max-width: 768px) {
+      #hamburgerBtn { display: flex !important; }
+      .mh-nav { display: none !important; }
+    }
   </style>
 </head>
 <body>

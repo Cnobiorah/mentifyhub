@@ -563,6 +563,7 @@
       document.getElementById("fieldExperienceLevel").value=data.field_experience_level||"";
       document.getElementById("profileLink").value=data.profile_link||"";
       document.getElementById("preferredLanguage").value=data.preferred_language||"";
+      if(document.getElementById("bio")) document.getElementById("bio").value=data.bio||"";
       document.getElementById("field").value=data.field||""; document.getElementById("subfield").value=data.subfield||"";
       document.getElementById("helpNeeded").value=(data.help_needed&&data.help_needed[0])||"";
       document.getElementById("timeline").value=data.timeline||"";
@@ -605,7 +606,16 @@
   (async function boot(){
     const user=await requireSession(); if(!user) return;
     const loaded=await loadFromSupabase(user);
-    if(loaded){ showStep(1); return; }
+    if(loaded){
+      // Switch to edit mode
+      const title = document.getElementById("pageTitle");
+      const sub   = document.getElementById("pageSub");
+      if(title) title.textContent = "Edit your mentee profile";
+      if(sub)   sub.textContent   = "Update your profile details — your existing data has been loaded.";
+      showStep(1);
+      setSaveStatus("saved", "Profile loaded — edit and save your changes");
+      return;
+    }
     const raw=localStorage.getItem("mentee_onboarding_draft");
     if(raw){
       try{

@@ -751,7 +751,16 @@
   (async function boot(){
     const user=await requireSession(); if(!user) return;
     const loaded=await loadFromSupabase(user);
-    if(loaded){ showStep(1); return; }
+    if(loaded){
+      // Switch to edit mode
+      const title = document.getElementById("pageTitle");
+      const sub   = document.getElementById("pageSub");
+      if(title) title.textContent = "Edit your mentor profile";
+      if(sub)   sub.textContent   = "Update your profile details — your existing data has been loaded.";
+      showStep(1);
+      setSaveStatus("saved","Profile loaded — edit and save your changes");
+      return;
+    }
     const raw=localStorage.getItem("mentor_onboarding_draft");
     if(raw){
       try{

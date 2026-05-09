@@ -131,6 +131,13 @@
       .msg-input-row { gap: 8px; }
       #messageBody { font-size: 16px; }
     }
+
+    /* Hamburger — hidden on desktop, shown on mobile */
+    #hamburgerBtn { display: none !important; }
+    @media (max-width: 768px) {
+      #hamburgerBtn { display: flex !important; }
+      .mh-nav { display: none !important; }
+    }
   </style>
 </head>
 <body>

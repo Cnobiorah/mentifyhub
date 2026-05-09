@@ -548,6 +548,8 @@ img { display: block; max-width: 100%; }
 }
 .mobile-nav-overlay.open { display: block; }
 
+/* Hamburger button — hidden on desktop */
+.mh-hamburger { display: none !important; }
 /* Hamburger button */
 .mh-hamburger {
   display: none;
@@ -713,4 +715,12 @@ img { display: block; max-width: 100%; }
 
   /* Hide desktop nav completely */
   .mh-nav { display: none !important; }
+}
+
+/* Ensure desktop nav always shows on large screens */
+@media (min-width: 769px) {
+  .mh-hamburger { display: none !important; }
+  .mh-nav { display: flex !important; }
+  #mobileDrawer { display: none !important; }
+  #navOverlay { display: none !important; }
 }

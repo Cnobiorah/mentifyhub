@@ -104,15 +104,18 @@
 </div>
 
 <script>
+  let _feedbackTimer = null;
   function openSoftware(link){
     window.open(link, '_blank');
-    setTimeout(function(){
+    if(_feedbackTimer) clearTimeout(_feedbackTimer);
+    _feedbackTimer = setTimeout(function(){
       window.open(
         'https://docs.google.com/forms/d/e/1FAIpQLScxpNPYHSTnedJUffgHUQdbMHq78exVvdzHT4EbtlEJOQymCg/viewform',
         '_blank'
       );
     }, 20000);
   }
+  window.addEventListener('pagehide', function(){ if(_feedbackTimer) clearTimeout(_feedbackTimer); });
 </script>
 
 </body>

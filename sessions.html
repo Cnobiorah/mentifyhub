@@ -67,10 +67,6 @@
       #hamburgerBtn { display: flex !important; }
       .mh-nav { display: none !important; }
     }
-      #navOverlay   { display: none !important; }
-      #hamburgerBtn { display: none !important; }
-      .mh-nav       { display: flex !important; }
-    }
 
     /* CRITICAL: Hide mobile drawer on desktop */
     @media (min-width: 769px) {
@@ -202,7 +198,7 @@
   }
 
   async function loadRequests(){
-    const {data}=await sb.from("mentorship_requests").select("*").eq("status","accepted").or(`mentee_id.eq.${USER.id},mentor_id.eq.${USER.id}`);
+    const {data}=await sb.from("mentorship_requests").select("*, mentees(full_name), mentors(full_name)").eq("status","accepted").or(`mentee_id.eq.${USER.id},mentor_id.eq.${USER.id}`);
     REQUESTS=data||[];
     renderRequests();
   }
@@ -253,7 +249,7 @@
       request_id:CURRENT.id,mentor_id:CURRENT.mentor_id,mentee_id:CURRENT.mentee_id,
       proposed_by:USER.id,scheduled_for:scheduledFor,
       duration_minutes:Number($("duration").value),
-      meeting_link:$("meetingLink").value,
+      meeting_link:(()=>{const v=$("meetingLink").value.trim();return(v&&!/^https?:\/\//i.test(v))?"https://"+v:v;})(),
       notes:$("sessionNotes").value,
       status:$("status").value
     });
@@ -263,10 +259,11 @@
   }
 
   async function saveProgress(){
-    await sb.from("mentorship_progress").insert({
+    const {error}=await sb.from("mentorship_progress").insert({
       request_id:CURRENT.id,mentor_id:CURRENT.mentor_id,mentee_id:CURRENT.mentee_id,
       progress_percent:Number($("progressPercent").value),notes:$("progressNotes").value
     });
+    if(error){ console.error(error); alert("Error saving progress — please try again."); return; }
     alert("Progress saved ✓");
     $("progressPercent").value="";
     $("progressNotes").value="";

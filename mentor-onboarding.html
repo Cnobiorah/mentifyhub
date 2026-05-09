@@ -85,26 +85,6 @@
     .form-actions-right { display: flex; gap: 8px; }
     .hint { font-size: 12px; color: var(--subtle); margin-top: 10px; }
 
-    /* Auto-save indicator */
-    .save-indicator {
-      display: inline-flex; align-items: center; gap: 6px;
-      font-size: 12px; color: var(--muted); margin-top: 8px;
-    }
-    .save-dot {
-      width: 7px; height: 7px; border-radius: 50%;
-      background: var(--subtle); flex-shrink: 0;
-    }
-    .save-dot.saved  { background: var(--green); }
-    .save-dot.saving { background: #f59e0b; animation: pulse .8s ease-in-out infinite; }
-    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
-
-    /* Step checkmarks */
-    .step-item .step-check {
-      margin-left: auto; font-size: 14px; display: none;
-    }
-    .step-item.done .step-check { display: inline; }
-    .step-item.done b { color: var(--green); }
-
     @media (max-width: 900px) {
       .shell { grid-template-columns: 1fr; }
       .side  { position: static; }
@@ -145,10 +125,6 @@
           <span id="pct">0%</span>
         </div>
         <div class="mh-bar-wrap"><div class="mh-bar-fill" id="barFill" style="width:0%"></div></div>
-        <div class="save-indicator" id="saveIndicator">
-          <div class="save-dot" id="saveDot"></div>
-          <span id="saveText">Not saved yet</span>
-        </div>
       </div>
 
       <!-- Step 1: Profile -->
@@ -416,10 +392,10 @@
       <div style="font-size:13px;font-weight:700">Onboarding steps</div>
       <div style="font-size:12px;color:var(--muted);margin-top:4px">Click a step to jump.</div>
       <div class="steps-nav">
-        <div class="step-item active" data-nav="1"><b>1. Profile</b><span>Background, role, and credibility.</span><span class="step-check">✅</span></div>
-        <div class="step-item" data-nav="2"><b>2. Expertise</b><span>Field, audience, mentoring areas, tags.</span><span class="step-check">✅</span></div>
-        <div class="step-item" data-nav="3"><b>3. Settings</b><span>Format, pricing, capacity and session setup.</span><span class="step-check">✅</span></div>
-        <div class="step-item" data-nav="4"><b>4. Availability</b><span>Timezone and schedule.</span><span class="step-check">✅</span></div>
+        <div class="step-item active" data-nav="1"><b>1. Profile</b><span>Background, role, and credibility.</span></div>
+        <div class="step-item" data-nav="2"><b>2. Expertise</b><span>Field, audience, mentoring areas, tags.</span></div>
+        <div class="step-item" data-nav="3"><b>3. Settings</b><span>Format, pricing, capacity and session setup.</span></div>
+        <div class="step-item" data-nav="4"><b>4. Availability</b><span>Timezone and schedule.</span></div>
       </div>
       <p class="hint" style="margin-top:14px">Matching uses: tag overlap · field match · mentoring areas · timezone · availability · level fit · capacity.</p>
     </aside>
@@ -634,12 +610,37 @@
   backBtn.addEventListener("click",()=>{ clearValidationError(); showStep(current-1); });
   nextBtn.addEventListener("click",()=>{
     if(!validateStep(current)) return;
-    markStepDone(current);
     if(current<total) showStep(current+1);
     else publishAndRedirect();
   });
   saveBtn.addEventListener("click",saveDraft);
   saveTop.addEventListener("click",saveDraft);
+
+  // Auto-save to localStorage every 10 seconds
+  setInterval(()=>{
+    try{
+      const data=collectData();
+      localStorage.setItem("mentor_onboarding_draft", JSON.stringify({...data, step:current}));
+    }catch(e){}
+  }, 10000);
+
+  // Save on every input/select/textarea change
+  document.querySelectorAll("input,select,textarea").forEach(el=>{
+    el.addEventListener("change",()=>{
+      try{
+        const data=collectData();
+        localStorage.setItem("mentor_onboarding_draft", JSON.stringify({...data, step:current}));
+      }catch(e){}
+    });
+  });
+
+  // Save before user leaves
+  window.addEventListener("beforeunload",()=>{
+    try{
+      const data=collectData();
+      localStorage.setItem("mentor_onboarding_draft", JSON.stringify({...data, step:current}));
+    }catch(e){}
+  });
 
   async function collectData(){ const data=currentFormState(); data.tags=uniqueNormalized(data.tags); data.best_for=uniqueNormalized(data.best_for); data.mentoring_areas=uniqueNormalized(data.mentoring_areas); return data; }
 
@@ -693,40 +694,18 @@
     }catch(e){ console.error(e); return false; }
   }
 
-  function setSaveStatus(status, text){
-    const dot  = document.getElementById("saveDot");
-    const label= document.getElementById("saveText");
-    if(!dot||!label) return;
-    dot.className  = "save-dot " + (status||"");
-    label.textContent = text||"";
-  }
-
-  function markStepDone(stepNum){
-    const nav = document.querySelector(`.step-item[data-nav="${stepNum}"]`);
-    if(nav) nav.classList.add("done");
-  }
-
   async function saveDraft(){
-    setSaveStatus("saving","Saving…");
     const data={...(await collectData()),step:current};
     localStorage.setItem("mentor_onboarding_draft",JSON.stringify(data));
     const user=await requireSession(); if(!user) return;
-    try{
-      await saveToSupabase(user,data);
-      setSaveStatus("saved","Saved at "+new Date().toLocaleTimeString(undefined,{hour:"2-digit",minute:"2-digit"}));
-      markStepDone(current);
-    }
-    catch(e){ console.error(e); setSaveStatus("","Could not save to Supabase"); alert("Saved locally, but could not save to Supabase."); }
+    try{ await saveToSupabase(user,data); alert("Saved."); }
+    catch(e){ console.error(e); alert("Saved locally, but could not save to Supabase."); }
   }
 
   async function publishAndRedirect(){
     const user=await requireSession(); if(!user) return;
     const data=await collectData();
-    try{
-      await saveToSupabase(user,data);
-      localStorage.removeItem("mentor_onboarding_draft");
-      window.location.href="mentor-dashboard.html";
-    }
+    try{ await saveToSupabase(user,data); localStorage.removeItem("mentor_onboarding_draft"); window.location.href="mentor-dashboard.html"; }
     catch(e){ console.error(e); alert("Could not publish. Draft saved locally."); }
   }
 
@@ -743,6 +722,10 @@
     if(raw){
       try{
         const d=JSON.parse(raw);
+        // Restore the step the user was on
+        if(d.step && Number(d.step) > 1){
+          setTimeout(()=>showStep(Number(d.step)), 200);
+        }
         document.getElementById("headline").value=d.headline||""; document.getElementById("currentTitle").value=d.current_title||"";
         document.getElementById("organization").value=d.organization||""; document.getElementById("experience").value=d.experience||"";
         document.getElementById("yearsExperience").value=d.years_experience||""; document.getElementById("languages").value=d.languages||"";

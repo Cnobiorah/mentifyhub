@@ -55,26 +55,6 @@
     .form-actions-right { display: flex; gap: 8px; }
     .hint { font-size: 12px; color: var(--subtle); margin-top: 10px; }
 
-    /* Auto-save indicator */
-    .save-indicator {
-      display: inline-flex; align-items: center; gap: 6px;
-      font-size: 12px; color: var(--muted); margin-top: 8px;
-    }
-    .save-dot {
-      width: 7px; height: 7px; border-radius: 50%;
-      background: var(--subtle); flex-shrink: 0;
-    }
-    .save-dot.saved  { background: var(--green); }
-    .save-dot.saving { background: #f59e0b; animation: pulse .8s ease-in-out infinite; }
-    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
-
-    /* Step checkmarks */
-    .step-item .step-check { 
-      margin-left: auto; font-size: 14px; display: none;
-    }
-    .step-item.done .step-check { display: inline; }
-    .step-item.done b { color: var(--green); }
-
     @media (max-width: 900px) {
       .shell { grid-template-columns: 1fr; }
       .side  { position: static; }
@@ -97,6 +77,7 @@
     <nav class="mh-nav">
       <span class="mh-chip" id="chip">Step 1 of 3</span>
       <a class="mh-btn" href="index.html">Home</a>
+      <a class="mh-btn mh-btn-primary" id="goDashBtn" href="mentee-dashboard.html" style="display:none">Go to dashboard</a>
       <button class="mh-btn mh-btn-primary" id="saveTop" type="button">Save</button>
     </nav>
   </header>
@@ -112,10 +93,6 @@
           <span id="pct">0%</span>
         </div>
         <div class="mh-bar-wrap"><div class="mh-bar-fill" id="barFill" style="width:0%"></div></div>
-        <div class="save-indicator" id="saveIndicator">
-          <div class="save-dot" id="saveDot"></div>
-          <span id="saveText">Not saved yet</span>
-        </div>
       </div>
 
       <!-- Step 1 -->
@@ -184,11 +161,6 @@
             <label class="mh-label">Goal details</label>
             <textarea class="mh-textarea" id="goalText" placeholder="Example: I want to prepare for LEED GA in 8 weeks and build a small portfolio project."></textarea>
             <p class="help">Add context so mentors understand your learning stage and target outcome.</p>
-          </div>
-          <div class="mh-field col-12">
-            <label class="mh-label">Short bio</label>
-            <textarea class="mh-textarea" id="bio" placeholder="Tell mentors a bit about yourself — your background, what you're working on, and what kind of support you're looking for."></textarea>
-            <p class="help">Helps mentors understand who you are before accepting your request.</p>
           </div>
         </div>
       </section>
@@ -324,9 +296,9 @@
       <div style="font-size:13px;font-weight:700">Onboarding steps</div>
       <div style="font-size:12px;color:var(--muted);margin-top:4px">Click a step to jump.</div>
       <div class="steps-nav">
-        <div class="step-item active" data-nav="1"><b>1. Goal, background &amp; level</b><span>Where you are now and what you want to achieve.</span><span class="step-check">✅</span></div>
-        <div class="step-item" data-nav="2"><b>2. Focus, help needed &amp; tags</b><span>Field, support need and niche topics.</span><span class="step-check">✅</span></div>
-        <div class="step-item" data-nav="3"><b>3. Preferences</b><span>Timezone, availability and communication.</span><span class="step-check">✅</span></div>
+        <div class="step-item active" data-nav="1"><b>1. Goal, background &amp; level</b><span>Where you are now and what you want to achieve.</span></div>
+        <div class="step-item" data-nav="2"><b>2. Focus, help needed &amp; tags</b><span>Field, support need and niche topics.</span></div>
+        <div class="step-item" data-nav="3"><b>3. Preferences</b><span>Timezone, availability and communication.</span></div>
       </div>
       <p class="hint" style="margin-top:14px">Matching uses: goals · role · field · help needed · tags · timezone · availability · level fit.</p>
     </aside>
@@ -380,7 +352,7 @@
   function currentFormState(){
     return {
       goal:document.getElementById("goal").value,level:document.getElementById("level").value,
-      goal_text:document.getElementById("goalText").value,bio:document.getElementById("bio")?.value||"",current_role:document.getElementById("currentRole").value,
+      goal_text:document.getElementById("goalText").value,current_role:document.getElementById("currentRole").value,
       field_experience_level:document.getElementById("fieldExperienceLevel").value,
       profile_link:document.getElementById("profileLink").value,
       preferred_language:document.getElementById("preferredLanguage").value,
@@ -494,12 +466,37 @@
   backBtn.addEventListener("click",()=>{ clearValidationError(); showStep(current-1); });
   nextBtn.addEventListener("click",()=>{
     if(!validateStep(current)) return;
-    markStepDone(current);
     if(current<total) showStep(current+1);
     else finishAndRedirect();
   });
   saveBtn.addEventListener("click",saveDraft);
   saveTop.addEventListener("click",saveDraft);
+
+  // Auto-save to localStorage every 10 seconds as user types
+  setInterval(()=>{
+    try{
+      const data = collectData();
+      localStorage.setItem("mentee_onboarding_draft", JSON.stringify({...data, step:current}));
+    }catch(e){}
+  }, 10000);
+
+  // Also save on every input change (silent, localStorage only)
+  document.querySelectorAll("input,select,textarea").forEach(el=>{
+    el.addEventListener("change",()=>{
+      try{
+        const data = collectData();
+        localStorage.setItem("mentee_onboarding_draft", JSON.stringify({...data, step:current}));
+      }catch(e){}
+    });
+  });
+
+  // Save before user leaves the page
+  window.addEventListener("beforeunload",()=>{
+    try{
+      const data = collectData();
+      localStorage.setItem("mentee_onboarding_draft", JSON.stringify({...data, step:current}));
+    }catch(e){}
+  });
 
   async function collectData(){ const data=currentFormState(); data.tags=uniqueNormalized(data.tags); data.help_needed=data.help_needed?[data.help_needed]:[]; return data; }
 
@@ -514,7 +511,7 @@
         photo_url = urlData.publicUrl;
       }
     }
-    const payload={ user_id:user.id,...(photo_url&&{profile_image:photo_url}),full_name:(user.user_metadata&&user.user_metadata.full_name)?user.user_metadata.full_name:(user.email||""),email:user.email||null,goal:data.goal||null,goal_text:data.goal_text||null,bio:data.bio||null,level:data.level||null,current_role:data.current_role||null,field_experience_level:data.field_experience_level||null,profile_link:data.profile_link||null,preferred_language:data.preferred_language||null,field:data.field||null,subfield:data.subfield||null,help_needed:safeArr(data.help_needed),timeline:data.timeline||null,preferred_session_type:data.preferred_session_type||null,tags:safeArr(data.tags),country:data.country||null,timezone:data.timezone||null,availability:data.availability||null,communication:data.communication||null };
+    const payload={ user_id:user.id,...(photo_url&&{profile_image:photo_url}),full_name:(user.user_metadata&&user.user_metadata.full_name)?user.user_metadata.full_name:(user.email||""),email:user.email||null,goal:data.goal||null,goal_text:data.goal_text||null,level:data.level||null,current_role:data.current_role||null,field_experience_level:data.field_experience_level||null,profile_link:data.profile_link||null,preferred_language:data.preferred_language||null,field:data.field||null,subfield:data.subfield||null,help_needed:safeArr(data.help_needed),timeline:data.timeline||null,preferred_session_type:data.preferred_session_type||null,tags:safeArr(data.tags),country:data.country||null,timezone:data.timezone||null,availability:data.availability||null,communication:data.communication||null };
     const {error}=await sb.from(TABLES.mentees).upsert(payload,{onConflict:"user_id"});
     if(error) throw error;
   }
@@ -533,8 +530,7 @@
         }
       }
       document.getElementById("goal").value=data.goal||""; document.getElementById("level").value=data.level||"";
-      document.getElementById("goalText").value=data.goal_text||"";
-      if(document.getElementById("bio")) document.getElementById("bio").value=data.bio||""; document.getElementById("currentRole").value=data.current_role||"";
+      document.getElementById("goalText").value=data.goal_text||""; document.getElementById("currentRole").value=data.current_role||"";
       document.getElementById("fieldExperienceLevel").value=data.field_experience_level||"";
       document.getElementById("profileLink").value=data.profile_link||"";
       document.getElementById("preferredLanguage").value=data.preferred_language||"";
@@ -550,54 +546,21 @@
   }
 
   async function saveDraft(){
-    setSaveStatus("saving","Saving…");
     const data={...(await collectData()),step:current};
     localStorage.setItem("mentee_onboarding_draft",JSON.stringify(data));
     const user=await requireSession(); if(!user) return;
-    try{
-      await saveToSupabase(user,data);
-      setSaveStatus("saved","Saved at "+new Date().toLocaleTimeString(undefined,{hour:"2-digit",minute:"2-digit"}));
-      markStepDone(current);
-    }
-    catch(e){ console.error(e); setSaveStatus("","Could not save to Supabase"); alert("Saved locally, but could not save to Supabase."); }
+    try{ await saveToSupabase(user,data); alert("Saved."); try{ document.getElementById("goDashBtn").style.display="inline-flex"; }catch(_){} }
+    catch(e){ console.error(e); alert("Saved locally, but could not save to Supabase."); }
   }
 
   async function finishAndRedirect(){
     const user=await requireSession(); if(!user) return;
     const data=await collectData();
-    try{
-      await saveToSupabase(user,data);
-      localStorage.removeItem("mentee_onboarding_draft");
-      window.location.href="mentee-dashboard.html";
-    }
+    try{ await saveToSupabase(user,data); localStorage.removeItem("mentee_onboarding_draft"); window.location.href="mentee-dashboard.html"; }
     catch(e){ console.error(e); alert("Could not finish: check Supabase table/RLS. Draft saved locally."); }
   }
 
   document.querySelectorAll("input,select,textarea").forEach(el=>{ el.addEventListener("input",updateProfileCompleteness); el.addEventListener("change",updateProfileCompleteness); });
-
-  // ── Auto-save indicator ──────────────────────────────────
-  function setSaveStatus(status, text){
-    const dot  = document.getElementById("saveDot");
-    const label= document.getElementById("saveText");
-    if(!dot||!label) return;
-    dot.className  = "save-dot " + (status||"");
-    label.textContent = text||"";
-  }
-
-  // ── Step checkmarks ───────────────────────────────────────
-  const completedSteps = new Set();
-
-  function markStepDone(stepNum){
-    completedSteps.add(stepNum);
-    const nav = document.querySelector(`.step-item[data-nav="${stepNum}"]`);
-    if(nav) nav.classList.add("done");
-  }
-
-  // Override saveDraft to show indicator
-  const _origSaveDraft = saveDraft;
-
-  // Wrap showStep to mark previous step done on Next
-  const _origShowStep = showStep;
 
   (async function boot(){
     const user=await requireSession(); if(!user) return;
@@ -607,6 +570,10 @@
     if(raw){
       try{
         const d=JSON.parse(raw);
+        // Restore the step the user was on
+        if(d.step && Number(d.step) > 1){
+          setTimeout(()=>showStep(Number(d.step)), 200);
+        }
         document.getElementById("goal").value=d.goal||""; document.getElementById("level").value=d.level||"";
         document.getElementById("goalText").value=d.goalText||d.goal_text||""; document.getElementById("currentRole").value=d.current_role||"";
         document.getElementById("fieldExperienceLevel").value=d.field_experience_level||"";

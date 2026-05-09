@@ -98,7 +98,7 @@
         <span>Reviews &amp; ratings</span>
       </div>
     </a>
-    <nav class="mh-nav">
+    <nav class="mh-nav hide-mobile">
       <span class="mh-chip" id="whoChip">Loading…</span>
       <a class="mh-btn" id="dashLink" href="mentee-dashboard.html">Dashboard</a>
       <a class="mh-btn" href="sessions.html">Sessions</a>
@@ -356,19 +356,25 @@
 </script>
 
 <!-- Mobile nav overlay -->
-<div class="mobile-nav-overlay" id="navOverlay" onclick="closeDrawer()"></div>
+<div id="navOverlay" onclick="closeDrawer()" style="display:none;position:fixed;inset:0;background:rgba(13,31,19,.5);backdrop-filter:blur(3px);z-index:90;"></div>
 
 <!-- Mobile drawer -->
-<div class="mh-mobile-drawer" id="mobileDrawer">
-  <div class="drawer-brand">
-    <img src="logo.png" alt="MentifyHub"/>
-    <span>MentifyHub</span>
+<div class="mh-mobile-drawer" id="mobileDrawer" style="display:none;position:fixed;top:0;left:0;bottom:0;width:270px;background:#fff;border-right:1px solid var(--line);box-shadow:0 8px 32px rgba(13,31,19,.15);z-index:100;flex-direction:column;padding:0;transform:translateX(-100%);transition:transform .25s ease;">
+  <div style="display:flex;align-items:center;gap:12px;padding:20px 18px 16px;border-bottom:1px solid var(--line);">
+    <img src="logo.png" style="width:34px;height:34px;border-radius:10px;" alt="MentifyHub"/>
+    <div>
+      <div style="font-size:15px;font-weight:800;color:#0d1f13">MentifyHub</div>
+      <div id="drawerUserInfo" style="font-size:11px;color:#6b7c74;margin-top:1px"></div>
+    </div>
+    <button onclick="closeDrawer()" style="margin-left:auto;background:none;border:none;cursor:pointer;font-size:18px;color:#6b7c74;padding:4px;">✕</button>
   </div>
-  <a href="mentor-dashboard.html" class="mh-drawer-link"><span class="icon">🏠</span>Dashboard</a>
-<a href="sessions.html" class="mh-drawer-link"><span class="icon">📅</span>Sessions</a>
-<a href="reviews.html" class="mh-drawer-link active"><span class="icon">⭐</span>Reviews</a>
-  <div class="drawer-signout">
-    <a href="#" class="mh-drawer-link" onclick="signOut()"><span class="icon">🚪</span>Sign out</a>
+  <div style="padding:12px 10px;flex:1;overflow-y:auto;">
+    <a href="mentor-dashboard.html" class="mh-drawer-link" style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-radius:12px;text-decoration:none;font-size:14px;font-weight:600;color:var(--muted);margin-bottom:4px;">🏠 Dashboard</a>
+  <a href="sessions.html" class="mh-drawer-link" style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-radius:12px;text-decoration:none;font-size:14px;font-weight:600;color:var(--muted);margin-bottom:4px;">📅 Sessions</a>
+  <a href="reviews.html" class="mh-drawer-link active" style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-radius:12px;text-decoration:none;font-size:14px;font-weight:600;color:var(--muted);margin-bottom:4px;">⭐ Reviews</a>
+  </div>
+  <div style="padding:12px 10px;border-top:1px solid var(--line);">
+    <a href="#" onclick="signOut()" style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-radius:12px;text-decoration:none;font-size:14px;font-weight:600;color:#dc2626;background:#fff5f5;">🚪 &nbsp;Sign out</a>
   </div>
 </div>
 

@@ -548,9 +548,7 @@ img { display: block; max-width: 100%; }
 }
 .mobile-nav-overlay.open { display: block; }
 
-/* Hamburger button — hidden on desktop */
-.mh-hamburger { display: none !important; }
-/* Hamburger button */
+/* Hamburger button — hidden everywhere by default */
 .mh-hamburger {
   display: none;
   width: 36px;
@@ -686,7 +684,7 @@ img { display: block; max-width: 100%; }
 
 /* ── Mobile topbar layout fix ──────────────────────────── */
 @media (max-width: 768px) {
-  /* Show hamburger */
+  /* Show hamburger on mobile only */
   #hamburgerBtn {
     display: flex !important;
     width: 36px !important;

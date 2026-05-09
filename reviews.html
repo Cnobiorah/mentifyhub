@@ -91,6 +91,14 @@
       #hamburgerBtn { display: flex !important; }
       .mh-nav { display: none !important; }
     }
+
+    /* Force hide mobile elements on desktop */
+    @media (min-width: 769px) {
+      #mobileDrawer { display: none !important; transform: none !important; }
+      #navOverlay   { display: none !important; }
+      #hamburgerBtn { display: none !important; }
+      .mh-nav       { display: flex !important; }
+    }
   </style>
 </head>
 <body>
@@ -398,6 +406,7 @@
 
 <script>
     function openDrawer(){
+    if(window.innerWidth > 768) return; // Never open on desktop
     const d = document.getElementById('mobileDrawer');
     const o = document.getElementById('navOverlay');
     if(!d || !o) return;
@@ -416,6 +425,8 @@
     d.style.transform = 'translateX(-100%)';
     o.style.display = 'none';
     setTimeout(()=>{ d.style.display = 'none'; }, 260);
+    document.body.style.overflow = '';
+  }, 260);
     document.body.style.overflow = '';
   }, 260);
     document.body.style.overflow = '';

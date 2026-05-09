@@ -681,3 +681,36 @@ img { display: block; max-width: 100%; }
   .hero-stats { flex-direction: column; gap: 16px !important; }
   .mh-topbar { margin: 6px; padding: 8px 12px; }
 }
+
+/* ── Mobile topbar layout fix ──────────────────────────── */
+@media (max-width: 768px) {
+  /* Show hamburger */
+  #hamburgerBtn {
+    display: flex !important;
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 10px !important;
+    border: 1px solid var(--line) !important;
+    background: transparent !important;
+    cursor: pointer !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 5px !important;
+    padding: 0 !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* Center brand in topbar */
+  .mh-topbar {
+    position: relative !important;
+  }
+  .mh-brand {
+    position: absolute !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+  }
+
+  /* Hide desktop nav completely */
+  .mh-nav { display: none !important; }
+}

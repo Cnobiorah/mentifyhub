@@ -122,6 +122,10 @@
       .thread-panel.mobile-hidden { display: none; }
       .mobile-back-btn { display: flex !important; }
     }
+    @media (max-width: 768px) {
+      .mh-input, .mh-textarea { font-size: 16px !important; }
+      .mh-topbar { margin: 8px; padding: 10px 14px; }
+    }
     @media (max-width: 600px) {
       .msg-bubble { max-width: 85%; }
       .msg-input-row { gap: 8px; }
@@ -133,7 +137,7 @@
 <div class="mh-wrap">
 
   <!-- Topbar -->
-  <header class="mh-topbar"><button class="mh-hamburger" id="hamburgerBtn" onclick="openDrawer()" aria-label="Menu"><span></span><span></span><span></span></button>
+  <header class="mh-topbar"><button class="mh-hamburger" id="hamburgerBtn" onclick="openDrawer()" aria-label="Menu" style="display:none;width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:transparent;cursor:pointer;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:0;flex-shrink:0;"><span style="display:block;width:18px;height:2px;background:var(--text,#0d1f13);border-radius:2px;"></span><span style="display:block;width:18px;height:2px;background:var(--text,#0d1f13);border-radius:2px;"></span><span style="display:block;width:18px;height:2px;background:var(--text,#0d1f13);border-radius:2px;"></span></button>
     <a href="index.html" class="mh-brand">
       <img src="logo.png" alt="MentifyHub" class="mh-brand-logo"/>
       <div class="mh-brand-text">
@@ -380,14 +384,28 @@
 
 <script>
   function openDrawer(){
-    document.getElementById('mobileDrawer').classList.add('open');
-    document.getElementById('navOverlay').classList.add('open');
-    document.body.style.overflow='hidden';
+    const d = document.getElementById('mobileDrawer');
+    const o = document.getElementById('navOverlay');
+    if(!d || !o) return;
+    d.style.display = 'flex';
+    o.style.display = 'block';
+    requestAnimationFrame(()=>{
+      d.style.transform = 'translateX(0)';
+    });
+    document.body.style.overflow = 'hidden';
+    // Sync user info
+    const chip = document.getElementById('whoChip');
+    const info = document.getElementById('drawerUserInfo');
+    if(chip && info) info.textContent = chip.textContent;
   }
   function closeDrawer(){
-    document.getElementById('mobileDrawer').classList.remove('open');
-    document.getElementById('navOverlay').classList.remove('open');
-    document.body.style.overflow='';
+    const d = document.getElementById('mobileDrawer');
+    const o = document.getElementById('navOverlay');
+    if(!d || !o) return;
+    d.style.transform = 'translateX(-100%)';
+    o.style.display = 'none';
+    setTimeout(()=>{ d.style.display = 'none'; }, 260);
+    document.body.style.overflow = '';
   }
 </script>
 </body>

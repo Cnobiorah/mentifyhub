@@ -138,6 +138,10 @@
       #hamburgerBtn { display: flex !important; }
       .mh-nav { display: none !important; }
     }
+      #navOverlay   { display: none !important; }
+      #hamburgerBtn { display: none !important; }
+      .mh-nav       { display: flex !important; }
+    }
 
     /* CRITICAL: Hide mobile drawer on desktop */
     @media (min-width: 769px) {
@@ -164,7 +168,7 @@
     </a>
     <nav class="mh-nav hide-mobile">
       <span class="mh-chip" id="envChip">Connecting…</span>
-      <a class="mh-btn" href="mentee-dashboard.html">Dashboard</a>
+      <a class="mh-btn" id="dashboardLink" href="#">Dashboard</a>
       <a class="mh-btn" href="mentor-directory.html">Directory</a>
     </nav>
   </header>
@@ -221,6 +225,11 @@
     if(error||!session){ window.location.href="auth.html?returnTo=messages.html"; return false; }
     USER=session.user;
     $("envChip").textContent="Live";
+    // Set dashboard link correctly for mentors vs mentees
+    const {data:_mp}=await sb.from("mentors").select("user_id").eq("user_id",USER.id).maybeSingle();
+    const _dash=_mp?"mentor-dashboard.html":"mentee-dashboard.html";
+    if(document.getElementById("dashboardLink")) document.getElementById("dashboardLink").href=_dash;
+    if(document.getElementById("drawerDashLink")) document.getElementById("drawerDashLink").href=_dash;
     return true;
   }
 
@@ -388,7 +397,7 @@
     </div>
   </div>
   <div style="flex:1;overflow-y:auto;padding:10px 8px;">
-  <a href="mentee-dashboard.html" class="mh-drawer-link" style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-radius:12px;text-decoration:none;font-size:14px;font-weight:600;margin-bottom:4px;color:var(--muted);">🏠 Dashboard</a>
+  <a id="drawerDashLink" href="#" class="mh-drawer-link" style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-radius:12px;text-decoration:none;font-size:14px;font-weight:600;margin-bottom:4px;color:var(--muted);">🏠 Dashboard</a>
   <a href="mentor-directory.html" class="mh-drawer-link" style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-radius:12px;text-decoration:none;font-size:14px;font-weight:600;margin-bottom:4px;color:var(--muted);">🔍 Directory</a>
   <a href="messages.html" class="mh-drawer-link" style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-radius:12px;text-decoration:none;font-size:14px;font-weight:600;margin-bottom:4px;color:var(--green);background:var(--soft2);">💬 Messages</a>
   <a href="sessions.html" class="mh-drawer-link" style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-radius:12px;text-decoration:none;font-size:14px;font-weight:600;margin-bottom:4px;color:var(--muted);">📅 Sessions</a>

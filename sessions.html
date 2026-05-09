@@ -67,6 +67,10 @@
       #hamburgerBtn { display: flex !important; }
       .mh-nav { display: none !important; }
     }
+      #navOverlay   { display: none !important; }
+      #hamburgerBtn { display: none !important; }
+      .mh-nav       { display: flex !important; }
+    }
 
     /* CRITICAL: Hide mobile drawer on desktop */
     @media (min-width: 769px) {
@@ -93,7 +97,7 @@
     </a>
     <nav class="mh-nav hide-mobile">
       <span class="mh-chip" id="whoChip">Checking session…</span>
-      <a class="mh-btn" id="dashboardLink" href="mentee-dashboard.html">Dashboard</a>
+      <a class="mh-btn" id="dashboardLink" href="#">Dashboard</a>
       <a class="mh-btn" href="mentor-directory.html">Directory</a>
       <a class="mh-btn" href="messages.html">Messages</a>
       <a class="mh-btn mh-btn-primary" href="sessions.html">Sessions</a>
@@ -192,13 +196,15 @@
     if(!session){ location.href="auth.html"; return; }
     USER=session.user;
     const {data:mentorProfile}=await sb.from("mentors").select("user_id").eq("user_id",USER.id).maybeSingle();
-    $("dashboardLink").href=mentorProfile?"mentor-dashboard.html":"mentee-dashboard.html";
+    const _dash=mentorProfile?"mentor-dashboard.html":"mentee-dashboard.html";
+    $("dashboardLink").href=_dash;
+    if(document.getElementById("drawerDashLink")) document.getElementById("drawerDashLink").href=_dash;
     $("whoChip").textContent=mentorProfile?USER.email+" · Mentor":USER.email+" · Mentee";
     return USER;
   }
 
   async function loadRequests(){
-    const {data}=await sb.from("mentorship_requests").select("*, mentees(full_name), mentors(full_name)").eq("status","accepted").or(`mentee_id.eq.${USER.id},mentor_id.eq.${USER.id}`);
+    const {data}=await sb.from("mentorship_requests").select("*").eq("status","accepted").or(`mentee_id.eq.${USER.id},mentor_id.eq.${USER.id}`);
     REQUESTS=data||[];
     renderRequests();
   }
@@ -249,7 +255,7 @@
       request_id:CURRENT.id,mentor_id:CURRENT.mentor_id,mentee_id:CURRENT.mentee_id,
       proposed_by:USER.id,scheduled_for:scheduledFor,
       duration_minutes:Number($("duration").value),
-      meeting_link:(()=>{const v=$("meetingLink").value.trim();return(v&&!/^https?:\/\//i.test(v))?"https://"+v:v;})(),
+      meeting_link:$("meetingLink").value,
       notes:$("sessionNotes").value,
       status:$("status").value
     });
@@ -259,11 +265,10 @@
   }
 
   async function saveProgress(){
-    const {error}=await sb.from("mentorship_progress").insert({
+    await sb.from("mentorship_progress").insert({
       request_id:CURRENT.id,mentor_id:CURRENT.mentor_id,mentee_id:CURRENT.mentee_id,
       progress_percent:Number($("progressPercent").value),notes:$("progressNotes").value
     });
-    if(error){ console.error(error); alert("Error saving progress — please try again."); return; }
     alert("Progress saved ✓");
     $("progressPercent").value="";
     $("progressNotes").value="";
@@ -289,7 +294,7 @@
     </div>
   </div>
   <div style="flex:1;overflow-y:auto;padding:10px 8px;">
-  <a href="mentee-dashboard.html" class="mh-drawer-link" style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-radius:12px;text-decoration:none;font-size:14px;font-weight:600;margin-bottom:4px;color:var(--muted);">🏠 Dashboard</a>
+  <a id="drawerDashLink" href="#" class="mh-drawer-link" style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-radius:12px;text-decoration:none;font-size:14px;font-weight:600;margin-bottom:4px;color:var(--muted);">🏠 Dashboard</a>
   <a href="mentor-directory.html" class="mh-drawer-link" style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-radius:12px;text-decoration:none;font-size:14px;font-weight:600;margin-bottom:4px;color:var(--muted);">🔍 Directory</a>
   <a href="messages.html" class="mh-drawer-link" style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-radius:12px;text-decoration:none;font-size:14px;font-weight:600;margin-bottom:4px;color:var(--muted);">💬 Messages</a>
   <a href="sessions.html" class="mh-drawer-link" style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-radius:12px;text-decoration:none;font-size:14px;font-weight:600;margin-bottom:4px;color:var(--green);background:var(--soft2);">📅 Sessions</a>

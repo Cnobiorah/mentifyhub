@@ -78,7 +78,7 @@
 <div class="mh-wrap">
 
   <!-- Topbar -->
-  <header class="mh-topbar">
+  <header class="mh-topbar"><button class="mh-hamburger" id="hamburgerBtn" onclick="openDrawer()" aria-label="Menu"><span></span><span></span><span></span></button>
     <a href="index.html" class="mh-brand">
       <img src="logo.png" alt="MentifyHub" class="mh-brand-logo"/>
       <div class="mh-brand-text">
@@ -656,6 +656,38 @@
     })() : 0;
     showOnboardingPrompt(pct);
   });
+</script>
+
+<!-- Mobile nav overlay -->
+<div class="mobile-nav-overlay" id="navOverlay" onclick="closeDrawer()"></div>
+
+<!-- Mobile drawer -->
+<div class="mh-mobile-drawer" id="mobileDrawer">
+  <div class="drawer-brand">
+    <img src="logo.png" alt="MentifyHub"/>
+    <span>MentifyHub</span>
+  </div>
+  <a href="mentee-dashboard.html" class="mh-drawer-link active"><span class="icon">🏠</span>Dashboard</a>
+<a href="mentor-directory.html" class="mh-drawer-link"><span class="icon">🔍</span>Find a mentor</a>
+<a href="messages.html" class="mh-drawer-link"><span class="icon">💬</span>Messages</a>
+<a href="sessions.html" class="mh-drawer-link"><span class="icon">📅</span>Sessions</a>
+<a href="reviews.html" class="mh-drawer-link"><span class="icon">⭐</span>Reviews</a>
+  <div class="drawer-signout">
+    <a href="#" class="mh-drawer-link" onclick="signOut()"><span class="icon">🚪</span>Sign out</a>
+  </div>
+</div>
+
+<script>
+  function openDrawer(){
+    document.getElementById('mobileDrawer').classList.add('open');
+    document.getElementById('navOverlay').classList.add('open');
+    document.body.style.overflow='hidden';
+  }
+  function closeDrawer(){
+    document.getElementById('mobileDrawer').classList.remove('open');
+    document.getElementById('navOverlay').classList.remove('open');
+    document.body.style.overflow='';
+  }
 </script>
 </body>
 </html>

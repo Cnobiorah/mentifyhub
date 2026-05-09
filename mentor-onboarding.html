@@ -85,11 +85,30 @@
     .form-actions-right { display: flex; gap: 8px; }
     .hint { font-size: 12px; color: var(--subtle); margin-top: 10px; }
 
+    .save-indicator { display:inline-flex; align-items:center; gap:6px; font-size:12px; color:var(--muted); margin-top:8px; }
+    .save-dot { width:7px; height:7px; border-radius:50%; background:var(--subtle); flex-shrink:0; }
+    .save-dot.saved { background:var(--green); }
+    .save-dot.saving { background:#f59e0b; animation:pulse .8s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+    .step-item .step-check { margin-left:auto; font-size:14px; display:none; }
+    .step-item.done .step-check { display:inline; }
+    .step-item.done b { color:var(--green); }
     @media (max-width: 900px) {
       .shell { grid-template-columns: 1fr; }
-      .side  { position: static; }
+      .side  { display: none; }
       .form-grid { grid-template-columns: 1fr; }
       .col-12 { grid-column: 1; }
+      .form-actions { flex-direction: column-reverse; gap: 8px; }
+      .form-actions .mh-btn { width: 100%; justify-content: center; }
+    }
+    @media (max-width: 600px) {
+      .mh-input, .mh-select, .mh-textarea { font-size: 16px !important; }
+      .step-content { padding: 20px 16px; }
+      .mh-topbar { margin: 8px; padding: 10px 14px; }
+      .step-title { font-size: 18px; }
+    }
+    @media (max-width: 400px) {
+      .step-content { padding: 16px 12px; }
     }
   </style>
 </head>
@@ -97,7 +116,7 @@
 <div class="mh-wrap">
 
   <!-- Topbar -->
-  <header class="mh-topbar">
+  <header class="mh-topbar"><button class="mh-hamburger" id="hamburgerBtn" onclick="openDrawer()" aria-label="Menu"><span></span><span></span><span></span></button>
     <a href="index.html" class="mh-brand">
       <img src="logo.png" alt="MentifyHub" class="mh-brand-logo"/>
       <div class="mh-brand-text">
@@ -125,6 +144,10 @@
           <span id="pct">0%</span>
         </div>
         <div class="mh-bar-wrap"><div class="mh-bar-fill" id="barFill" style="width:0%"></div></div>
+        <div class="save-indicator" id="saveIndicator">
+          <div class="save-dot" id="saveDot"></div>
+          <span id="saveText">Not saved yet</span>
+        </div>
       </div>
 
       <!-- Step 1: Profile -->
@@ -610,6 +633,7 @@
   backBtn.addEventListener("click",()=>{ clearValidationError(); showStep(current-1); });
   nextBtn.addEventListener("click",()=>{
     if(!validateStep(current)) return;
+    markStepDone(current);
     if(current<total) showStep(current+1);
     else publishAndRedirect();
   });
@@ -694,6 +718,16 @@
     }catch(e){ console.error(e); return false; }
   }
 
+  function setSaveStatus(status, text){
+    const dot=document.getElementById("saveDot"); const label=document.getElementById("saveText");
+    if(!dot||!label) return;
+    dot.className="save-dot "+(status||""); label.textContent=text||"";
+  }
+  function markStepDone(stepNum){
+    const nav=document.querySelector(`.step-item[data-nav="${stepNum}"]`);
+    if(nav) nav.classList.add("done");
+  }
+
   async function saveDraft(){
     const data={...(await collectData()),step:current};
     localStorage.setItem("mentor_onboarding_draft",JSON.stringify(data));
@@ -747,6 +781,24 @@
       }catch(e){ showStep(1); }
     }else{ showStep(1); }
   })();
+</script>
+
+<div class="mobile-nav-overlay" id="navOverlay" onclick="closeDrawer()"></div>
+<div class="mh-mobile-drawer" id="mobileDrawer">
+  <div class="drawer-brand">
+    <img src="logo.png" alt="MentifyHub"/>
+    <span>MentifyHub</span>
+  </div>
+  <a href="mentor-dashboard.html" class="mh-drawer-link"><span class="icon">🏠</span>Dashboard</a>
+<a href="messages.html" class="mh-drawer-link"><span class="icon">💬</span>Messages</a>
+<a href="sessions.html" class="mh-drawer-link"><span class="icon">📅</span>Sessions</a>
+  <div class="drawer-signout">
+    <a href="#" class="mh-drawer-link" onclick="signOut()"><span class="icon">🚪</span>Sign out</a>
+  </div>
+</div>
+<script>
+  function openDrawer(){document.getElementById('mobileDrawer').classList.add('open');document.getElementById('navOverlay').classList.add('open');document.body.style.overflow='hidden';}
+  function closeDrawer(){document.getElementById('mobileDrawer').classList.remove('open');document.getElementById('navOverlay').classList.remove('open');document.body.style.overflow='';}
 </script>
 </body>
 </html>

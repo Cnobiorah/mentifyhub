@@ -72,6 +72,14 @@
       .sticky-col { position: static; }
       .matches-grid { grid-template-columns: 1fr; }
     }
+    @media (max-width: 768px) {
+      .mh-input, .mh-select, .mh-textarea { font-size: 16px !important; }
+      .mh-topbar { margin: 8px; padding: 10px 14px; }
+    }
+    @media (max-width: 480px) {
+      .stats-row { grid-template-columns: 1fr !important; }
+      .mentor-card { padding: 14px; }
+    }
   </style>
 </head>
 <body>

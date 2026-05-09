@@ -120,12 +120,16 @@
       .stats-row { grid-template-columns: repeat(2, 1fr); }
       .notif-panel { width: 300px; right: -60px; }
     }
+    @media (max-width: 768px) {
+      .mh-input, .mh-select, .mh-textarea { font-size: 16px !important; }
+      .mh-topbar { margin: 8px; padding: 10px 14px; }
+      .notif-panel { position: fixed !important; left: 8px !important; right: 8px !important; width: auto !important; top: 70px !important; }
+    }
     @media (max-width: 600px) {
       .stats-row { grid-template-columns: 1fr 1fr; }
       .req-card { padding: 14px; }
       .req-actions { flex-direction: column; gap: 6px; }
       .req-actions button { width: 100%; justify-content: center; }
-      .mh-topbar { margin: 8px; }
     }
     @media (max-width: 400px) {
       .stats-row { grid-template-columns: 1fr; }

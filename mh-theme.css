@@ -836,9 +836,9 @@ body.has-bottom-nav {
     top: 8px;
   }
 
-  /* Hide desktop nav links on mobile — show hamburger or nothing */
+  /* Hide desktop nav links on mobile entirely */
   .mh-nav { display: none !important; }
-  .mh-hamburger { display: flex; }
+  .mh-hamburger { display: none !important; }
 
   /* Layout: stack all grids */
   .layout,
@@ -986,47 +986,55 @@ body.has-bottom-nav {
 }
 
 
-/* ── Topbar: mobile clean-up when bottom nav present ── */
+/* ── Topbar: mobile — brand left, sign-out right, nothing else ── */
 
-/* When bottom nav is active, hide hamburger — nav is at bottom */
 @media (max-width: 768px) {
-  body.has-bottom-nav .mh-hamburger,
-  body.has-bottom-nav #hamburgerBtn {
+
+  /* Topbar: clean two-item bar */
+  .mh-topbar {
+    justify-content: space-between !important;
+    gap: 8px !important;
+    padding: 10px 14px !important;
+  }
+
+  /* Hide hamburger — bottom nav replaces it */
+  .mh-hamburger,
+  #hamburgerBtn {
     display: none !important;
   }
 
-  /* Compact topbar with just brand + user chip */
-  body.has-bottom-nav .mh-topbar {
-    justify-content: space-between;
+  /* Hide the entire nav row by default */
+  .mh-nav {
+    display: none !important;
   }
 
-  /* Show only a minimal user indicator */
+  /* When bottom nav is present, show nav but strip it right down */
   body.has-bottom-nav .mh-nav {
     display: flex !important;
-    gap: 6px;
     align-items: center;
+    gap: 6px;
+    flex-wrap: nowrap;
   }
 
-  /* Hide all nav buttons except user chip and sign-out */
-  body.has-bottom-nav .mh-nav .mh-btn:not(.mh-btn-danger):not(#signOutBtn):not([href="auth.html"]) {
+  /* Hide EVERY nav child except sign-out button */
+  body.has-bottom-nav .mh-nav > * {
     display: none !important;
   }
 
-  /* Show sign-out as icon-only on mobile topbar */
-  body.has-bottom-nav #signOutBtn {
+  /* Only show the sign-out button */
+  body.has-bottom-nav .mh-nav > #signOutBtn,
+  body.has-bottom-nav .mh-nav > [id="signOutBtn"] {
     display: inline-flex !important;
-    padding: 8px 12px !important;
+    padding: 7px 12px !important;
     font-size: 12px !important;
+    white-space: nowrap;
   }
 
-  /* Chip shrinks */
-  body.has-bottom-nav .mh-chip,
-  body.has-bottom-nav #whoChip,
-  body.has-bottom-nav #envChip {
-    max-width: 160px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    font-size: 11px !important;
+  /* Brand stays left, never moves */
+  .mh-brand {
+    position: static !important;
+    transform: none !important;
+    left: auto !important;
   }
 }
 

@@ -1118,3 +1118,37 @@ body.has-bottom-nav {
   font-family: inherit; text-align: left;
 }
 .mh-drawer-signout:hover { background: #fee2e2; }
+
+/* ── Menu button (hamburger) ────────────────────────── */
+
+/* Hidden by default on desktop — never shows the stray dot */
+.mh-menu-btn {
+  display: none !important;
+}
+
+/* Only show on mobile when there is NO bottom nav (i.e. pages without it) */
+@media (max-width: 768px) {
+  body:not(.has-bottom-nav) .mh-menu-btn {
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: transparent;
+    cursor: pointer;
+    padding: 0;
+    flex-shrink: 0;
+  }
+
+  body:not(.has-bottom-nav) .mh-menu-btn span {
+    display: block;
+    width: 18px;
+    height: 2px;
+    background: var(--text);
+    border-radius: 2px;
+  }
+}

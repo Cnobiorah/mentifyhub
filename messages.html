@@ -132,15 +132,23 @@
       #messageBody { font-size: 16px; }
     }
 
-    /* Hamburger — hidden on desktop */
+    /* Hamburger — hidden on desktop, shown on mobile */
     #hamburgerBtn { display: none !important; }
     @media (max-width: 768px) {
       #hamburgerBtn { display: flex !important; }
       .mh-nav { display: none !important; }
     }
+      #navOverlay   { display: none !important; }
+      #hamburgerBtn { display: none !important; }
+      .mh-nav       { display: flex !important; }
+    }
+
+    /* CRITICAL: Hide mobile drawer on desktop */
     @media (min-width: 769px) {
-      .mh-mobile-drawer,
+      .mh-hamburger,
+      #hamburgerBtn,
       #mobileDrawer,
+      .mh-mobile-drawer,
       #navOverlay { display: none !important; }
       .mh-nav { display: flex !important; }
     }
@@ -409,21 +417,23 @@
     if(window.innerWidth > 768) return;
     const d = document.getElementById('mobileDrawer');
     const o = document.getElementById('navOverlay');
-    if(!d||!o) return;
-    d.classList.add('open');
+    if(!d || !o) return;
+    d.style.display = 'flex';
     o.style.display = 'block';
+    requestAnimationFrame(()=>{ d.style.transform = 'translateX(0)'; });
     document.body.style.overflow = 'hidden';
-    const chip = document.getElementById('whoChip')||document.getElementById('envChip');
+    const chip = document.getElementById('whoChip') || document.getElementById('envChip');
     const info = document.getElementById('drawerUserInfo');
-    if(chip&&info) info.textContent = chip.textContent;
+    if(info) info.textContent = chip ? chip.textContent : 'Signed in';
   }
 
   function closeDrawer(){
     const d = document.getElementById('mobileDrawer');
     const o = document.getElementById('navOverlay');
-    if(!d||!o) return;
-    d.classList.remove('open');
+    if(!d || !o) return;
+    d.style.transform = 'translateX(100%)';
     o.style.display = 'none';
+    setTimeout(()=>{ d.style.display = 'none'; }, 260);
     document.body.style.overflow = '';
   }
 

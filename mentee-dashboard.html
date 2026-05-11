@@ -531,13 +531,13 @@
     if(!data||!data.length) return;
     const next=data[0];
     $("upcomingSessions").innerHTML=`
-      <div style="padding:12px;border:1px solid var(--line);border-radius:var(--radius-sm);background:#fff">
+      <div style="padding:16px;border:1px solid var(--line);border-radius:var(--radius-sm);background:#fff;text-align:center">
         <div style="font-weight:700;font-size:13px">Next session</div>
         <div style="color:var(--muted);font-size:12px;margin-top:4px">${new Date(next.scheduled_for).toLocaleString()}</div>
         <div style="color:var(--muted);font-size:12px;margin-top:2px">Duration: ${next.duration_minutes} minutes</div>
-        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
-          <a class="mh-btn mh-btn-primary mh-btn-sm" href="${next.meeting_link}" target="_blank">Join meeting</a>
-          <a class="mh-btn mh-btn-sm" href="sessions.html">Open sessions</a>
+        <div style="margin-top:12px;display:flex;flex-direction:column;gap:8px;align-items:center">
+          <a class="mh-btn mh-btn-primary mh-btn-sm" href="${next.meeting_link}" target="_blank" style="width:100%;justify-content:center">Join meeting</a>
+          <a class="mh-btn mh-btn-sm" href="sessions.html" style="width:100%;justify-content:center">Open sessions</a>
         </div>
       </div>`;
   }

@@ -194,6 +194,8 @@
   const sb = (SUPABASE_URL.startsWith("http") && SUPABASE_ANON_KEY.startsWith("ey") && typeof supabase !== "undefined")
     ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
+  function $(id){ return document.getElementById(id); }
+
   const els = {
     whoChip:$("whoChip"), signOutBtn:$("signOutBtn"),
     q:$("q"), field:$("field"), timezone:$("timezone"),
@@ -204,8 +206,6 @@
     sendBtn:$("sendBtn"), modalTitle:$("modalTitle"), modalMeta:$("modalMeta"),
     message:$("message"), toast:$("toast")
   };
-
-  function $(id){ return document.getElementById(id); }
 
   let USER=null,MENTEE=null,MENTORS=[],REQUESTED=new Set(),CURRENT=null,SCORED=[];
 
@@ -381,7 +381,7 @@
     const {data:mentorProfile}=await sb.from("mentors").select("user_id").eq("user_id",USER.id).maybeSingle();
     els.whoChip.textContent=mentorProfile?`${nm} · Mentor`:`${nm} · Mentee`;
     const _dash=mentorProfile?"mentor-dashboard.html":"mentee-dashboard.html";
-    $("dashboardLink").href=_dash;
+    if($("dashboardLink")) $("dashboardLink").href=_dash;
     if(document.getElementById("drawerDashLink")) document.getElementById("drawerDashLink").href=_dash;
     const {data:mentors,error:moErr}=await sb.from(TABLES.mentors).select("*").order("updated_at",{ascending:false}).limit(500);
     if(moErr) console.error(moErr);

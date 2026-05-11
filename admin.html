@@ -265,9 +265,6 @@
       <a class="mh-btn" href="mentor-directory.html">Directory</a>
       <button class="mh-btn mh-btn-danger" id="signOutBtn" type="button">Sign out</button>
     </nav>
-      <button class="mh-menu-btn" id="menuBtn" onclick="openDrawer()" aria-label="Open menu">
-      <span></span><span></span><span></span>
-    </button>
   </header>
 
   <div class="layout">
@@ -844,62 +841,6 @@
   $("signOutBtn").onclick = async () => { await sb.auth.signOut(); window.location.href="auth.html?mode=signin"; };
 
   init();
-</script>
-
-<!-- ── Mobile right-side drawer ── -->
-<div id="navOverlay" onclick="closeDrawer()" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);backdrop-filter:blur(3px);z-index:90;"></div>
-<div class="mh-mobile-drawer" id="mobileDrawer">
-  <div class="drawer-head">
-    <div class="drawer-head-brand">
-      <img src="logo.png" alt="MentifyHub"/>
-      <strong>MentifyHub</strong>
-    </div>
-    <button class="mh-drawer-close" onclick="closeDrawer()" aria-label="Close menu">✕</button>
-  </div>
-  <div class="mh-drawer-user" id="drawerUserInfo">Loading…</div>
-  <div class="mh-drawer-links">
-    <a href="admin.html" class="mh-drawer-link active"><span class="icon">🛡️</span> Admin panel</a>
-    <a href="mentor-directory.html" class="mh-drawer-link"><span class="icon">🔍</span> Directory</a>
-  </div>
-  <div class="mh-drawer-footer">
-    <button class="mh-drawer-signout" onclick="drawerSignOut()">🚪 &nbsp;Sign out</button>
-  </div>
-</div>
-
-<script>
-  document.body.classList.add("has-side-nav");
-
-  function openDrawer(){
-    if(window.innerWidth > 768) return;
-    const d = document.getElementById('mobileDrawer');
-    const o = document.getElementById('navOverlay');
-    if(!d || !o) return;
-    d.style.display = 'flex';
-    o.style.display = 'block';
-    requestAnimationFrame(()=>{ d.style.transform = 'translateX(0)'; });
-    document.body.style.overflow = 'hidden';
-    const chip = document.getElementById('whoChip') || document.getElementById('envChip');
-    const info = document.getElementById('drawerUserInfo');
-    if(info) info.textContent = chip ? chip.textContent : 'Signed in';
-  }
-
-  function closeDrawer(){
-    const d = document.getElementById('mobileDrawer');
-    const o = document.getElementById('navOverlay');
-    if(!d || !o) return;
-    d.style.transform = 'translateX(100%)';
-    o.style.display = 'none';
-    setTimeout(()=>{ d.style.display = 'none'; }, 260);
-    document.body.style.overflow = '';
-  }
-
-  async function drawerSignOut(){
-    try{
-      const sb2 = window.supabase || window.sb || window._sb;
-      if(sb2) await sb2.auth.signOut();
-    }catch(e){}
-    window.location.href = 'auth.html?mode=signin';
-  }
 </script>
 </body>
 </html>

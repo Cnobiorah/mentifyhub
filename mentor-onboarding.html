@@ -809,5 +809,47 @@
   function openDrawer(){document.getElementById('mobileDrawer').classList.add('open');document.getElementById('navOverlay').classList.add('open');document.body.style.overflow='hidden';}
   function closeDrawer(){document.getElementById('mobileDrawer').classList.remove('open');document.getElementById('navOverlay').classList.remove('open');document.body.style.overflow='';}
 </script>
+
+<!-- Mobile bottom nav -->
+<nav class="mh-bottom-nav" aria-label="Main navigation">
+  <div class="mh-bottom-nav-inner">
+    <a id="bnav_home" class="mh-bottom-nav-item active" href="#">
+      <span class="mh-bnav-icon">🏠</span>
+      <span>Home</span>
+    </a>
+    <a class="mh-bottom-nav-item" href="mentor-directory.html">
+      <span class="mh-bnav-icon">🔍</span>
+      <span>Mentors</span>
+    </a>
+    <a class="mh-bottom-nav-item" href="messages.html">
+      <span class="mh-bnav-icon">💬</span>
+      <span>Messages</span>
+    </a>
+    <a class="mh-bottom-nav-item" href="sessions.html">
+      <span class="mh-bnav-icon">📅</span>
+      <span>Sessions</span>
+    </a>
+    <a class="mh-bottom-nav-item" href="reviews.html">
+      <span class="mh-bnav-icon">⭐</span>
+      <span>Reviews</span>
+    </a>
+  </div>
+</nav>
+
+  // Update bottom nav home link to correct dashboard
+  (function(){
+    const bnHome = document.getElementById('bnav_home');
+    if(!bnHome) return;
+    // Wait for role check to run, then mirror dashboardLink
+    const mirror = () => {
+      const dl = document.getElementById('dashboardLink') || document.getElementById('dashLink');
+      if(dl && dl.href && !dl.href.endsWith('#')) {
+        bnHome.href = dl.getAttribute('href');
+      } else {
+        setTimeout(mirror, 300);
+      }
+    };
+    setTimeout(mirror, 300);
+  })();
 </body>
 </html>

@@ -124,7 +124,7 @@
       .mh-input, .mh-select, .mh-textarea { font-size: 16px !important; }
       .mh-topbar { margin: 8px; padding: 10px 14px; }
       .mh-hamburger { order: -1; flex-shrink: 0; }
-      .mh-brand { position: static !important; transform: none !important; }
+      .mh-brand { position: absolute; left: 50%; transform: translateX(-50%); }
       .mh-topbar { position: relative; }
       #hamburgerBtn { display: flex !important; }
       .mh-nav.hide-mobile { display: none !important; }
@@ -162,7 +162,7 @@
 <div class="mh-wrap">
 
   <!-- Topbar -->
-  <header class="mh-topbar">
+  <header class="mh-topbar"><button class="mh-hamburger" id="hamburgerBtn" onclick="openDrawer()" aria-label="Menu" style="display:none;width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:transparent;cursor:pointer;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:0;flex-shrink:0;"><span style="display:block;width:18px;height:2px;background:var(--text,#0d1f13);border-radius:2px;"></span><span style="display:block;width:18px;height:2px;background:var(--text,#0d1f13);border-radius:2px;"></span><span style="display:block;width:18px;height:2px;background:var(--text,#0d1f13);border-radius:2px;"></span></button>
     <a href="index.html" class="mh-brand">
       <img src="logo.png" alt="MentifyHub" class="mh-brand-logo"/>
       <div class="mh-brand-text">
@@ -170,13 +170,14 @@
         <span>Mentor dashboard</span>
       </div>
     </a>
-    <nav class="mh-nav">
+    <nav class="mh-nav hide-mobile">
       <span class="mh-chip" id="whoChip">Checking session…</span>
       <a class="mh-btn" href="mentor-directory.html">Directory</a>
       <a class="mh-btn" href="messages.html">Messages</a>
       <a class="mh-btn" href="sessions.html">Sessions</a>
       <a class="mh-btn" href="mentor-onboarding.html">Edit profile</a>
-      <!-- Notification bell (desktop) -->
+
+      <!-- Notification bell -->
       <div class="bell-wrap">
         <button class="bell-btn" id="bellBtn" type="button" title="Notifications">
           🔔
@@ -195,12 +196,9 @@
           </div>
         </div>
       </div>
+
       <button class="mh-btn mh-btn-danger" id="signOutBtn" type="button">Sign out</button>
     </nav>
-    <!-- Mobile: sign out only shown via CSS, bell moved to bottom nav -->
-      <button class="mh-menu-btn" id="menuBtn" onclick="openDrawer()" aria-label="Open menu">
-      <span></span><span></span><span></span>
-    </button>
   </header>
 
   <div class="layout">
@@ -614,62 +612,95 @@
   })();
 </script>
 
-<!-- ── Mobile right-side drawer ── -->
-<div id="navOverlay" onclick="closeDrawer()" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);backdrop-filter:blur(3px);z-index:90;"></div>
-<div class="mh-mobile-drawer" id="mobileDrawer">
-  <div class="drawer-head">
-    <div class="drawer-head-brand">
-      <img src="logo.png" alt="MentifyHub"/>
-      <strong>MentifyHub</strong>
+<!-- Mobile nav overlay -->
+<div id="navOverlay" onclick="closeDrawer()" style="display:none;position:fixed;inset:0;background:rgba(13,31,19,.5);backdrop-filter:blur(3px);z-index:90;"></div>
+
+<!-- Mobile drawer -->
+<div class="mh-mobile-drawer" id="mobileDrawer" style="display:none;position:fixed;top:0;left:0;bottom:0;width:270px;background:#fff;border-right:1px solid var(--line);box-shadow:0 8px 32px rgba(13,31,19,.15);z-index:100;flex-direction:column;padding:0;transform:translateX(-100%);transition:transform .25s ease;">
+  <div style="display:flex;align-items:center;gap:12px;padding:20px 18px 16px;border-bottom:1px solid var(--line);">
+    <img src="logo.png" style="width:34px;height:34px;border-radius:10px;" alt="MentifyHub"/>
+    <div>
+      <div style="font-size:15px;font-weight:800;color:#0d1f13">MentifyHub</div>
+      <div id="drawerUserInfo" style="font-size:11px;color:#6b7c74;margin-top:1px"></div>
     </div>
-    <button class="mh-drawer-close" onclick="closeDrawer()" aria-label="Close menu">✕</button>
   </div>
-  <div class="mh-drawer-user" id="drawerUserInfo">Loading…</div>
-  <div class="mh-drawer-links">
-    <a href="mentor-dashboard.html" class="mh-drawer-link active"><span class="icon">🏠</span> Dashboard</a>
-    <a href="mentor-directory.html" class="mh-drawer-link"><span class="icon">🔍</span> Directory</a>
-    <a href="messages.html"         class="mh-drawer-link"><span class="icon">💬</span> Messages</a>
-    <a href="sessions.html"         class="mh-drawer-link"><span class="icon">📅</span> Sessions</a>
-    <a href="reviews.html"          class="mh-drawer-link"><span class="icon">⭐</span> Reviews</a>
-    <a href="mentor-onboarding.html" class="mh-drawer-link"><span class="icon">✏️</span> Edit profile</a>
+  <div style="flex:1;overflow-y:auto;padding:10px 8px;">
+  <a href="mentor-dashboard.html" class="mh-drawer-link" style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-radius:12px;text-decoration:none;font-size:14px;font-weight:600;margin-bottom:4px;color:var(--green);background:var(--soft2);">🏠 Dashboard</a>
+  <a href="mentor-directory.html" class="mh-drawer-link" style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-radius:12px;text-decoration:none;font-size:14px;font-weight:600;margin-bottom:4px;color:var(--muted);">🔍 Directory</a>
+  <a href="messages.html" class="mh-drawer-link" style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-radius:12px;text-decoration:none;font-size:14px;font-weight:600;margin-bottom:4px;color:var(--muted);">💬 Messages</a>
+  <a href="sessions.html" class="mh-drawer-link" style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-radius:12px;text-decoration:none;font-size:14px;font-weight:600;margin-bottom:4px;color:var(--muted);">📅 Sessions</a>
+  <a href="reviews.html" class="mh-drawer-link" style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-radius:12px;text-decoration:none;font-size:14px;font-weight:600;margin-bottom:4px;color:var(--muted);">⭐ Reviews</a>
   </div>
-  <div class="mh-drawer-footer">
-    <button class="mh-drawer-signout" onclick="drawerSignOut()">🚪 &nbsp;Sign out</button>
+  <div style="padding:12px 10px;border-top:1px solid var(--line);">
+    <a href="#" onclick="signOut ? signOut() : (async()=>{await window._sb?.auth?.signOut();window.location.href='auth.html';})()" style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-radius:12px;text-decoration:none;font-size:14px;font-weight:600;color:#dc2626;background:#fff5f5;">🚪 &nbsp;Sign out</a>
   </div>
 </div>
 
 <script>
-  document.body.classList.add("has-side-nav");
-
-  function openDrawer(){
-    if(window.innerWidth > 768) return;
+    function openDrawer(){
+    if(window.innerWidth > 768) return; // Never open on desktop
     const d = document.getElementById('mobileDrawer');
     const o = document.getElementById('navOverlay');
-    if(!d||!o) return;
-    d.classList.add('open');
+    if(!d || !o) return;
+    d.style.display = 'flex';
     o.style.display = 'block';
+    requestAnimationFrame(()=>{ d.style.transform = 'translateX(0)'; });
     document.body.style.overflow = 'hidden';
-    const chip = document.getElementById('whoChip')||document.getElementById('envChip');
+    const chip = document.getElementById('whoChip') || document.getElementById('envChip');
     const info = document.getElementById('drawerUserInfo');
-    if(chip&&info) info.textContent = chip.textContent;
+    if(chip && info) info.textContent = chip.textContent;
   }
-
-  function closeDrawer(){
+    function closeDrawer(){
     const d = document.getElementById('mobileDrawer');
     const o = document.getElementById('navOverlay');
-    if(!d||!o) return;
-    d.classList.remove('open');
+    if(!d || !o) return;
+    d.style.transform = 'translateX(-100%)';
     o.style.display = 'none';
+    setTimeout(()=>{ d.style.display = 'none'; }, 260);
     document.body.style.overflow = '';
   }
-
-  async function drawerSignOut(){
-    try{
-      const sb2 = window.supabase || window.sb || window._sb;
-      if(sb2) await sb2.auth.signOut();
-    }catch(e){}
-    window.location.href = 'auth.html?mode=signin';
-  }
 </script>
+
+<!-- Mobile bottom nav -->
+<nav class="mh-bottom-nav" aria-label="Main navigation">
+  <div class="mh-bottom-nav-inner">
+    <a id="bnav_home" class="mh-bottom-nav-item active" href="#">
+      <span class="mh-bnav-icon">🏠</span>
+      <span>Home</span>
+    </a>
+    <a class="mh-bottom-nav-item" href="mentor-directory.html">
+      <span class="mh-bnav-icon">🔍</span>
+      <span>Mentors</span>
+    </a>
+    <a class="mh-bottom-nav-item" href="messages.html">
+      <span class="mh-bnav-icon">💬</span>
+      <span>Messages</span>
+    </a>
+    <a class="mh-bottom-nav-item" href="sessions.html">
+      <span class="mh-bnav-icon">📅</span>
+      <span>Sessions</span>
+    </a>
+    <a class="mh-bottom-nav-item" href="reviews.html">
+      <span class="mh-bnav-icon">⭐</span>
+      <span>Reviews</span>
+    </a>
+  </div>
+</nav>
+
+  // Update bottom nav home link to correct dashboard
+  (function(){
+    const bnHome = document.getElementById('bnav_home');
+    if(!bnHome) return;
+    // Wait for role check to run, then mirror dashboardLink
+    const mirror = () => {
+      const dl = document.getElementById('dashboardLink') || document.getElementById('dashLink');
+      if(dl && dl.href && !dl.href.endsWith('#')) {
+        bnHome.href = dl.getAttribute('href');
+      } else {
+        setTimeout(mirror, 300);
+      }
+    };
+    setTimeout(mirror, 300);
+  })();
 </body>
 </html>

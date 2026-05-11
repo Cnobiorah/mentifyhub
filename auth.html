@@ -320,21 +320,23 @@
   async function routeAfterAuth(user){
     const rt = params.get('returnTo');
     if(rt){ window.location.href = rt; return; }
+    let r = (user.user_metadata && user.user_metadata.role) ? String(user.user_metadata.role).toLowerCase() : role;
     try{
-      // Ground truth: check actual mentor/mentee profile tables directly.
-      // Never rely on the profiles.role field for routing — it can be stale or wrong.
-      const { data: mentorRow } = await sb.from(TABLES.mentors).select("user_id").eq("user_id", user.id).maybeSingle();
-      if(mentorRow){ window.location.href = "mentor-dashboard.html"; return; }
-
-      const { data: menteeRow } = await sb.from(TABLES.mentees).select("user_id").eq("user_id", user.id).maybeSingle();
-      if(menteeRow){ window.location.href = "mentee-dashboard.html"; return; }
-
-      // Brand new user — no profile yet. Use the role they selected at sign-up.
-      const r = (user.user_metadata?.role || role).toLowerCase();
-      window.location.href = r === "mentor" ? "mentor-onboarding.html" : "mentee-onboarding.html";
+      if(sb && TABLES.profiles){
+        const { data: prof } = await sb.from(TABLES.profiles).select("role").eq("user_id", user.id).maybeSingle();
+        if(prof?.role) r = String(prof.role).toLowerCase();
+      }
+    }catch(_){}
+    try{
+      if(r==="mentor"){
+        const { data: m } = await sb.from(TABLES.mentors).select("user_id").eq("user_id", user.id).maybeSingle();
+        window.location.href = m ? "mentor-dashboard.html" : "mentor-onboarding.html";
+      }else{
+        const { data: me } = await sb.from(TABLES.mentees).select("user_id").eq("user_id", user.id).maybeSingle();
+        window.location.href = me ? "mentee-dashboard.html" : "mentee-onboarding.html";
+      }
     }catch(e){
-      const r = (user.user_metadata?.role || role).toLowerCase();
-      window.location.href = r === "mentor" ? "mentor-onboarding.html" : "mentee-onboarding.html";
+      window.location.href = (r==="mentor") ? "mentor-onboarding.html" : "mentee-onboarding.html";
     }
   }
 
@@ -353,14 +355,12 @@
         if(error) throw error;
         // Save profile on first sign in
         try{
-          // ignoreDuplicates:true means if a profile row already exists, do nothing.
-          // This prevents sign-in from overwriting an existing role with the wrong default.
           await sb.from(TABLES.profiles).upsert({
             user_id:   data.user.id,
             role:      (data.user.user_metadata?.role || role),
             full_name: (data.user.user_metadata?.full_name || ""),
             email:     data.user.email
-          }, { onConflict:'user_id', ignoreDuplicates: true });
+          }, { onConflict:'user_id' });
         }catch(profileErr){ console.error("Profile save error:", profileErr); }
         await routeAfterAuth(data.user);
         setBusy(false);

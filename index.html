@@ -177,17 +177,6 @@
       .features { grid-template-columns: 1fr; }
       .hero-left { padding: 22px; }
     }
-
-    /* Index page: always show Sign in / Explore on mobile */
-    @media (max-width: 768px) {
-      .mh-nav {
-        display: flex !important;
-        gap: 6px;
-        align-items: center;
-      }
-      .mh-nav .mh-chip { display: none !important; }
-      .mh-nav .mh-btn  { display: inline-flex !important; padding: 8px 12px !important; font-size: 13px !important; }
-    }
   </style>
 </head>
 <body>
@@ -326,5 +315,79 @@
   </footer>
 </div>
 <script>document.getElementById('yr').textContent = new Date().getFullYear();</script>
+
+
+
+<!-- ── Bottom navigation (mobile) ──────────────── -->
+<nav class="mh-bottom-nav" id="bottomNav" role="navigation" aria-label="Mobile navigation">
+  <a href="#" id="bn-home" class="mh-bottom-nav-item">
+    <span class="bn-icon-wrap"><span class="bn-icon">🏠</span></span>
+    <span class="bn-label">Home</span>
+  </a>
+  <a href="mentor-directory.html" class="mh-bottom-nav-item">
+    <span class="bn-icon-wrap"><span class="bn-icon">🔍</span></span>
+    <span class="bn-label">Find</span>
+  </a>
+  <a href="messages.html" class="mh-bottom-nav-item">
+    <span class="bn-icon-wrap"><span class="bn-icon">💬</span></span>
+    <span class="bn-label">Chat</span>
+  </a>
+  <a href="sessions.html" class="mh-bottom-nav-item">
+    <span class="bn-icon-wrap"><span class="bn-icon">📅</span></span>
+    <span class="bn-label">Sessions</span>
+  </a>
+  <button type="button" class="mh-bottom-nav-item" id="bn-bell" onclick="toggleMobileBell()">
+    <span class="bn-icon-wrap" style="position:relative">
+      <span class="bn-icon">🔔</span>
+      <span id="bn-bell-badge" style="display:none;position:absolute;top:-2px;right:-2px;width:8px;height:8px;border-radius:50%;background:#ef4444;border:1.5px solid #fff;"></span>
+    </span>
+    <span class="bn-label">Alerts</span>
+  </button>
+</nav>
+<script>
+  // Resolve dashboard link based on role
+  (async function() {
+    const el = document.getElementById("bn-home");
+    if(!el) return;
+    try {
+      const sb2 = window.supabase || window.sb;
+      if(!sb2) { el.href = "index.html"; return; }
+      const {data:{session}} = await sb2.auth.getSession();
+      if(!session) { el.href = "auth.html"; return; }
+      const {data:mp} = await sb2.from("mentors").select("user_id").eq("user_id", session.user.id).maybeSingle();
+      el.href = mp ? "mentor-dashboard.html" : "mentee-dashboard.html";
+    } catch(e) { el.href = "mentor-dashboard.html"; }
+  })();
+
+  // Sync bell badge with desktop bell badge
+  function syncBellBadge() {
+    const desktopBadge = document.getElementById("bellBadge");
+    const mobileBadge  = document.getElementById("bn-bell-badge");
+    if(!desktopBadge || !mobileBadge) return;
+    const count = desktopBadge.textContent?.trim();
+    const visible = desktopBadge.style.display !== "none" && desktopBadge.style.display !== "";
+    mobileBadge.style.display = (visible || count) ? "block" : "none";
+  }
+  // Poll every 2s to keep in sync
+  setInterval(syncBellBadge, 2000);
+  setTimeout(syncBellBadge, 1000);
+
+  // Open the notification panel on mobile (reuse desktop panel)
+  function toggleMobileBell() {
+    const panel = document.getElementById("notifPanel");
+    if(!panel) return;
+    // On mobile position it above the bottom nav
+    panel.style.position   = "fixed";
+    panel.style.bottom     = "70px";
+    panel.style.left       = "8px";
+    panel.style.right      = "8px";
+    panel.style.top        = "auto";
+    panel.style.width      = "auto";
+    panel.style.zIndex     = "200";
+    panel.style.display    = panel.style.display === "block" ? "none" : "block";
+  }
+
+  document.body.classList.add("has-bottom-nav");
+</script>
 </body>
 </html>

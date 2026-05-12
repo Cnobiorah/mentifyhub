@@ -185,9 +185,9 @@
   let USER=null, REQUESTS=[], CURRENT=null;
 
   async function requireAuth(){
-    const user = await window.requireAuth("sessions.html");
-    if(!user) return;
-    USER = user;
+    const {data:{session}}=await sb.auth.getSession();
+    if(!session){ location.href="auth.html"; return; }
+    USER=session.user;
     const {data:mentorProfile}=await sb.from("mentors").select("user_id").eq("user_id",USER.id).maybeSingle();
     const _dash=mentorProfile?"mentor-dashboard.html":"mentee-dashboard.html";
     $("dashboardLink").href=_dash;

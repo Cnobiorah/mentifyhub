@@ -5,8 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>MentifyHub — Sessions</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="config.js"></script>
-  <script src="auth-guard.js"></script>
   <link rel="stylesheet" href="mh-theme.css"/>
   <style>
     .layout {
@@ -179,7 +177,9 @@
 </div>
 
 <script>
-  const sb = window.mhSb;
+  const SUPABASE_URL      = "https://mscgaaaobxiuzqsukvjc.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y";
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   const $   = id => document.getElementById(id);
 
   let USER=null, REQUESTS=[], CURRENT=null;
@@ -249,10 +249,19 @@
     el.min = now.toISOString().slice(0,16);
   })();
 
+  // Prevent past dates in the datetime picker
+  (function(){
+    const el = document.getElementById("scheduledFor");
+    if(!el) return;
+    const now = new Date(); now.setSeconds(0,0);
+    el.min = now.toISOString().slice(0,16);
+  })();
+
   async function saveSession(){
     if(!CURRENT){ alert("Select a request first"); return; }
     const scheduledFor=$("scheduledFor").value;
     if(!scheduledFor){ alert("Select date and time"); return; }
+    if(new Date(scheduledFor) < new Date()){ alert("Please choose a future date and time."); return; }
     if(new Date(scheduledFor) < new Date()){ alert("Please choose a future date and time."); return; }
     const {error}=await sb.from("sessions").insert({
       request_id:CURRENT.id,mentor_id:CURRENT.mentor_id,mentee_id:CURRENT.mentee_id,
@@ -334,8 +343,7 @@
 
   async function drawerSignOut(){
     try{
-      const sb2 = window.supabase || window.sb || window._sb;
-      if(sb2) await sb2.auth.signOut();
+      if(sb) await sb.auth.signOut();
     }catch(e){}
     window.location.href = 'auth.html?mode=signin';
   }

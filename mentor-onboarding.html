@@ -5,8 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>MentifyHub — Mentor Onboarding</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="config.js"></script>
-  <script src="auth-guard.js"></script>
   <link rel="stylesheet" href="mh-theme.css"/>
   <style>
     .shell { display: grid; grid-template-columns: 1fr 280px; gap: 18px; margin-top: 18px; align-items: start; }
@@ -429,7 +427,7 @@
 
 <script>
   const SUPABASE_URL      = "https://mscgaaaobxiuzqsukvjc.supabase.co";
-  const SUPABASE_ANON_KEY = "" + window.MH_SUPABASE_ANON_KEY + "";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y";
   const TABLES = { mentees:"mentees", mentors:"mentors" };
   const sb = (SUPABASE_URL.startsWith("http") && SUPABASE_ANON_KEY.startsWith("ey") && typeof supabase !== "undefined")
     ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;

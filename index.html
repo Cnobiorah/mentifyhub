@@ -319,9 +319,6 @@
 
 
 <!-- ── Bottom navigation (mobile) ──────────────── -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="config.js"></script>
-<script src="auth-guard.js"></script>
 <nav class="mh-bottom-nav" id="bottomNav" role="navigation" aria-label="Mobile navigation">
   <a href="#" id="bn-home" class="mh-bottom-nav-item">
     <span class="bn-icon-wrap"><span class="bn-icon">🏠</span></span>
@@ -348,28 +345,46 @@
   </button>
 </nav>
 <script>
-  // Resolve dashboard link using the shared Supabase client from auth-guard.js
+  // Resolve dashboard link based on role
   (async function() {
     const el = document.getElementById("bn-home");
     if(!el) return;
     try {
-      const url = await window.getDashboardUrl();
-      el.href = url;
-    } catch(e) { el.href = "auth.html"; }
+      const sb2 = window.supabase || window.sb;
+      if(!sb2) { el.href = "index.html"; return; }
+      const {data:{session}} = await sb2.auth.getSession();
+      if(!session) { el.href = "auth.html"; return; }
+      const {data:mp} = await sb2.from("mentors").select("user_id").eq("user_id", session.user.id).maybeSingle();
+      el.href = mp ? "mentor-dashboard.html" : "mentee-dashboard.html";
+    } catch(e) { el.href = "mentor-dashboard.html"; }
   })();
+
+  // Sync bell badge with desktop bell badge
+  function syncBellBadge() {
+    const desktopBadge = document.getElementById("bellBadge");
+    const mobileBadge  = document.getElementById("bn-bell-badge");
+    if(!desktopBadge || !mobileBadge) return;
+    const count = desktopBadge.textContent?.trim();
+    const visible = desktopBadge.style.display !== "none" && desktopBadge.style.display !== "";
+    mobileBadge.style.display = (visible || count) ? "block" : "none";
+  }
+  // Poll every 2s to keep in sync
+  setInterval(syncBellBadge, 2000);
+  setTimeout(syncBellBadge, 1000);
 
   // Open the notification panel on mobile (reuse desktop panel)
   function toggleMobileBell() {
     const panel = document.getElementById("notifPanel");
     if(!panel) return;
-    panel.style.position = "fixed";
-    panel.style.bottom   = "70px";
-    panel.style.left     = "8px";
-    panel.style.right    = "8px";
-    panel.style.top      = "auto";
-    panel.style.width    = "auto";
-    panel.style.zIndex   = "200";
-    panel.style.display  = panel.style.display === "block" ? "none" : "block";
+    // On mobile position it above the bottom nav
+    panel.style.position   = "fixed";
+    panel.style.bottom     = "70px";
+    panel.style.left       = "8px";
+    panel.style.right      = "8px";
+    panel.style.top        = "auto";
+    panel.style.width      = "auto";
+    panel.style.zIndex     = "200";
+    panel.style.display    = panel.style.display === "block" ? "none" : "block";
   }
 
   document.body.classList.add("has-bottom-nav");

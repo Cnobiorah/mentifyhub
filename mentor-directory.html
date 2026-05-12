@@ -5,8 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>MentifyHub — Mentor Directory</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="config.js"></script>
-  <script src="auth-guard.js"></script>
   <link rel="stylesheet" href="mh-theme.css"/>
   <style>
     /* Filters */
@@ -191,7 +189,7 @@
 
 <script>
   const SUPABASE_URL      = "https://mscgaaaobxiuzqsukvjc.supabase.co";
-  const SUPABASE_ANON_KEY = "" + window.MH_SUPABASE_ANON_KEY + "";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y";
   const TABLES = { mentees:"mentees", mentors:"mentors", requests:"mentorship_requests" };
 
   const sb = (SUPABASE_URL.startsWith("http") && SUPABASE_ANON_KEY.startsWith("ey") && typeof supabase !== "undefined")
@@ -351,7 +349,7 @@
         try{
           await fetch("https://mscgaaaobxiuzqsukvjc.supabase.co/functions/v1/notify-mentor",{
             method:"POST",
-            headers:{"Content-Type":"application/json","apikey":SUPABASE_ANON_KEY,"Authorization":`Bearer ${SUPABASE_ANON_KEY}`},
+            headers:{"Content-Type":"application/json","apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y","Authorization":`Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y`},
             body:JSON.stringify({mentor_email:mentor.email,mentee_name:USER?.email,request_id,message_preview:msg.slice(0,300)})
           });
         }catch(err){ console.error("Email error:",err); }

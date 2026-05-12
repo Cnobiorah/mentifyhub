@@ -5,9 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>MentifyHub — Mentor Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="config.js"></script>
-  <script src="auth-guard.js"></script>
-  <script src="mh-utils.js"></script>
   <link rel="stylesheet" href="mh-theme.css"/>
   <style>
     .layout {
@@ -274,7 +271,11 @@
 </div>
 
 <script>
-  const sb = window.mhSb;
+  const SUPABASE_URL      = "https://mscgaaaobxiuzqsukvjc.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y";
+
+  const sb = (SUPABASE_URL.startsWith("http") && SUPABASE_ANON_KEY.startsWith("ey"))
+    ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
   const TABLES = { mentors:"mentors", mentees:"mentees", requests:"mentorship_requests" };
 
@@ -308,10 +309,25 @@
     return [];
   }
 
-  // calcCompleteness delegates to shared mentorCompleteness from mh-utils.js
-  const calcCompleteness = (mentor) => window.mentorCompleteness(mentor);
+  function calcCompleteness(mentor){
+    const checks = [
+      !!mentor.headline,!!mentor.current_title,!!mentor.experience,!!mentor.years_experience,
+      !!mentor.languages,!!mentor.bio,!!mentor.field,
+      safeArr(mentor.best_for).length>=1,safeArr(mentor.mentoring_areas).length>=1,safeArr(mentor.tags).length>=3,
+      !!mentor.preferred_level,!!mentor.mentorship_style,!!mentor.preferred_session_type,
+      !!mentor.session_duration,mentor.active_slots!=null,!!mentor.pricing_type,
+      !!mentor.communication,!!mentor.country,!!mentor.timezone,!!mentor.availability
+    ];
+    return Math.round(checks.filter(Boolean).length/checks.length*100);
+  }
 
-  // requireAuth is provided by auth-guard.js
+  async function requireAuth(){
+    if(!sb){ els.whoChip.textContent="Add Supabase key"; showNote("Supabase not configured."); return null; }
+    const { data:{user}, error } = await sb.auth.getUser();
+    if(error) console.error(error);
+    if(!user){ window.location.href=`auth.html?mode=signin&returnTo=${encodeURIComponent("mentor-dashboard.html")}`; return null; }
+    return user;
+  }
 
   async function loadMentorDisplayName(user){
     try{
@@ -427,8 +443,8 @@
               method: "POST",
               headers: {
                 "Content-Type":  "application/json",
-                "apikey":        "" + window.MH_SUPABASE_ANON_KEY + "",
-                "Authorization": "Bearer " + window.MH_SUPABASE_ANON_KEY + ""
+                "apikey":        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y",
+                "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y"
               },
               body: JSON.stringify({
                 mentee_email: menteeRow.email,
@@ -515,9 +531,6 @@
     } else {
       bellBadge.style.display = "none";
     }
-    // Keep mobile bottom-nav bell in sync (no polling needed)
-    const mobileBadge = document.getElementById("bn-bell-badge");
-    if(mobileBadge) mobileBadge.style.display = unread > 0 ? "block" : "none";
   }
 
   async function markRead(id){
@@ -587,7 +600,8 @@
     try{
       const {data:m}=await sb.from(TABLES.mentors).select("*").eq("user_id",user.id).maybeSingle();
       if(m){
-        const pct=window.mentorCompleteness(m);
+        const checks=[!!m.headline,!!m.current_title,!!m.experience,!!m.years_experience,!!m.bio,!!m.field,(m.best_for||[]).length>=1,(m.tags||[]).length>=3,!!m.preferred_level,!!m.mentorship_style,!!m.session_duration,m.active_slots!=null,!!m.pricing_type,!!m.communication,!!m.country,!!m.timezone,!!m.availability];
+        const pct=Math.round(checks.filter(Boolean).length/checks.length*100);
         if(pct<80){
           const banner=document.createElement("div");
           banner.style.cssText="padding:14px 18px;border-radius:14px;border:1px solid rgba(29,78,216,.20);background:rgba(29,78,216,.06);display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:16px;";

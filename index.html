@@ -5,302 +5,285 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>MentifyHub</title>
   <meta name="description" content="MentifyHub connects people with experienced mentors in sustainability, energy and green buildings."/>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="stylesheet" href="mh-theme.css"/>
   <style>
     *, *::before, *::after { box-sizing: border-box; }
 
     /* ── Hero ── */
     .hero {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0;
-      min-height: 520px;
-      border-radius: var(--radius);
-      overflow: hidden;
-      border: 1px solid var(--line);
-      box-shadow: var(--shadow);
       margin-top: 18px;
+      border-radius: 24px;
+      background: #06101f;
+      overflow: hidden;
+      position: relative;
+      min-height: 580px;
+      display: grid;
+      grid-template-columns: 1.1fr .9fr;
     }
+
+    /* Blobs */
+    .blob { position:absolute; border-radius:50%; filter:blur(90px); opacity:.3; pointer-events:none; }
+    .b1 { width:380px; height:380px; background:#1d4ed8; top:-120px; left:-80px; }
+    .b2 { width:280px; height:280px; background:#7c3aed; bottom:-80px; left:28%; }
+    .b3 { width:220px; height:220px; background:#0284c7; top:30%; right:-60px; }
+
+    /* Decorative */
+    .deco-ring   { position:absolute; width:52px; height:52px; border-radius:50%; border:3px solid #3b82f6; top:44px; left:44px; opacity:.6; }
+    .deco-diamond{ position:absolute; width:20px; height:20px; background:#f59e0b; transform:rotate(45deg); bottom:110px; left:43%; opacity:.9; }
+    .deco-dot    { position:absolute; width:14px; height:14px; border-radius:50%; background:#fff; top:42%; right:47%; opacity:.12; }
+
+    /* Left */
     .hero-left {
-      background: linear-gradient(160deg, #0f172a 0%, #1e3a5f 100%);
-      padding: 52px 48px;
+      padding: 60px 52px;
       display: flex;
       flex-direction: column;
       justify-content: center;
-      gap: 20px;
+      gap: 22px;
+      position: relative;
+      z-index: 2;
     }
     .hero-tag {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: rgba(255,255,255,.1);
-      border: 1px solid rgba(255,255,255,.15);
-      border-radius: 999px;
-      padding: 6px 14px;
-      font-size: 12px;
-      font-weight: 600;
-      color: #93c5fd;
-      width: fit-content;
+      display:inline-flex; align-items:center; gap:8px;
+      background:rgba(59,130,246,.14); border:1px solid rgba(59,130,246,.28);
+      border-radius:999px; padding:6px 16px;
+      font-size:12px; font-weight:700; color:#93c5fd; width:fit-content;
     }
     .hero-left h1 {
-      font-size: clamp(32px, 4vw, 52px);
-      font-weight: 900;
-      line-height: 1.08;
-      letter-spacing: -1px;
-      color: #fff;
-      margin: 0;
+      font-size:clamp(36px,4.5vw,60px); font-weight:900;
+      line-height:1.04; letter-spacing:-1.5px; color:#fff; margin:0;
     }
-    .hero-left h1 span {
-      background: linear-gradient(135deg, #60a5fa, #a78bfa);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+    .hero-left h1 .grad {
+      background:linear-gradient(135deg,#60a5fa,#a78bfa);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
     }
-    .hero-left p {
-      font-size: 16px;
-      color: #94a3b8;
-      line-height: 1.6;
-      max-width: 40ch;
-      margin: 0;
+    .hero-left p { font-size:15px; color:#94a3b8; line-height:1.65; max-width:38ch; margin:0; }
+    .hero-cta { display:flex; gap:12px; flex-wrap:wrap; }
+    .btn-hp {
+      padding:14px 28px; border-radius:12px; background:#2563eb;
+      color:#fff; font-weight:700; font-size:15px; text-decoration:none;
+      border:none; transition:background .15s,transform .1s;
     }
-    .hero-cta {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
+    .btn-hp:hover { background:#1d4ed8; transform:translateY(-1px); }
+    .btn-ho {
+      padding:14px 28px; border-radius:12px; background:transparent;
+      color:#e2e8f0; font-weight:700; font-size:15px; text-decoration:none;
+      border:1.5px solid rgba(255,255,255,.2); transition:background .15s;
     }
-    .btn-primary-hero {
-      padding: 14px 28px;
-      border-radius: 12px;
-      background: #2563eb;
-      color: #fff;
-      font-weight: 700;
-      font-size: 15px;
-      text-decoration: none;
-      border: none;
-      cursor: pointer;
-      transition: background .15s, transform .1s;
+    .btn-ho:hover { background:rgba(255,255,255,.08); }
+    .trust-row { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+    .trust-pill {
+      display:inline-flex; align-items:center; gap:6px;
+      background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1);
+      border-radius:999px; padding:5px 14px;
+      font-size:12px; font-weight:600; color:#cbd5e1;
     }
-    .btn-primary-hero:hover { background: #1d4ed8; transform: translateY(-1px); }
-    .btn-outline-hero {
-      padding: 14px 28px;
-      border-radius: 12px;
-      background: rgba(255,255,255,.08);
-      color: #fff;
-      font-weight: 700;
-      font-size: 15px;
-      text-decoration: none;
-      border: 1px solid rgba(255,255,255,.2);
-      transition: background .15s;
-    }
-    .btn-outline-hero:hover { background: rgba(255,255,255,.14); }
-    .hero-stats {
-      display: flex;
-      gap: 24px;
-      margin-top: 8px;
-    }
-    .hero-stat { text-align: left; }
-    .hero-stat .num { font-size: 22px; font-weight: 800; color: #fff; }
-    .hero-stat .lbl { font-size: 12px; color: #64748b; margin-top: 2px; }
 
-    /* Hero right - visual grid */
+    /* ── Photo grid ── */
     .hero-right {
-      background: #f8faff;
-      padding: 32px;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      grid-template-rows: 1fr 1fr;
-      gap: 12px;
+      position:relative; z-index:2;
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      grid-template-rows:repeat(3,1fr);
+      gap:14px;
+      padding:32px 40px 32px 12px;
+      align-content:center;
     }
-    .hero-card {
-      background: #fff;
-      border-radius: 16px;
-      border: 1px solid #e8edf5;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      box-shadow: 0 2px 8px rgba(15,23,42,.06);
-      transition: transform .2s, box-shadow .2s;
+    .photo-slot {
+      position:relative; overflow:hidden;
+      border:2px solid rgba(255,255,255,.08);
+      background:#0f1e35;
+      transition:transform .25s, box-shadow .25s;
     }
-    .hero-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(15,23,42,.10); }
-    .hero-card .hc-icon { font-size: 28px; }
-    .hero-card .hc-title { font-size: 14px; font-weight: 700; color: #0f172a; }
-    .hero-card .hc-sub { font-size: 12px; color: #64748b; line-height: 1.5; }
-    .hero-card.accent { background: linear-gradient(135deg, #2563eb, #7c3aed); border-color: transparent; }
-    .hero-card.accent .hc-title { color: #fff; }
-    .hero-card.accent .hc-sub { color: rgba(255,255,255,.7); }
+    .photo-slot:hover { transform:translateY(-4px); box-shadow:0 16px 40px rgba(0,0,0,.5); }
 
-    /* ── Roles section ── */
-    .roles {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-      margin-top: 16px;
+    /* Unique shapes */
+    .photo-slot:nth-child(1) { border-radius:999px 999px 20px 20px; aspect-ratio:3/4; }
+    .photo-slot:nth-child(2) { border-radius:20px 20px 999px 20px; aspect-ratio:3/4; margin-top:28px; }
+    .photo-slot:nth-child(3) { border-radius:50%; aspect-ratio:1/1; }
+    .photo-slot:nth-child(4) { border-radius:20px 999px 20px 20px; aspect-ratio:3/4; margin-top:-28px; }
+    .photo-slot:nth-child(5) { border-radius:20px; aspect-ratio:3/4; margin-top:20px; }
+    .photo-slot:nth-child(6) { border-radius:999px 20px 20px 999px; aspect-ratio:3/4; }
+
+    /* Gradient overlays per slot — blue variations */
+    .photo-slot:nth-child(1) { background:linear-gradient(155deg,#0f2444,#1e3a8a); }
+    .photo-slot:nth-child(2) { background:linear-gradient(155deg,#0c1a3a,#1d4ed8); }
+    .photo-slot:nth-child(3) { background:linear-gradient(155deg,#1a0f3a,#4c1d95); }
+    .photo-slot:nth-child(4) { background:linear-gradient(155deg,#0a1628,#0369a1); }
+    .photo-slot:nth-child(5) { background:linear-gradient(155deg,#0f2444,#1e40af); }
+    .photo-slot:nth-child(6) { background:linear-gradient(155deg,#160a2e,#6d28d9); }
+
+    .photo-slot img {
+      width:100%; height:100%; object-fit:cover; display:block;
     }
+    /* Fallback content when no photo */
+    .slot-fallback {
+      width:100%; height:100%; min-height:120px;
+      display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+      gap:6px; padding:16px;
+    }
+    .slot-fallback .sf-emoji { font-size:28px; }
+    .slot-fallback .sf-name  { font-size:11px; font-weight:700; color:#fff; text-align:center; line-height:1.3; }
+    .slot-fallback .sf-field { font-size:10px; color:rgba(255,255,255,.45); text-align:center; }
+
+    /* Name badge overlay */
+    .slot-badge {
+      position:absolute; bottom:0; left:0; right:0;
+      background:linear-gradient(to top,rgba(0,0,0,.75),transparent);
+      padding:20px 10px 8px;
+      text-align:center;
+      display:none;
+    }
+    .slot-badge .sb-name  { font-size:11px; font-weight:700; color:#fff; display:block; }
+    .slot-badge .sb-field { font-size:10px; color:rgba(255,255,255,.6); display:block; }
+    .photo-slot.has-photo .slot-badge { display:block; }
+
+    /* ── Roles ── */
+    .roles { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:14px; }
     .role-card {
-      border-radius: var(--radius);
-      padding: 40px 36px;
-      position: relative;
-      overflow: hidden;
-      min-height: 280px;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-      text-decoration: none;
+      border-radius:20px; padding:40px 36px; position:relative;
+      overflow:hidden; min-height:260px;
+      display:flex; flex-direction:column; justify-content:flex-end;
+      text-decoration:none; transition:transform .2s;
     }
-    .role-card.mentee { background: linear-gradient(160deg, #1e3a5f, #2563eb); }
-    .role-card.mentor { background: linear-gradient(160deg, #1a1a2e, #4c1d95); }
-    .role-card .rc-emoji {
-      position: absolute;
-      top: 28px;
-      right: 28px;
-      font-size: 64px;
-      opacity: .25;
+    .role-card:hover { transform:translateY(-3px); }
+    .role-card.mentee { background:linear-gradient(145deg,#06101f 0%,#1e3a5f 55%,#1d4ed8 100%); }
+    .role-card.mentor { background:linear-gradient(145deg,#06101f 0%,#2e1065 55%,#7c3aed 100%); }
+    .rc-emoji { position:absolute; top:20px; right:24px; font-size:80px; opacity:.15; }
+    .rc-badge {
+      display:inline-flex; align-items:center; gap:6px;
+      background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.18);
+      border-radius:999px; padding:4px 12px;
+      font-size:11px; font-weight:700; color:rgba(255,255,255,.8);
+      margin-bottom:12px; width:fit-content;
     }
-    .role-card .rc-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: rgba(255,255,255,.15);
-      border: 1px solid rgba(255,255,255,.2);
-      border-radius: 999px;
-      padding: 4px 12px;
-      font-size: 12px;
-      font-weight: 600;
-      color: rgba(255,255,255,.8);
-      margin-bottom: 14px;
-      width: fit-content;
+    .role-card h3 { font-size:22px; font-weight:900; color:#fff; margin:0 0 8px; letter-spacing:-.3px; }
+    .role-card p  { font-size:13px; color:rgba(255,255,255,.6); margin:0 0 20px; line-height:1.55; max-width:30ch; }
+    .rc-btn {
+      display:inline-flex; align-items:center; gap:8px;
+      background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.2);
+      border-radius:10px; padding:10px 18px;
+      font-size:13px; font-weight:700; color:#fff; text-decoration:none;
+      width:fit-content; transition:background .15s;
     }
-    .role-card h3 { font-size: 24px; font-weight: 800; color: #fff; margin: 0 0 8px; }
-    .role-card p  { font-size: 14px; color: rgba(255,255,255,.65); margin: 0 0 20px; line-height: 1.55; max-width: 32ch; }
-    .role-card .rc-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: rgba(255,255,255,.15);
-      border: 1px solid rgba(255,255,255,.25);
-      border-radius: 10px;
-      padding: 10px 20px;
-      font-size: 14px;
-      font-weight: 700;
-      color: #fff;
-      text-decoration: none;
-      width: fit-content;
-      transition: background .15s;
-    }
-    .role-card .rc-btn:hover { background: rgba(255,255,255,.25); }
+    .rc-btn:hover { background:rgba(255,255,255,.22); }
 
     /* ── Steps ── */
     .steps-section {
-      margin-top: 16px;
-      border-radius: var(--radius);
-      border: 1px solid var(--line);
-      background: #fff;
-      padding: 40px;
-      box-shadow: var(--shadow);
+      margin-top:14px; background:#06101f; border-radius:20px;
+      padding:48px 44px; position:relative; overflow:hidden;
     }
-    .steps-section .sec-label {
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      color: #2563eb;
-      margin-bottom: 8px;
-    }
-    .steps-section h2 {
-      font-size: 26px;
-      font-weight: 800;
-      letter-spacing: -.3px;
-      margin: 0 0 36px;
-    }
-    .steps-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 0;
-      position: relative;
-    }
+    .ss-b1 { position:absolute; width:300px; height:300px; background:#1d4ed8; border-radius:50%; filter:blur(100px); opacity:.1; top:-100px; right:-50px; pointer-events:none; }
+    .ss-b2 { position:absolute; width:200px; height:200px; background:#7c3aed; border-radius:50%; filter:blur(80px); opacity:.1; bottom:-60px; left:20%; pointer-events:none; }
+    .sec-label { font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:#3b82f6; margin-bottom:10px; }
+    .steps-section h2 { font-size:28px; font-weight:900; color:#fff; margin:0 0 40px; letter-spacing:-.3px; }
+    .steps-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:0; position:relative; }
     .steps-grid::before {
-      content: '';
-      position: absolute;
-      top: 28px;
-      left: calc(16.66% + 28px);
-      right: calc(16.66% + 28px);
-      height: 2px;
-      background: linear-gradient(90deg, #2563eb, #7c3aed);
-      z-index: 0;
+      content:''; position:absolute;
+      top:32px; left:calc(16.66% + 32px); right:calc(16.66% + 32px);
+      height:2px; background:linear-gradient(90deg,#2563eb,#7c3aed); z-index:0;
     }
-    .step-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      padding: 0 20px;
-      position: relative;
-      z-index: 1;
-    }
+    .step-item { display:flex; flex-direction:column; align-items:center; text-align:center; padding:0 20px; position:relative; z-index:1; }
     .step-num {
-      width: 56px;
-      height: 56px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 22px;
-      margin-bottom: 16px;
-      border: 3px solid #fff;
-      box-shadow: 0 0 0 2px #2563eb;
+      width:64px; height:64px; border-radius:50%;
+      display:flex; align-items:center; justify-content:center;
+      font-size:26px; margin-bottom:18px;
+      border:3px solid #06101f;
     }
-    .step-item:nth-child(1) .step-num { background: linear-gradient(135deg, #dbeafe, #eff6ff); }
-    .step-item:nth-child(2) .step-num { background: linear-gradient(135deg, #ede9fe, #f5f3ff); }
-    .step-item:nth-child(3) .step-num { background: linear-gradient(135deg, #d1fae5, #f0fdf4); }
-    .step-item h4 { font-size: 15px; font-weight: 800; margin: 0 0 6px; }
-    .step-item p  { font-size: 13px; color: var(--muted); line-height: 1.55; }
+    .step-item:nth-child(1) .step-num { background:linear-gradient(135deg,#1e3a8a,#2563eb); box-shadow:0 0 0 2px #2563eb; color:#93c5fd; }
+    .step-item:nth-child(2) .step-num { background:linear-gradient(135deg,#4c1d95,#7c3aed); box-shadow:0 0 0 2px #7c3aed; color:#c4b5fd; }
+    .step-item:nth-child(3) .step-num { background:linear-gradient(135deg,#164e63,#0ea5e9); box-shadow:0 0 0 2px #0ea5e9; color:#bae6fd; }
+    .step-item h4 { font-size:15px; font-weight:800; color:#fff; margin:0 0 8px; }
+    .step-item p  { font-size:13px; color:#64748b; line-height:1.55; }
 
     /* ── Features ── */
-    .features-section {
-      margin-top: 16px;
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-    }
+    .features-section { margin-top:14px; display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
     .feat-card {
-      background: #fff;
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      padding: 24px;
-      box-shadow: var(--shadow);
-      transition: transform .2s, box-shadow .2s;
+      background:#fff; border:1px solid var(--line); border-radius:18px;
+      padding:26px; box-shadow:var(--shadow);
+      transition:transform .2s,box-shadow .2s;
     }
-    .feat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 28px rgba(15,23,42,.10); }
-    .feat-icon-wrap {
-      width: 48px;
-      height: 48px;
-      border-radius: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 22px;
-      margin-bottom: 14px;
-    }
-    .feat-card h4 { font-size: 15px; font-weight: 800; margin: 0 0 6px; }
-    .feat-card p  { font-size: 13px; color: var(--muted); line-height: 1.55; margin: 0; }
+    .feat-card:hover { transform:translateY(-3px); box-shadow:0 12px 32px rgba(15,23,42,.10); }
+    .feat-icon-wrap { width:48px; height:48px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:22px; margin-bottom:14px; }
+    .feat-card h4 { font-size:14px; font-weight:800; margin:0 0 6px; }
+    .feat-card p  { font-size:13px; color:var(--muted); line-height:1.55; margin:0; }
 
     /* ── Responsive ── */
-    @media (max-width: 900px) {
-      .hero { grid-template-columns: 1fr; min-height: auto; }
-      .hero-right { display: none; }
-      .hero-left { padding: 36px 28px; }
-      .roles { grid-template-columns: 1fr; }
-      .steps-grid { grid-template-columns: 1fr; gap: 24px; }
-      .steps-grid::before { display: none; }
-      .features-section { grid-template-columns: 1fr 1fr; }
-      .steps-section { padding: 28px 20px; }
+    @media (max-width:900px){
+      .hero { grid-template-columns:1fr; }
+      .hero-right { display:none; }
+      .hero-left { padding:44px 28px; }
+      .roles { grid-template-columns:1fr; }
+      .steps-grid { grid-template-columns:1fr; gap:28px; }
+      .steps-grid::before { display:none; }
+      .features-section { grid-template-columns:1fr 1fr; }
+      .steps-section { padding:32px 20px; }
     }
-    @media (max-width: 600px) {
-      .features-section { grid-template-columns: 1fr; }
-      .hero-left { padding: 28px 20px; }
-      .hero-stats { gap: 16px; }
+    @media (max-width:600px){
+      .features-section { grid-template-columns:1fr; }
+      .hero-left { padding:32px 20px; }
     }
+
+    /* ── Animations ─────────────────────────── */
+
+    /* Blob drift */
+    @keyframes drift1 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(30px,-20px) scale(1.08)} }
+    @keyframes drift2 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(-20px,25px) scale(1.05)} }
+    @keyframes drift3 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(15px,-15px) scale(1.06)} }
+    .b1 { animation: drift1 9s ease-in-out infinite; }
+    .b2 { animation: drift2 11s ease-in-out infinite; }
+    .b3 { animation: drift3 8s ease-in-out infinite; }
+
+    /* Deco shapes */
+    @keyframes spin-ring { to { transform: rotate(360deg); } }
+    @keyframes bob { 0%,100%{transform:rotate(45deg) translateY(0)} 50%{transform:rotate(45deg) translateY(-8px)} }
+    .deco-ring    { animation: spin-ring 18s linear infinite; }
+    .deco-diamond { animation: bob 4s ease-in-out infinite; }
+
+    /* Hero left — stagger fade up */
+    .hero-left > * { opacity:0; transform:translateY(24px); animation:heroIn .7s ease forwards; }
+    .hero-left > *:nth-child(1){ animation-delay:.1s }
+    .hero-left > *:nth-child(2){ animation-delay:.25s }
+    .hero-left > *:nth-child(3){ animation-delay:.4s }
+    .hero-left > *:nth-child(4){ animation-delay:.55s }
+    .hero-left > *:nth-child(5){ animation-delay:.7s }
+    @keyframes heroIn { to { opacity:1; transform:translateY(0); } }
+
+    /* Button shimmer */
+    .btn-hp { position:relative; overflow:hidden; }
+    .btn-hp::after {
+      content:''; position:absolute; top:0; left:-100%; width:60%; height:100%;
+      background:linear-gradient(90deg,transparent,rgba(255,255,255,.18),transparent);
+      animation: shimmer 3s ease-in-out infinite;
+    }
+    @keyframes shimmer { 0%{left:-100%} 60%,100%{left:150%} }
+
+    /* Photo slots stagger in */
+    .photo-slot { opacity:0; transform:translateY(20px) scale(.96); }
+    .photo-slot.visible {
+      animation: slotIn .6s cubic-bezier(.22,1,.36,1) forwards;
+    }
+    @keyframes slotIn { to { opacity:1; transform:translateY(0) scale(1); } }
+
+    /* Scroll reveal */
+    .reveal { opacity:0; transform:translateY(36px); transition:opacity .7s ease, transform .7s ease; }
+    .reveal.in-view { opacity:1; transform:translateY(0); }
+    .reveal-delay-1 { transition-delay:.1s }
+    .reveal-delay-2 { transition-delay:.2s }
+    .reveal-delay-3 { transition-delay:.3s }
+    .reveal-delay-4 { transition-delay:.4s }
+    .reveal-delay-5 { transition-delay:.5s }
+    .reveal-delay-6 { transition-delay:.6s }
+
+    /* Role card hover glow */
+    .role-card.mentee:hover { box-shadow: 0 20px 60px rgba(29,78,216,.35); }
+    .role-card.mentor:hover { box-shadow: 0 20px 60px rgba(124,58,237,.35); }
+
+    /* Step numbers pulse on hover */
+    .step-num { transition: transform .2s, box-shadow .2s; }
+    .step-item:hover .step-num { transform: scale(1.12); }
+  
   </style>
 </head>
 <body>
@@ -324,90 +307,72 @@
 
   <!-- Hero -->
   <section class="hero">
+    <div class="blob b1"></div>
+    <div class="blob b2"></div>
+    <div class="blob b3"></div>
+    <div class="deco-ring"></div>
+    <div class="deco-diamond"></div>
+    <div class="deco-dot"></div>
+
     <div class="hero-left">
-      <div class="hero-tag">
-        <span>🌱</span>
-        Sustainability. Energy. Green Buildings.
-      </div>
-      <h1>Learn from<br/>someone who's<br/><span>been there.</span></h1>
+      <div class="hero-tag">🌱 Sustainability. Energy. Green Buildings.</div>
+      <h1>We Help People<br/>Connect With<br/>Their <span class="grad">Right Mentor.</span></h1>
       <p>Find an experienced mentor in your field. Have real conversations. Grow faster.</p>
       <div class="hero-cta">
-        <a class="btn-primary-hero" href="auth.html?role=mentee">Find a mentor</a>
-        <a class="btn-outline-hero" href="auth.html?role=mentor">Share your experience</a>
+        <a class="btn-hp" href="auth.html?role=mentee">Find a mentor</a>
+        <a class="btn-ho" href="auth.html?role=mentor">Share your experience</a>
       </div>
-      <div class="hero-stats">
-        <div class="hero-stat">
-          <div class="num">🎓</div>
-          <div class="lbl">For mentees</div>
-        </div>
-        <div class="hero-stat">
-          <div class="num">🧑‍🏫</div>
-          <div class="lbl">For mentors</div>
-        </div>
-        <div class="hero-stat">
-          <div class="num">💬</div>
-          <div class="lbl">Real conversations</div>
-        </div>
+      <div class="trust-row">
+        <span class="trust-pill">✅ Reviewed mentors</span>
+        <span class="trust-pill">💬 Direct messaging</span>
+        <span class="trust-pill">📅 Book sessions</span>
       </div>
     </div>
-    <div class="hero-right">
-      <div class="hero-card accent">
-        <span class="hc-icon">🌟</span>
-        <span class="hc-title">Your mentor is out there</span>
-        <span class="hc-sub">Browse real professionals in sustainability and green buildings</span>
-      </div>
-      <div class="hero-card">
-        <span class="hc-icon">💬</span>
-        <span class="hc-title">Real conversations</span>
-        <span class="hc-sub">Not videos or courses. Actual people who get it.</span>
-      </div>
-      <div class="hero-card">
-        <span class="hc-icon">📅</span>
-        <span class="hc-title">Book a session</span>
-        <span class="hc-sub">Pick a time that works for both of you and show up.</span>
-      </div>
-      <div class="hero-card">
-        <span class="hc-icon">📈</span>
-        <span class="hc-title">Track your growth</span>
-        <span class="hc-sub">Your mentor logs notes after every session.</span>
-      </div>
+
+    <!-- Photo grid — filled dynamically from Supabase -->
+    <div class="hero-right" id="photoGrid">
+      <!-- Slots filled by JS below -->
     </div>
   </section>
 
   <!-- Roles -->
-  <div class="roles">
-    <a class="role-card mentee" href="auth.html?role=mentee">
+  <div class="roles reveal">
+    <a class="role-card mentee reveal reveal-delay-1" href="auth.html?role=mentee">
+      
       <span class="rc-emoji">🎓</span>
       <div class="rc-badge">For mentees</div>
       <h3>I want to learn</h3>
       <p>Find someone who has been where you want to go and learn from their real experience.</p>
       <span class="rc-btn">Get started →</span>
     </a>
-    <a class="role-card mentor" href="auth.html?role=mentor">
+    <a class="role-card mentor reveal reveal-delay-2" href="auth.html?role=mentor">
+      
       <span class="rc-emoji">🧑‍🏫</span>
       <div class="rc-badge">For mentors</div>
       <h3>I want to give back</h3>
-      <p>Share what you have learned. Help someone avoid the mistakes you made and get where you are faster.</p>
+      <p>Share what you have learned. Help someone avoid the mistakes you made.</p>
       <span class="rc-btn">Become a mentor →</span>
     </a>
   </div>
 
   <!-- How it works -->
-  <div class="steps-section">
+  <div class="steps-section reveal">
+    <div class="ss-b1"></div>
+    <div class="ss-b2"></div>
     <div class="sec-label">How it works</div>
     <h2>Three steps to get started</h2>
     <div class="steps-grid">
-      <div class="step-item">
+      <div class="step-item reveal reveal-delay-1">
         <div class="step-num">✏️</div>
         <h4>Create your profile</h4>
         <p>Tell us what you are working on. Takes about 3 minutes.</p>
       </div>
-      <div class="step-item">
+      <div class="step-item reveal reveal-delay-2">
         <div class="step-num">🔍</div>
         <h4>Find your mentor</h4>
         <p>Browse real profiles and reach out to someone whose background fits your goals.</p>
       </div>
-      <div class="step-item">
+      <div class="step-item reveal reveal-delay-3">
         <div class="step-num">🚀</div>
         <h4>Grow together</h4>
         <p>Have sessions, ask questions, share your work and build your skills.</p>
@@ -417,32 +382,32 @@
 
   <!-- Features -->
   <div class="features-section">
-    <div class="feat-card">
+    <div class="feat-card reveal reveal-delay-1">
       <div class="feat-icon-wrap" style="background:#dbeafe">🎯</div>
       <h4>Know what you want</h4>
       <p>Tell mentors what you are working on, whether it is a certification, a career move or just figuring out next steps.</p>
     </div>
-    <div class="feat-card">
+    <div class="feat-card reveal reveal-delay-2">
       <div class="feat-icon-wrap" style="background:#ede9fe">🔍</div>
       <h4>Find the right person</h4>
       <p>Browse mentors by field, region, timezone and availability. Filter by what matters to you.</p>
     </div>
-    <div class="feat-card">
+    <div class="feat-card reveal reveal-delay-3">
       <div class="feat-icon-wrap" style="background:#d1fae5">✉️</div>
       <h4>Reach out</h4>
       <p>Send a personal message to a mentor and hear back directly from them.</p>
     </div>
-    <div class="feat-card">
+    <div class="feat-card reveal reveal-delay-4">
       <div class="feat-icon-wrap" style="background:#fef3c7">💬</div>
       <h4>Have real conversations</h4>
-      <p>Message back and forth, ask questions, share your work. Everything in one place.</p>
+      <p>Message back and forth, ask questions and share your work. Everything in one place.</p>
     </div>
-    <div class="feat-card">
+    <div class="feat-card reveal reveal-delay-5">
       <div class="feat-icon-wrap" style="background:#fce7f3">📅</div>
       <h4>Meet when it works</h4>
       <p>Propose a time, share a meeting link and show up. Your mentor will too.</p>
     </div>
-    <div class="feat-card">
+    <div class="feat-card reveal reveal-delay-6">
       <div class="feat-icon-wrap" style="background:#cffafe">📈</div>
       <h4>See how far you have come</h4>
       <p>Your mentor logs notes after each session. You will always know where you stand.</p>
@@ -458,6 +423,104 @@
     </div>
   </footer>
 </div>
-<script>document.getElementById('yr').textContent = new Date().getFullYear();</script>
+
+<script>
+document.getElementById('yr').textContent = new Date().getFullYear();
+
+// ── Scroll reveal ──────────────────────────────────────────────────
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if(e.isIntersecting){ e.target.classList.add('in-view'); }
+  });
+}, { threshold: 0.12 });
+document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+// ── Load real mentor photos from Supabase ──────────────────────────
+const SUPABASE_URL      = "https://mscgaaaobxiuzqsukvjc.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y";
+
+// Fallback content for each slot when no photo available
+const FALLBACKS = [
+  { emoji:"🏢", name:"Green Buildings",    field:"LEED · BREEAM · EDGE"   },
+  { emoji:"⚡", name:"Energy & Renewables", field:"Solar · Wind · Modelling"},
+  { emoji:"♻️", name:"Sustainability",      field:"ESG · Carbon · Net Zero" },
+  { emoji:"🏗️", name:"Built Environment",   field:"Architecture · Engineering"},
+  { emoji:"💻", name:"BIM & Digital",       field:"Revit · Digital Twins"   },
+  { emoji:"📋", name:"Policy & Research",   field:"Standards · Academia"    },
+];
+
+(async function loadMentorPhotos(){
+  const grid = document.getElementById("photoGrid");
+  if(!grid) return;
+
+  let mentors = [];
+
+  try {
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const { data } = await sb
+      .from("mentors")
+      .select("full_name, headline, field, profile_image")
+      .not("profile_image", "is", null)
+      .limit(12);
+    if(data && data.length) mentors = data;
+  } catch(e) {
+    console.warn("Could not load mentor photos:", e);
+  }
+
+  // Build 6 slots
+  for(let i = 0; i < 6; i++){
+    const slot = document.createElement("div");
+    slot.className = "photo-slot";
+
+    const mentor = mentors[i];
+
+    if(mentor && mentor.profile_image){
+      // Real photo
+      slot.classList.add("has-photo");
+      const img = document.createElement("img");
+      img.src = mentor.profile_image;
+      img.alt = mentor.full_name || "Mentor";
+      img.loading = "lazy";
+      img.onerror = () => {
+        // If image fails to load, show fallback
+        slot.classList.remove("has-photo");
+        img.remove();
+        slot.appendChild(buildFallback(i));
+      };
+      slot.appendChild(img);
+
+      // Name badge overlay
+      const badge = document.createElement("div");
+      badge.className = "slot-badge";
+      badge.innerHTML = `
+        <span class="sb-name">${mentor.full_name || ""}</span>
+        <span class="sb-field">${mentor.field || mentor.headline || ""}</span>
+      `;
+      slot.appendChild(badge);
+    } else {
+      // No photo - show field fallback
+      slot.appendChild(buildFallback(i));
+    }
+
+    // Stagger animation
+    slot.style.animationDelay = (i * 0.12) + 's';
+    grid.appendChild(slot);
+    // Trigger visibility after a short delay
+    setTimeout(() => slot.classList.add('visible'), 100 + i * 120);
+  }
+})();
+
+function buildFallback(i){
+  const fb = FALLBACKS[i % FALLBACKS.length];
+  const div = document.createElement("div");
+  div.className = "slot-fallback";
+  div.innerHTML = `
+    <span class="sf-emoji">${fb.emoji}</span>
+    <span class="sf-name">${fb.name}</span>
+    <span class="sf-field">${fb.field}</span>
+  `;
+  return div;
+}
+</script>
 </body>
 </html>

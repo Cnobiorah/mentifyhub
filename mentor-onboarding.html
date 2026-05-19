@@ -3,811 +3,608 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>MentifyHub — Mentor Onboarding</title>
+  <title>MentifyHub — Share your experience</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="stylesheet" href="mh-theme.css"/>
   <style>
-    .shell { display: grid; grid-template-columns: 1fr 280px; gap: 18px; margin-top: 18px; align-items: start; }
-    .side  { position: sticky; top: 92px; }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { background: #eef2ff; min-height: 100vh; margin: 0; font-family: inherit; }
 
-    /* Step sections */
-    .step    { }
-    .step.hidden { display: none !important; }
-    .step h3 { font-size: 16px; font-weight: 800; letter-spacing: -.2px; margin-bottom: 4px; }
-    .step > p { font-size: 13px; color: var(--muted); margin-bottom: 18px; line-height: 1.5; }
+    /* ── Shell ── */
+    .shell {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 24px 16px 48px;
+    }
 
-    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-    .col-12 { grid-column: 1 / -1; }
-    .help { font-size: 12px; color: var(--subtle); margin-top: 4px; }
-    .req  { color: #b91c1c; }
+    /* ── Top bar ── */
+    .top-bar {
+      width: 100%;
+      max-width: 520px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 32px;
+    }
+    .top-bar .brand {
+      display: flex; align-items: center; gap: 8px;
+      text-decoration: none;
+    }
+    .top-bar .brand img { width: 32px; height: 32px; border-radius: 8px; }
+    .top-bar .brand span { font-size: 14px; font-weight: 700; color: var(--text); }
+    .step-counter { font-size: 13px; color: var(--muted); font-weight: 600; }
 
-    /* Tag box */
+    /* ── Progress strip ── */
+    .progress-strip {
+      width: 100%;
+      max-width: 520px;
+      height: 4px;
+      background: #d4d9f5;
+      border-radius: 999px;
+      margin-bottom: 32px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: #1d4ed8;
+      border-radius: 999px;
+      transition: width .5s cubic-bezier(.4,0,.2,1);
+    }
+
+    /* ── Screen card ── */
+    .screen {
+      display: none;
+      width: 100%;
+      max-width: 520px;
+      animation: fadeUp .3s ease;
+    }
+    .screen.active { display: block; }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Illustration block ── */
+    .illus {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .illus-circle {
+      width: 110px; height: 110px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 52px;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 24px rgba(29,78,216,.15);
+    }
+    .illus h2 {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -.3px;
+      color: var(--text);
+      margin: 0 0 8px;
+      line-height: 1.25;
+    }
+    .illus p {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.65;
+      margin: 0 auto;
+      max-width: 38ch;
+    }
+
+    /* ── Choice cards ── */
+    .choices {
+      display: grid;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .choices.col2 { grid-template-columns: 1fr 1fr; }
+    .choices.col3 { grid-template-columns: 1fr 1fr 1fr; }
+
+    .choice {
+      background: #fff;
+      border: 2px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 16px 12px;
+      text-align: center;
+      cursor: pointer;
+      transition: all .18s ease;
+      user-select: none;
+    }
+    .choice .c-icon { font-size: 30px; display: block; margin-bottom: 8px; }
+    .choice .c-label { font-size: 13px; font-weight: 700; color: var(--text); display: block; }
+    .choice .c-sub   { font-size: 11px; color: var(--muted); display: block; margin-top: 3px; line-height: 1.4; }
+    .choice:hover    { border-color: #93c5fd; background: #f0f5ff; transform: translateY(-2px); box-shadow: 0 4px 16px rgba(29,78,216,.10); }
+    .choice.selected { border-color: #1d4ed8; background: #eff6ff; box-shadow: 0 0 0 3px rgba(29,78,216,.12); }
+    .choice.selected .c-label { color: #1d4ed8; }
+
+    /* ── Input fields ── */
+    .ob-input-wrap { margin-top: 20px; }
+    .ob-input-wrap label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 8px; color: var(--text); }
+    .ob-textarea { width: 100%; padding: 14px; border-radius: 14px; border: 2px solid #e2e8f0; font: inherit; font-size: 14px; resize: vertical; min-height: 100px; outline: none; transition: border .2s; line-height: 1.6; background: #fff; }
+    .ob-textarea:focus { border-color: #1d4ed8; }
+    .ob-input { width: 100%; padding: 14px; border-radius: 14px; border: 2px solid #e2e8f0; font: inherit; font-size: 14px; outline: none; transition: border .2s; background: #fff; }
+    .ob-input:focus { border-color: #1d4ed8; }
+    .ob-select { width: 100%; padding: 14px; border-radius: 14px; border: 2px solid #e2e8f0; font: inherit; font-size: 14px; outline: none; transition: border .2s; background: #fff; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%236b7280' d='M1 1l5 5 5-5'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; }
+    .ob-select:focus { border-color: #1d4ed8; }
+
+    /* ── Tag input ── */
     .tagbox {
       display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
-      padding: 8px; border-radius: var(--radius-sm); border: 1px solid var(--line);
-      background: #fff; min-height: 48px;
+      padding: 10px 12px; border-radius: 14px; border: 2px solid #e2e8f0;
+      background: #fff; min-height: 54px; cursor: text; transition: border .2s;
     }
-    .tagbox .tag {
+    .tagbox:focus-within { border-color: #1d4ed8; }
+    .tag-pill {
       display: inline-flex; align-items: center; gap: 4px;
-      padding: 4px 10px; border-radius: 999px;
-      background: rgba(29,78,216,.08); border: 1px solid rgba(29,78,216,.16);
-      color: var(--accent); font-size: 12px; font-weight: 600;
+      padding: 5px 12px; border-radius: 999px;
+      background: #eff6ff; border: 1px solid #bfdbfe;
+      color: #1d4ed8; font-size: 12px; font-weight: 600;
     }
-    .tagbox .tag button { background: none; border: none; cursor: pointer; color: inherit; font-size: 14px; line-height: 1; padding: 0; margin-left: 2px; }
-    .tag-input { border: none; outline: none; font: inherit; font-size: 13px; flex: 1; min-width: 120px; background: transparent; }
-    .suggestions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-    .suggest-chip {
-      padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line);
-      background: #fff; font-size: 12px; color: var(--muted); cursor: pointer;
-      transition: background .1s ease, border-color .1s ease;
+    .tag-pill button { background: none; border: none; cursor: pointer; color: #1d4ed8; font-size: 15px; line-height: 1; padding: 0; }
+    .tag-input { border: none; outline: none; font: inherit; font-size: 14px; flex: 1; min-width: 120px; background: transparent; }
+    .tag-suggestions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .tag-chip {
+      padding: 5px 12px; border-radius: 999px; border: 1px solid #e2e8f0;
+      background: #fff; font-size: 12px; color: var(--muted); cursor: pointer; transition: all .1s;
     }
-    .suggest-chip:hover { background: rgba(29,78,216,.06); border-color: rgba(29,78,216,.20); color: var(--accent); }
+    .tag-chip:hover { background: #eff6ff; border-color: #bfdbfe; color: #1d4ed8; }
 
-    /* Dropdown */
-    .dropdown { position: relative; }
-    .dropdown-trigger {
-      width: 100%; padding: 10px 14px; border-radius: var(--radius-sm);
-      border: 1px solid var(--line); background: #fff;
-      display: flex; align-items: center; justify-content: space-between; gap: 8px;
-      cursor: pointer; font-size: 14px; color: var(--muted);
+    /* ── Actions ── */
+    .actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 28px;
     }
-    .dropdown-trigger:not(.placeholder) { color: var(--text); }
-    .dropdown-left { display: flex; flex-wrap: wrap; gap: 4px; flex: 1; min-width: 0; }
-    .dropdown-pill { padding: 3px 8px; border-radius: 999px; background: rgba(29,78,216,.07); border: 1px solid rgba(29,78,216,.14); color: var(--accent); font-size: 12px; font-weight: 600; }
-    .dropdown-text { font-size: 13px; color: var(--muted); }
-    .dropdown-caret { flex-shrink: 0; font-size: 11px; color: var(--muted); }
-    .dropdown-menu {
-      display: none; position: absolute; z-index: 30; top: calc(100% + 4px); left: 0; right: 0;
-      background: #fff; border: 1px solid var(--line); border-radius: var(--radius-sm);
-      box-shadow: var(--shadow-lg); padding: 6px; max-height: 220px; overflow-y: auto;
+    .btn-next {
+      flex: 1;
+      padding: 15px;
+      border-radius: 14px;
+      border: none;
+      background: #1d4ed8;
+      color: #fff;
+      font: inherit;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background .15s, transform .1s;
     }
-    .dropdown.open .dropdown-menu { display: block; }
-    .dropdown-option {
-      display: flex; align-items: center; gap: 8px; padding: 8px 10px;
-      border-radius: var(--radius-xs); cursor: pointer; font-size: 13px; color: var(--text);
+    .btn-next:hover  { background: #1e40af; transform: translateY(-1px); }
+    .btn-next:active { transform: translateY(0); }
+    .btn-next:disabled { background: #93c5fd; cursor: not-allowed; transform: none; }
+    .btn-back {
+      padding: 15px 20px;
+      border-radius: 14px;
+      border: 2px solid #e2e8f0;
+      background: #fff;
+      font: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all .15s;
     }
-    .dropdown-option:hover { background: var(--soft); }
-    .dropdown-option input { width: 14px; height: 14px; cursor: pointer; }
+    .btn-back:hover { border-color: #cbd5e1; color: var(--text); }
 
-    /* Step nav */
-    .steps-nav { margin-top: 12px; display: flex; flex-direction: column; gap: 4px; }
-    .step-item {
-      padding: 10px 12px; border-radius: var(--radius-sm); cursor: pointer;
-      border: 1px solid transparent; transition: background .1s, border-color .1s;
+    /* ── Encouragement toast ── */
+    .toast {
+      position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(20px);
+      background: #1e293b; color: #fff; padding: 12px 20px; border-radius: 12px;
+      font-size: 14px; font-weight: 600; opacity: 0; transition: all .3s ease; pointer-events: none;
+      white-space: nowrap; z-index: 100;
     }
-    .step-item:hover  { background: var(--soft2); border-color: var(--line); }
-    .step-item.active { background: rgba(29,78,216,.06); border-color: rgba(29,78,216,.18); }
-    .step-item b { display: block; font-size: 13px; font-weight: 700; color: var(--text); }
-    .step-item span { display: block; font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-    /* Actions */
-    .form-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--line); }
-    .form-actions-right { display: flex; gap: 8px; }
-    .hint { font-size: 12px; color: var(--subtle); margin-top: 10px; }
+    /* ── Error ── */
+    .ob-error {
+      display: none; margin-top: 14px; padding: 12px 16px;
+      border-radius: 12px; border: 1px solid #fca5a5;
+      background: #fef2f2; color: #b91c1c; font-size: 13px; line-height: 1.6;
+    }
+    .ob-error.show { display: block; }
 
-    .save-indicator { display:inline-flex; align-items:center; gap:6px; font-size:12px; color:var(--muted); margin-top:8px; }
-    .save-dot { width:7px; height:7px; border-radius:50%; background:var(--subtle); flex-shrink:0; }
-    .save-dot.saved { background:var(--green); }
-    .save-dot.saving { background:#f59e0b; animation:pulse .8s ease-in-out infinite; }
-    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
-    .step-item .step-check { margin-left:auto; font-size:14px; display:none; }
-    .step-item.done .step-check { display:inline; }
-    .step-item.done b { color:var(--green); }
-    @media (max-width: 900px) {
-      .shell { grid-template-columns: 1fr; }
-      .side  { display: none; }
-      .form-grid { grid-template-columns: 1fr; }
-      .col-12 { grid-column: 1; }
-      .form-actions { flex-direction: column-reverse; gap: 8px; }
-      .form-actions .mh-btn { width: 100%; justify-content: center; }
-    }
-    @media (max-width: 600px) {
-      .mh-input, .mh-select, .mh-textarea { font-size: 16px !important; }
-      .step-content { padding: 20px 16px; }
-      .mh-topbar { margin: 8px; padding: 10px 14px; }
-      .step-title { font-size: 18px; }
-    }
-    @media (max-width: 400px) {
-      .step-content { padding: 16px 12px; }
+    /* ── Skip link ── */
+    .skip-link { display: block; text-align: center; margin-top: 14px; font-size: 13px; color: var(--muted); cursor: pointer; }
+    .skip-link:hover { color: var(--text); text-decoration: underline; }
+
+    @media (max-width: 480px) {
+      .choices.col3 { grid-template-columns: 1fr 1fr; }
+      .illus-circle { width: 88px; height: 88px; font-size: 40px; }
+      .illus h2 { font-size: 19px; }
     }
   </style>
 </head>
 <body>
-<div class="mh-wrap">
+<div class="shell">
 
-  <!-- Topbar -->
-  <header class="mh-topbar"><button class="mh-hamburger" id="hamburgerBtn" onclick="openDrawer()" aria-label="Menu"><span></span><span></span><span></span></button>
-    <a href="index.html" class="mh-brand">
-      <img src="logo.png" alt="MentifyHub" class="mh-brand-logo"/>
-      <div class="mh-brand-text">
-        <strong>MentifyHub</strong>
-        <span>Mentor onboarding</span>
-      </div>
+  <!-- Top bar -->
+  <div class="top-bar">
+    <a href="index.html" class="brand">
+      <img src="logo.png" alt="MentifyHub"/>
+      <span>MentifyHub</span>
     </a>
-    <nav class="mh-nav hide-mobile">
-      <span class="mh-chip" id="chip">Step 1 of 4</span>
-      <a class="mh-btn" href="index.html">Home</a>
-      <button class="mh-btn mh-btn-primary" id="saveTop" type="button">Save</button>
-    </nav>
-  </header>
+    <span class="step-counter" id="stepCounter">1 of 5</span>
+  </div>
 
-  <div class="shell">
+  <!-- Progress -->
+  <div class="progress-strip">
+    <div class="progress-fill" id="progressFill" style="width:0%"></div>
+  </div>
 
-    <!-- Main form card -->
-    <div class="mh-card mh-card-body">
-      <h2 style="font-size:20px;font-weight:800;letter-spacing:-.3px">Set up your mentor profile</h2>
-      <p style="color:var(--muted);font-size:13px;margin-top:6px;line-height:1.5">Create a clear, trusted mentor profile so the right mentees can find and request you.</p>
-
-      <div style="margin-top:14px">
-        <div class="flex justify-between items-center" style="font-size:12px;color:var(--muted);font-weight:600;margin-bottom:6px">
-          <span>Profile completeness</span>
-          <span id="pct">0%</span>
-        </div>
-        <div class="mh-bar-wrap"><div class="mh-bar-fill" id="barFill" style="width:0%"></div></div>
-        <div class="save-indicator" id="saveIndicator">
-          <div class="save-dot" id="saveDot"></div>
-          <span id="saveText">Not saved yet</span>
-        </div>
+  <!-- ── Screen 1: Welcome ── -->
+  <div class="screen active" id="s1">
+    <div class="illus">
+      <div class="illus-circle" style="background:linear-gradient(135deg,#dbeafe,#eff6ff)">🌟</div>
+      <h2>Your experience can change someone's career.</h2>
+      <p>You've worked hard to get where you are. Now you can help someone else get there too.</p>
+    </div>
+    <div class="choices col2">
+      <div class="choice selected" id="roleConfirm">
+        <span class="c-icon">🧑‍🏫</span>
+        <span class="c-label">Yes, I want to mentor</span>
+        <span class="c-sub">I'm ready to guide someone</span>
       </div>
-
-      <!-- Step 1: Profile -->
-      <section class="step" data-step="1" style="margin-top:22px">
-        <h3>Profile</h3>
-        <p>Introduce yourself clearly so mentees understand your background, credibility, and niche.</p>
-        <div class="form-grid">
-          <div class="mh-field">
-            <label class="mh-label">Headline / Role <span class="req">*</span></label>
-            <input class="mh-input" id="headline" placeholder="e.g., Sustainability Consultant"/>
-            <p class="help">Appears in matching and your public mentor profile.</p>
-          </div>
-          <div class="mh-field">
-            <label class="mh-label">Profile photo</label>
-            <input class="mh-input" type="file" id="photo" accept="image/*"/>
-            <p class="help">Upload a clear photo. Helps mentees trust your profile.</p>
-          </div>
-          <div class="mh-field">
-            <label class="mh-label">Current title <span class="req">*</span></label>
-            <input class="mh-input" id="currentTitle" placeholder="e.g., Senior Sustainability Consultant"/>
-          </div>
-          <div class="mh-field">
-            <label class="mh-label">Mentor level <span class="req">*</span></label>
-            <select class="mh-select" id="experience">
-              <option value="">Select…</option>
-              <option>Early-career (1–3 years)</option>
-              <option>Mid-level (4–8 years)</option>
-              <option>Senior (9+ years)</option>
-            </select>
-            <p class="help">Used to match you with the right mentee stage.</p>
-          </div>
-          <div class="mh-field">
-            <label class="mh-label">Years of experience <span class="req">*</span></label>
-            <select class="mh-select" id="yearsExperience">
-              <option value="">Select…</option>
-              <option>1–3 years</option><option>4–6 years</option>
-              <option>7–10 years</option><option>11–15 years</option><option>16+ years</option>
-            </select>
-          </div>
-          <div class="mh-field">
-            <label class="mh-label">Preferred language <span class="req">*</span></label>
-            <select class="mh-select" id="languages">
-              <option value="">Select…</option>
-              <option>English</option><option>French</option>
-              <option>Arabic</option><option>Spanish</option><option>Other</option>
-            </select>
-          </div>
-          <div class="mh-field">
-            <label class="mh-label">Organization / Company</label>
-            <input class="mh-input" id="organization" placeholder="e.g., Arup, IFC, Independent Consultant"/>
-          </div>
-          <div class="mh-field">
-            <label class="mh-label">Certifications / credentials</label>
-            <input class="mh-input" id="certifications" placeholder="e.g., EDGE Expert, LEED GA, BREEAM Associate"/>
-            <p class="help">Helpful for trust and niche matching.</p>
-          </div>
-          <div class="mh-field col-12">
-            <label class="mh-label">Short bio <span class="req">*</span></label>
-            <textarea class="mh-textarea" id="bio" placeholder="Describe your expertise, sector focus, and what kinds of mentees or problems you can help with."></textarea>
-          </div>
-          <div class="mh-field col-12">
-            <label class="mh-label">LinkedIn / portfolio / profile link</label>
-            <input class="mh-input" id="profileLink" placeholder="https://linkedin.com/in/yourname"/>
-          </div>
-        </div>
-      </section>
-
-      <!-- Step 2: Expertise -->
-      <section class="step hidden" data-step="2" style="margin-top:22px">
-        <h3>Expertise &amp; tags</h3>
-        <p>Define your niche, the people you help best, and the topics you can mentor on.</p>
-        <div class="form-grid">
-          <div class="mh-field">
-            <label class="mh-label">Primary field <span class="req">*</span></label>
-            <select class="mh-select" id="field">
-              <option value="">Select field…</option>
-              <option>Green Buildings</option><option>Energy &amp; Renewables</option>
-              <option>Sustainability / ESG</option><option>Built Environment (General)</option>
-              <option>BIM / Digital Twins</option><option>Policy &amp; Research</option>
-            </select>
-            <p class="help">Core discipline used in matching.</p>
-          </div>
-          <div class="mh-field">
-            <label class="mh-label">Subfield</label>
-            <select class="mh-select" id="subfield">
-              <option value="">Select subfield…</option>
-              <option>Life Cycle Assessment (LCA)</option><option>Energy Modelling (EnergyPlus/OpenStudio)</option>
-              <option>Passive Design</option><option>HVAC &amp; Building Services</option>
-              <option>Carbon Accounting</option><option>Materials &amp; Circularity</option>
-              <option>Net Zero Buildings</option><option>Green Certifications</option>
-              <option>ESG Reporting</option><option>Sustainable Architecture</option>
-            </select>
-          </div>
-          <div class="mh-field">
-            <label class="mh-label">Who do you help best? <span class="req">*</span></label>
-            <div class="dropdown" id="bestForDropdown">
-              <button type="button" class="dropdown-trigger placeholder" id="bestForTrigger">
-                <div class="dropdown-left" id="bestForValue"><span class="dropdown-text">Select audience…</span></div>
-                <span class="dropdown-caret">▾</span>
-              </button>
-              <div class="dropdown-menu" id="bestForMenu">
-                <label class="dropdown-option"><input type="checkbox" value="Students"> <span>Students</span></label>
-                <label class="dropdown-option"><input type="checkbox" value="Graduates"> <span>Graduates</span></label>
-                <label class="dropdown-option"><input type="checkbox" value="Job seekers"> <span>Job seekers</span></label>
-                <label class="dropdown-option"><input type="checkbox" value="Junior professionals"> <span>Junior professionals</span></label>
-                <label class="dropdown-option"><input type="checkbox" value="Mid-level professionals"> <span>Mid-level professionals</span></label>
-                <label class="dropdown-option"><input type="checkbox" value="Career switchers"> <span>Career switchers</span></label>
-                <label class="dropdown-option"><input type="checkbox" value="Researchers"> <span>Researchers</span></label>
-                <label class="dropdown-option"><input type="checkbox" value="Entrepreneurs"> <span>Entrepreneurs</span></label>
-              </div>
-            </div>
-            <p class="help">Choose the audience segments you are most confident mentoring.</p>
-          </div>
-          <div class="mh-field">
-            <label class="mh-label">Mentoring areas <span class="req">*</span></label>
-            <div class="dropdown" id="mentoringAreasDropdown">
-              <button type="button" class="dropdown-trigger placeholder" id="mentoringAreasTrigger">
-                <div class="dropdown-left" id="mentoringAreasValue"><span class="dropdown-text">Select mentoring areas…</span></div>
-                <span class="dropdown-caret">▾</span>
-              </button>
-              <div class="dropdown-menu" id="mentoringAreasMenu">
-                <label class="dropdown-option"><input type="checkbox" value="Career guidance"> <span>Career guidance</span></label>
-                <label class="dropdown-option"><input type="checkbox" value="Technical skills"> <span>Technical skills</span></label>
-                <label class="dropdown-option"><input type="checkbox" value="Portfolio review"> <span>Portfolio review</span></label>
-                <label class="dropdown-option"><input type="checkbox" value="Certification preparation"> <span>Certification preparation</span></label>
-                <label class="dropdown-option"><input type="checkbox" value="Research support"> <span>Research support</span></label>
-                <label class="dropdown-option"><input type="checkbox" value="Job search strategy"> <span>Job search strategy</span></label>
-                <label class="dropdown-option"><input type="checkbox" value="Interview preparation"> <span>Interview preparation</span></label>
-                <label class="dropdown-option"><input type="checkbox" value="Project feedback"> <span>Project feedback</span></label>
-              </div>
-            </div>
-            <p class="help">Choose the areas where you actively support mentees.</p>
-          </div>
-          <div class="mh-field col-12">
-            <label class="mh-label">Expertise tags <span class="req">*</span></label>
-            <div class="tagbox" id="tagbox">
-              <input class="tag-input" id="tagInput" placeholder="Type a tag and press Enter (e.g., EDGE, LEED, EnergyPlus)"/>
-            </div>
-            <div class="suggestions">
-              <button type="button" class="suggest-chip">Net Zero Buildings</button>
-              <button type="button" class="suggest-chip">Energy Modelling</button>
-              <button type="button" class="suggest-chip">ESG Reporting</button>
-              <button type="button" class="suggest-chip">Carbon Accounting</button>
-              <button type="button" class="suggest-chip">Life Cycle Assessment</button>
-              <button type="button" class="suggest-chip">Sustainable Architecture</button>
-              <button type="button" class="suggest-chip">EDGE</button>
-              <button type="button" class="suggest-chip">LEED</button>
-              <button type="button" class="suggest-chip">BREEAM</button>
-              <button type="button" class="suggest-chip">Green Materials</button>
-              <button type="button" class="suggest-chip">Building Performance</button>
-              <button type="button" class="suggest-chip">Climate Risk</button>
-              <button type="button" class="suggest-chip">Circular Economy</button>
-              <button type="button" class="suggest-chip">Policy &amp; Research</button>
-            </div>
-            <p class="help">At least 3 tags improves matching quality.</p>
-          </div>
-        </div>
-      </section>
-
-      <!-- Step 3: Settings -->
-      <section class="step hidden" data-step="3" style="margin-top:22px">
-        <h3>Mentorship settings</h3>
-        <p>Set the type of mentoring you offer and how mentees will work with you.</p>
-        <div class="form-grid">
-          <div class="mh-field">
-            <label class="mh-label">Preferred mentee level <span class="req">*</span></label>
-            <select class="mh-select" id="preferredLevel">
-              <option value="">Select…</option>
-              <option>Beginner</option><option>Intermediate</option><option>Advanced</option><option>Any</option>
-            </select>
-          </div>
-          <div class="mh-field">
-            <label class="mh-label">Mentorship style <span class="req">*</span></label>
-            <select class="mh-select" id="format">
-              <option value="">Select…</option>
-              <option>1:1 mentorship</option><option>Group mentorship</option>
-              <option>Async (messages + review)</option><option>Any</option>
-            </select>
-          </div>
-          <div class="mh-field">
-            <label class="mh-label">Preferred session type <span class="req">*</span></label>
-            <select class="mh-select" id="sessionType">
-              <option value="">Select…</option>
-              <option>Career coaching</option><option>Technical review</option>
-              <option>Q&amp;A session</option><option>Structured learning plan</option>
-              <option>Project-based mentoring</option>
-            </select>
-          </div>
-          <div class="mh-field">
-            <label class="mh-label">Session duration <span class="req">*</span></label>
-            <select class="mh-select" id="sessionDuration">
-              <option value="">Select…</option>
-              <option>30 minutes</option><option>45 minutes</option>
-              <option>60 minutes</option><option>90 minutes</option>
-            </select>
-          </div>
-          <div class="mh-field">
-            <label class="mh-label">Active mentee slots <span class="req">*</span></label>
-            <select class="mh-select" id="capacity">
-              <option value="">Select…</option>
-              <option>1 mentee</option><option>2 mentee</option>
-              <option>3 mentee</option><option>4+mentee</option>
-            </select>
-            <p class="help">Used to manage request flow and availability.</p>
-          </div>
-          <div class="mh-field">
-            <label class="mh-label">Pricing <span class="req">*</span></label>
-            <select class="mh-select" id="pricingType">
-              <option value="">Select…</option>
-              <option>Free</option><option>Paid</option><option>Both free and paid</option>
-            </select>
-          </div>
-          <div class="mh-field col-12">
-            <label class="mh-label">Communication <span class="req">*</span></label>
-            <select class="mh-select" id="communication">
-              <option value="">Select…</option>
-              <option>Zoom</option><option>Google Meet</option>
-              <option>Microsoft Teams</option><option>WhatsApp</option><option>Email</option>
-            </select>
-          </div>
-        </div>
-      </section>
-
-      <!-- Step 4: Availability -->
-      <section class="step hidden" data-step="4" style="margin-top:22px">
-        <h3>Availability</h3>
-        <p>Set your location and scheduling preferences so mentees can connect realistically.</p>
-        <div class="form-grid">
-          <div class="mh-field">
-            <label class="mh-label">Country <span class="req">*</span></label>
-            <input class="mh-input" id="country" placeholder="e.g., Nigeria"/>
-          </div>
-          <div class="mh-field">
-            <label class="mh-label">Timezone <span class="req">*</span></label>
-            <select class="mh-select" id="timezone">
-              <option value="">Select timezone…</option>
-              <option>GMT</option><option>GMT+1</option><option>GMT+2</option>
-              <option>GMT-5</option><option>GMT-8</option>
-            </select>
-          </div>
-          <div class="mh-field col-12">
-            <label class="mh-label">Availability <span class="req">*</span></label>
-            <select class="mh-select" id="availability">
-              <option value="">Select…</option>
-              <option>Weekdays</option><option>Weeknights</option>
-              <option>Weekends</option><option>Flexible</option>
-            </select>
-          </div>
-        </div>
-      </section>
-
-      <!-- Navigation -->
-      <div class="form-actions">
-        <button class="mh-btn" id="backBtn" type="button" disabled>← Back</button>
-        <div class="form-actions-right">
-          <button class="mh-btn" id="saveBtn" type="button">Save draft</button>
-          <button class="mh-btn mh-btn-primary" id="nextBtn" type="button">Next →</button>
-        </div>
+      <div class="choice" onclick="window.location.href='auth.html?role=mentee'">
+        <span class="c-icon">🎓</span>
+        <span class="c-label">Actually, I need a mentor</span>
+        <span class="c-sub">Take me to the mentee sign up</span>
       </div>
-      <p class="hint">Save writes to Supabase and keeps a local draft backup.</p>
+    </div>
+    <div class="actions" style="margin-top:24px">
+      <button class="btn-next" id="s1Next">Let's do this →</button>
+    </div>
+  </div>
+
+  <!-- ── Screen 2: What do you do? ── -->
+  <div class="screen" id="s2">
+    <div class="illus">
+      <div class="illus-circle" style="background:linear-gradient(135deg,#d1fae5,#ecfdf5)">💼</div>
+      <h2>What's your world?</h2>
+      <p>Pick the area you know best. This helps mentees find someone in their field.</p>
+    </div>
+    <div class="choices col2" id="fieldChoices">
+      <div class="choice" data-val="Green Buildings"><span class="c-icon">🏢</span><span class="c-label">Green Buildings</span><span class="c-sub">LEED, BREEAM, EDGE, passive design</span></div>
+      <div class="choice" data-val="Energy & Renewables"><span class="c-icon">⚡</span><span class="c-label">Energy & Renewables</span><span class="c-sub">Solar, wind, energy modelling</span></div>
+      <div class="choice" data-val="Sustainability / ESG"><span class="c-icon">♻️</span><span class="c-label">Sustainability & ESG</span><span class="c-sub">Reporting, carbon, net zero</span></div>
+      <div class="choice" data-val="Built Environment (General)"><span class="c-icon">🏗️</span><span class="c-label">Built Environment</span><span class="c-sub">Architecture, engineering, planning</span></div>
+      <div class="choice" data-val="BIM / Digital Twins"><span class="c-icon">💻</span><span class="c-label">BIM & Digital</span><span class="c-sub">Revit, digital twins, data</span></div>
+      <div class="choice" data-val="Policy & Research"><span class="c-icon">📋</span><span class="c-label">Policy & Research</span><span class="c-sub">Standards, academia, government</span></div>
+    </div>
+    <input type="hidden" id="field"/>
+    <div class="ob-error" id="err2">Please pick your field.</div>
+    <div class="actions">
+      <button class="btn-back" id="s2Back">←</button>
+      <button class="btn-next" id="s2Next">Next →</button>
+    </div>
+  </div>
+
+  <!-- ── Screen 3: How experienced? ── -->
+  <div class="screen" id="s3">
+    <div class="illus">
+      <div class="illus-circle" style="background:linear-gradient(135deg,#fef3c7,#fffbeb)">📈</div>
+      <h2>How long have you been doing this?</h2>
+      <p>No wrong answer — every level of experience has value to someone starting out.</p>
+    </div>
+    <div class="choices col3" id="expChoices">
+      <div class="choice" data-val="Early-career (1–3 years)"><span class="c-icon">🌱</span><span class="c-label">1–3 years</span><span class="c-sub">Early career</span></div>
+      <div class="choice" data-val="Mid-level (4–8 years)"><span class="c-icon">🚀</span><span class="c-label">4–8 years</span><span class="c-sub">Mid-level</span></div>
+      <div class="choice" data-val="Senior (9+ years)"><span class="c-icon">⭐</span><span class="c-label">9+ years</span><span class="c-sub">Senior</span></div>
+    </div>
+    <input type="hidden" id="experience"/>
+    <div class="ob-error" id="err3">Please select your experience level.</div>
+    <div class="actions">
+      <button class="btn-back" id="s3Back">←</button>
+      <button class="btn-next" id="s3Next">Next →</button>
+    </div>
+  </div>
+
+  <!-- ── Screen 4: How you work ── -->
+  <div class="screen" id="s4">
+    <div class="illus">
+      <div class="illus-circle" style="background:linear-gradient(135deg,#e0e7ff,#eef2ff)">🤝</div>
+      <h2>How do you like to work with people?</h2>
+      <p>Pick what feels natural to you. You can always adjust later.</p>
     </div>
 
-    <!-- Sidebar -->
-    <aside class="mh-card mh-card-body side">
-      <div style="font-size:13px;font-weight:700">Onboarding steps</div>
-      <div style="font-size:12px;color:var(--muted);margin-top:4px">Click a step to jump.</div>
-      <div class="steps-nav">
-        <div class="step-item active" data-nav="1"><b>1. Profile</b><span>Background, role, and credibility.</span></div>
-        <div class="step-item" data-nav="2"><b>2. Expertise</b><span>Field, audience, mentoring areas, tags.</span></div>
-        <div class="step-item" data-nav="3"><b>3. Settings</b><span>Format, pricing, capacity and session setup.</span></div>
-        <div class="step-item" data-nav="4"><b>4. Availability</b><span>Timezone and schedule.</span></div>
+    <div class="ob-input-wrap" style="margin-top:0">
+      <label>How do you prefer to connect?</label>
+      <div class="choices col3" id="commChoices" style="margin-top:0">
+        <div class="choice" data-val="Zoom"><span class="c-icon">🎥</span><span class="c-label">Zoom</span></div>
+        <div class="choice" data-val="Google Meet"><span class="c-icon">📹</span><span class="c-label">Google Meet</span></div>
+        <div class="choice" data-val="Microsoft Teams"><span class="c-icon">💼</span><span class="c-label">Teams</span></div>
+        <div class="choice" data-val="WhatsApp"><span class="c-icon">💬</span><span class="c-label">WhatsApp</span></div>
+        <div class="choice" data-val="Email"><span class="c-icon">📧</span><span class="c-label">Email</span></div>
       </div>
-      <p class="hint" style="margin-top:14px">Matching uses: tag overlap · field match · mentoring areas · timezone · availability · level fit · capacity.</p>
-    </aside>
+      <input type="hidden" id="communication"/>
+    </div>
+
+    <div class="ob-input-wrap">
+      <label>Are you offering free or paid mentoring?</label>
+      <div class="choices col3" id="pricingChoices" style="margin-top:0">
+        <div class="choice" data-val="Free"><span class="c-icon">🎁</span><span class="c-label">Free</span><span class="c-sub">Giving back</span></div>
+        <div class="choice" data-val="Paid"><span class="c-icon">💳</span><span class="c-label">Paid</span><span class="c-sub">Compensation</span></div>
+        <div class="choice" data-val="Both free and paid"><span class="c-icon">🤝</span><span class="c-label">Both</span><span class="c-sub">Depends on the person</span></div>
+      </div>
+      <input type="hidden" id="pricingType"/>
+    </div>
+
+    <div class="ob-input-wrap">
+      <label>When are you usually free?</label>
+      <div class="choices col2" id="availChoices" style="margin-top:0">
+        <div class="choice" data-val="Weekdays"><span class="c-icon">☀️</span><span class="c-label">Weekdays</span></div>
+        <div class="choice" data-val="Weeknights"><span class="c-icon">🌙</span><span class="c-label">Weeknights</span></div>
+        <div class="choice" data-val="Weekends"><span class="c-icon">🎉</span><span class="c-label">Weekends</span></div>
+        <div class="choice" data-val="Flexible"><span class="c-icon">🔄</span><span class="c-label">Flexible</span></div>
+      </div>
+      <input type="hidden" id="availability"/>
+    </div>
+
+    <div class="ob-error" id="err4">Please fill in all three above.</div>
+    <div class="actions">
+      <button class="btn-back" id="s4Back">←</button>
+      <button class="btn-next" id="s4Next">Next →</button>
+    </div>
   </div>
+
+  <!-- ── Screen 5: About you ── -->
+  <div class="screen" id="s5">
+    <div class="illus">
+      <div class="illus-circle" style="background:linear-gradient(135deg,#fce7f3,#fdf2f8)">✍️</div>
+      <h2>Last step — tell mentees a bit about yourself.</h2>
+      <p>Write like you're talking to someone you just met at a conference. Keep it real.</p>
+    </div>
+
+    <div class="ob-input-wrap" style="margin-top:0">
+      <label>Your headline</label>
+      <input class="ob-input" id="headline" placeholder="e.g., Sustainability Engineer at Arup · 6 years"/>
+    </div>
+
+    <div class="ob-input-wrap">
+      <label>A short note about yourself</label>
+      <textarea class="ob-textarea" id="bio" placeholder="What do you do, what are you good at, and who do you love helping? Keep it human."></textarea>
+      <span class="skip-link" id="bioSkip">I'll add this later →</span>
+    </div>
+
+    <div class="ob-input-wrap">
+      <label>Add some tags so people can find you</label>
+      <div class="tagbox" id="tagbox">
+        <input class="tag-input" id="tagInput" placeholder="Type something like LEED, Carbon, BIM and press Enter…"/>
+      </div>
+      <div class="tag-suggestions">
+        <button type="button" class="tag-chip">LEED</button>
+        <button type="button" class="tag-chip">BREEAM</button>
+        <button type="button" class="tag-chip">EDGE</button>
+        <button type="button" class="tag-chip">Net Zero</button>
+        <button type="button" class="tag-chip">Energy Modelling</button>
+        <button type="button" class="tag-chip">Carbon Accounting</button>
+        <button type="button" class="tag-chip">ESG Reporting</button>
+        <button type="button" class="tag-chip">Life Cycle Assessment</button>
+        <button type="button" class="tag-chip">Passive Design</button>
+        <button type="button" class="tag-chip">BIM</button>
+      </div>
+    </div>
+
+    <div class="ob-input-wrap">
+      <label>Where are you based?</label>
+      <input class="ob-input" id="country" placeholder="e.g., Nigeria"/>
+    </div>
+
+    <div class="ob-input-wrap">
+      <label>Your timezone</label>
+      <select class="ob-select" id="timezone">
+        <option value="">Pick one…</option>
+        <option>GMT-8</option><option>GMT-5</option><option>GMT</option>
+        <option>GMT+1</option><option>GMT+2</option><option>GMT+3</option>
+        <option>GMT+5:30</option><option>GMT+8</option>
+      </select>
+    </div>
+
+    <div class="ob-error" id="err5">Please add your headline, country and timezone.</div>
+    <div class="actions">
+      <button class="btn-back" id="s5Back">←</button>
+      <button class="btn-next" id="s5Publish">Publish my profile 🚀</button>
+    </div>
+  </div>
+
 </div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
 
 <script>
   const SUPABASE_URL      = "https://mscgaaaobxiuzqsukvjc.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y";
-  const TABLES = { mentees:"mentees", mentors:"mentors" };
-  const sb = (SUPABASE_URL.startsWith("http") && SUPABASE_ANON_KEY.startsWith("ey") && typeof supabase !== "undefined")
-    ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+  // ── Auth ──
   async function requireSession(){
-    if(!sb){ alert("Add your Supabase URL + anon key in this file first."); return null; }
-    const {data:{session},error}=await sb.auth.getSession();
-    if(error) console.error(error);
-    if(!session){ window.location.href=`auth.html?mode=signin&returnTo=${encodeURIComponent("mentor-onboarding.html")}&role=mentor`; return null; }
+    const {data:{session}} = await sb.auth.getSession();
+    if(!session){ window.location.href="auth.html?mode=signin&returnTo=mentor-onboarding.html"; return null; }
     return session.user;
   }
 
-  function safeArr(v){ if(Array.isArray(v)) return v; if(typeof v==="string") return v.split(",").map(s=>s.trim()).filter(Boolean); return []; }
-  function normalizeTag(v){ return String(v||"").trim().replace(/\s+/g," "); }
-  function uniqueNormalized(arr){ const out=[],seen=new Set(); arr.forEach(item=>{ const clean=normalizeTag(item),key=clean.toLowerCase(); if(clean&&!seen.has(key)){ seen.add(key); out.push(clean); } }); return out; }
+  // ── Screens ──
+  const TOTAL = 5;
+  let current = 1;
 
-  const tagbox=document.getElementById("tagbox"),tagInput=document.getElementById("tagInput");
-
-  function makeTag(text){
-    const clean=normalizeTag(text);
-    const existing=Array.from(document.querySelectorAll("#tagbox .tag")).map(t=>t.dataset.value?.toLowerCase());
-    if(existing.includes(clean.toLowerCase())) return null;
-    const span=document.createElement("span");
-    span.className="tag"; span.dataset.value=clean;
-    span.innerHTML=`${clean} <button type="button" aria-label="remove">×</button>`;
-    span.querySelector("button").onclick=()=>{ span.remove(); updateProfileCompleteness(); };
-    return span;
+  function goTo(n){
+    document.getElementById("s"+current).classList.remove("active");
+    current = n;
+    document.getElementById("s"+current).classList.add("active");
+    document.getElementById("stepCounter").textContent = current + " of " + TOTAL;
+    document.getElementById("progressFill").style.width = ((current-1)/(TOTAL-1)*100) + "%";
+    window.scrollTo({top:0, behavior:"smooth"});
   }
 
-  function addTag(text){ const tag=makeTag(text); if(tag) tagbox.insertBefore(tag,tagInput); }
-
-  tagInput.addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); const v=tagInput.value.trim(); if(!v) return; addTag(v); tagInput.value=""; updateProfileCompleteness(); } });
-  document.querySelectorAll(".suggest-chip").forEach(btn=>{ btn.addEventListener("click",()=>{ addTag(btn.textContent.trim()); updateProfileCompleteness(); }); });
-
-  function getDropdownValues(menuId){ return Array.from(document.querySelectorAll(`#${menuId} input[type="checkbox"]:checked`)).map(i=>i.value); }
-
-  function renderDropdownValue(valueId,values,placeholder){
-    const host=document.getElementById(valueId);
-    if(!host) return;
-    if(!values.length){ host.innerHTML=`<span class="dropdown-text">${placeholder}</span>`; host.parentElement.classList.add("placeholder"); return; }
-    host.parentElement.classList.remove("placeholder");
-    if(values.length<=2){ host.innerHTML=values.map(v=>`<span class="dropdown-pill">${v}</span>`).join(""); return; }
-    host.innerHTML=`<span class="dropdown-pill">${values[0]}</span><span class="dropdown-pill">${values[1]}</span><span class="dropdown-pill">+${values.length-2} more</span>`;
+  // ── Toast ──
+  const messages = ["Great! Keep going 👏", "You're doing great 🙌", "Almost there!", "One more step!"];
+  let toastTimer;
+  function showToast(msg){
+    const t = document.getElementById("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=>t.classList.remove("show"), 2500);
   }
 
-  function setupDropdown(dropdownId,triggerId,menuId,valueId,placeholder){
-    const dropdown=document.getElementById(dropdownId),trigger=document.getElementById(triggerId),menu=document.getElementById(menuId);
-    if(!dropdown||!trigger||!menu) return;
-    trigger.addEventListener("click",e=>{ e.stopPropagation(); document.querySelectorAll(".dropdown").forEach(d=>{ if(d!==dropdown) d.classList.remove("open"); }); dropdown.classList.toggle("open"); });
-    menu.querySelectorAll('input[type="checkbox"]').forEach(input=>{ input.addEventListener("change",()=>{ renderDropdownValue(valueId,getDropdownValues(menuId),placeholder); updateProfileCompleteness(); }); });
-    renderDropdownValue(valueId,getDropdownValues(menuId),placeholder);
+  // ── Choice cards ──
+  function setupChoices(containerId, hiddenId, multi){
+    const c = document.getElementById(containerId);
+    if(!c) return;
+    c.querySelectorAll(".choice").forEach(opt=>{
+      opt.addEventListener("click",()=>{
+        if(!multi) c.querySelectorAll(".choice").forEach(o=>o.classList.remove("selected"));
+        opt.classList.toggle("selected");
+        if(!multi){
+          const h = document.getElementById(hiddenId);
+          if(h) h.value = opt.dataset.val || "";
+        }
+      });
+    });
   }
 
-  document.addEventListener("click",()=>document.querySelectorAll(".dropdown").forEach(d=>d.classList.remove("open")));
+  setupChoices("fieldChoices",  "field");
+  setupChoices("expChoices",    "experience");
+  setupChoices("commChoices",   "communication");
+  setupChoices("pricingChoices","pricingType");
+  setupChoices("availChoices",  "availability");
 
-  const steps=Array.from(document.querySelectorAll(".step"));
-  const navItems=Array.from(document.querySelectorAll(".step-item"));
-  const chip=document.getElementById("chip"),barFill=document.getElementById("barFill"),pct=document.getElementById("pct");
-  const backBtn=document.getElementById("backBtn"),nextBtn=document.getElementById("nextBtn");
-  const saveBtn=document.getElementById("saveBtn"),saveTop=document.getElementById("saveTop");
-  let current=1; const total=steps.length;
-
-  function parseSlots(v){ const s=String(v||"").toLowerCase(); if(!s) return null; if(s.includes("4")) return 4; if(s.includes("3")) return 3; if(s.includes("2")) return 2; if(s.includes("1")) return 1; return null; }
-
-  function currentFormState(){
-    return {
-      headline:document.getElementById("headline").value,current_title:document.getElementById("currentTitle").value,
-      organization:document.getElementById("organization").value,experience:document.getElementById("experience").value,
-      years_experience:document.getElementById("yearsExperience").value,languages:document.getElementById("languages").value,
-      bio:document.getElementById("bio").value,certifications:document.getElementById("certifications").value,
-      profile_link:document.getElementById("profileLink").value,field:document.getElementById("field").value,
-      subfield:document.getElementById("subfield").value,best_for:getDropdownValues("bestForMenu"),
-      mentoring_areas:getDropdownValues("mentoringAreasMenu"),
-      tags:Array.from(document.querySelectorAll("#tagbox .tag")).map(t=>t.dataset.value||t.childNodes[0].textContent.trim()).filter(Boolean),
-      preferred_level:document.getElementById("preferredLevel").value,mentorship_style:document.getElementById("format").value,
-      preferred_session_type:document.getElementById("sessionType").value,session_duration:document.getElementById("sessionDuration").value,
-      active_slots:parseSlots(document.getElementById("capacity").value),pricing_type:document.getElementById("pricingType").value,
-      communication:document.getElementById("communication").value,country:document.getElementById("country").value,
-      timezone:document.getElementById("timezone").value,availability:document.getElementById("availability").value
-    };
+  // ── Tags ──
+  const tagbox   = document.getElementById("tagbox");
+  const tagInput = document.getElementById("tagInput");
+  function addTag(text){
+    const val = text.trim(); if(!val) return;
+    const existing = Array.from(document.querySelectorAll("#tagbox .tag-pill")).map(t=>t.dataset.val.toLowerCase());
+    if(existing.includes(val.toLowerCase())) return;
+    const span = document.createElement("span");
+    span.className = "tag-pill"; span.dataset.val = val;
+    span.innerHTML = val + ' <button type="button" aria-label="remove">×</button>';
+    span.querySelector("button").onclick = ()=>span.remove();
+    tagbox.insertBefore(span, tagInput);
   }
+  tagInput.addEventListener("keydown", e=>{
+    if(e.key==="Enter"){ e.preventDefault(); addTag(tagInput.value); tagInput.value=""; }
+  });
+  document.querySelectorAll(".tag-chip").forEach(btn=>btn.addEventListener("click",()=>addTag(btn.textContent.trim())));
+  tagbox.addEventListener("click", ()=>tagInput.focus());
+  function getTags(){ return Array.from(document.querySelectorAll("#tagbox .tag-pill")).map(t=>t.dataset.val); }
 
-  function calcProfileCompleteness(data){
-    const checks=[!!data.headline,!!data.current_title,!!data.experience,!!data.years_experience,!!data.languages,!!data.bio,!!data.field,safeArr(data.best_for).length>=1,safeArr(data.mentoring_areas).length>=1,safeArr(data.tags).length>=3,!!data.preferred_level,!!data.mentorship_style,!!data.preferred_session_type,!!data.session_duration,data.active_slots!=null,!!data.pricing_type,!!data.communication,!!data.country,!!data.timezone,!!data.availability];
-    return Math.round(checks.filter(Boolean).length/checks.length*100);
-  }
+  // ── Error ──
+  function showErr(id, msg){ const el=document.getElementById(id); if(!el) return; el.textContent=msg||"Please complete this step."; el.classList.add("show"); }
+  function clearErr(id){ const el=document.getElementById(id); if(el) el.classList.remove("show"); }
 
-  function updateProfileCompleteness(){ const p=calcProfileCompleteness(currentFormState()); barFill.style.width=p+"%"; pct.textContent=p+"%"; }
+  // ── Navigation ──
+  document.getElementById("s1Next").onclick = ()=>{ goTo(2); showToast("Great! Keep going 👏"); };
+  document.getElementById("s2Back").onclick = ()=>goTo(1);
+  document.getElementById("s2Next").onclick = ()=>{
+    if(!document.getElementById("field").value){ showErr("err2"); return; }
+    clearErr("err2"); goTo(3); showToast("Nice choice! 💪");
+  };
+  document.getElementById("s3Back").onclick = ()=>goTo(2);
+  document.getElementById("s3Next").onclick = ()=>{
+    if(!document.getElementById("experience").value){ showErr("err3"); return; }
+    clearErr("err3"); goTo(4); showToast("You're doing great 🙌");
+  };
+  document.getElementById("s4Back").onclick = ()=>goTo(3);
+  document.getElementById("s4Next").onclick = ()=>{
+    const missing = [];
+    if(!document.getElementById("communication").value) missing.push("how you prefer to connect");
+    if(!document.getElementById("pricingType").value)   missing.push("free or paid");
+    if(!document.getElementById("availability").value)  missing.push("when you're free");
+    if(missing.length){ showErr("err4", "Please tell us: " + missing.join(", ")); return; }
+    clearErr("err4"); goTo(5); showToast("Almost there! ✨");
+  };
+  document.getElementById("s5Back").onclick = ()=>goTo(4);
 
-  // Required fields per step
-  const REQUIRED = {
-    1: [
-      { id:"headline",    label:"Headline / Role" },
-      { id:"currentTitle",label:"Current title" },
-      { id:"experience",  label:"Mentor level" },
-      { id:"yearsExperience", label:"Years of experience" },
-      { id:"languages",   label:"Preferred language" },
-      { id:"bio",         label:"Short bio" }
-    ],
-    2: [
-      { id:"field", label:"Primary field" }
-    ],
-    3: [
-      { id:"preferredLevel",    label:"Preferred mentee level" },
-      { id:"format",            label:"Mentorship style" },
-      { id:"sessionType",       label:"Preferred session type" },
-      { id:"sessionDuration",   label:"Session duration" },
-      { id:"capacity",          label:"Active mentee slots" },
-      { id:"pricingType",       label:"Pricing" },
-      { id:"communication",     label:"Communication" }
-    ],
-    4: [
-      { id:"country",       label:"Country" },
-      { id:"timezone",      label:"Timezone" },
-      { id:"availability",  label:"Availability" }
-    ]
+  // Bio skip
+  document.getElementById("bioSkip").onclick = ()=>{
+    document.getElementById("bio").value = "";
+    document.getElementById("bio").placeholder = "Skipped — you can add this from your dashboard later.";
   };
 
-  function validateStep(stepNum){
-    const required = REQUIRED[stepNum] || [];
-    const missing = [];
+  // ── Publish ──
+  document.getElementById("s5Publish").onclick = async ()=>{
+    const headline = document.getElementById("headline").value.trim();
+    const country  = document.getElementById("country").value.trim();
+    const timezone = document.getElementById("timezone").value;
+    const missing  = [];
+    if(!headline) missing.push("your headline");
+    if(!country)  missing.push("where you're based");
+    if(!timezone) missing.push("your timezone");
+    if(missing.length){ showErr("err5", "Just a few more things: " + missing.join(", ")); return; }
+    clearErr("err5");
 
-    // Check regular fields
-    required.forEach(({id, label}) => {
-      const el = document.getElementById(id);
-      if(!el) return;
-      const val = el.value.trim();
-      if(!val){
-        missing.push(label);
-        el.style.borderColor = "#ef4444";
-        el.style.boxShadow   = "0 0 0 3px rgba(239,68,68,.14)";
-      } else {
-        el.style.borderColor = "";
-        el.style.boxShadow   = "";
-      }
-    });
+    const btn = document.getElementById("s5Publish");
+    btn.textContent = "Publishing…"; btn.disabled = true;
 
-    // Step 2 extra: check tags and dropdowns
-    if(stepNum === 2){
-      const tags = Array.from(document.querySelectorAll("#tagbox .tag"));
-      if(tags.length < 3){
-        missing.push("At least 3 expertise tags");
-        document.getElementById("tagbox").style.borderColor = "#ef4444";
-      } else {
-        document.getElementById("tagbox").style.borderColor = "";
-      }
+    const user = await requireSession();
+    if(!user){ btn.textContent = "Publish my profile 🚀"; btn.disabled = false; return; }
 
-      const bestFor = getDropdownValues("bestForMenu");
-      if(!bestFor.length){
-        missing.push("Who do you help best");
-        document.getElementById("bestForTrigger").style.borderColor = "#ef4444";
-      } else {
-        document.getElementById("bestForTrigger").style.borderColor = "";
-      }
+    const payload = {
+      user_id:       user.id,
+      full_name:     user.user_metadata?.full_name || user.email || "",
+      email:         user.email || null,
+      headline,
+      bio:           document.getElementById("bio").value.trim() || null,
+      field:         document.getElementById("field").value || null,
+      experience:    document.getElementById("experience").value || null,
+      communication: document.getElementById("communication").value || null,
+      pricing_type:  document.getElementById("pricingType").value || null,
+      availability:  document.getElementById("availability").value || null,
+      country,
+      timezone,
+      tags:          getTags(),
+      current_title: headline,
+      languages:     "English",
+      preferred_level:        "Any",
+      mentorship_style:       "1:1 mentorship",
+      preferred_session_type: "Career coaching",
+      session_duration:       "60 minutes",
+      active_slots:           1,
+      best_for:               [],
+      mentoring_areas:        [],
+      years_experience:       null,
+    };
 
-      const areas = getDropdownValues("mentoringAreasMenu");
-      if(!areas.length){
-        missing.push("Mentoring areas");
-        document.getElementById("mentoringAreasTrigger").style.borderColor = "#ef4444";
-      } else {
-        document.getElementById("mentoringAreasTrigger").style.borderColor = "";
-      }
-    }
-
-    if(missing.length){
-      showValidationError(missing);
-      return false;
-    }
-
-    clearValidationError();
-    return true;
-  }
-
-  function showValidationError(missing){
-    let banner = document.getElementById("validationBanner");
-    if(!banner){
-      banner = document.createElement("div");
-      banner.id = "validationBanner";
-      banner.style.cssText = "padding:12px 16px;border-radius:12px;border:1px solid var(--declined-line);background:var(--declined-bg);color:var(--declined-fg);font-size:13px;margin-top:14px;line-height:1.6;";
-      document.querySelector(".form-actions").after(banner);
-    }
-    banner.innerHTML = `<b>Please fill in the following required fields:</b><br/>• ${missing.join("<br/>• ")}`;
-    banner.scrollIntoView({behavior:"smooth", block:"nearest"});
-  }
-
-  function clearValidationError(){
-    const banner = document.getElementById("validationBanner");
-    if(banner) banner.remove();
-  }
-
-  function showStep(n){
-    current=Math.min(Math.max(n,1),total);
-    steps.forEach(s=>s.classList.toggle("hidden",Number(s.dataset.step)!==current));
-    navItems.forEach(i=>i.classList.toggle("active",Number(i.dataset.nav)===current));
-    chip.textContent=`Step ${current} of ${total}`;
-    backBtn.disabled=current===1;
-    nextBtn.textContent=current===total?"Publish profile":"Next →";
-    clearValidationError();
-    updateProfileCompleteness();
-  }
-
-  navItems.forEach(i=>i.addEventListener("click",()=>showStep(Number(i.dataset.nav))));
-  backBtn.addEventListener("click",()=>{ clearValidationError(); showStep(current-1); });
-  nextBtn.addEventListener("click",()=>{
-    if(!validateStep(current)) return;
-    markStepDone(current);
-    if(current<total) showStep(current+1);
-    else publishAndRedirect();
-  });
-  saveBtn.addEventListener("click",saveDraft);
-  saveTop.addEventListener("click",saveDraft);
-
-  // Auto-save to localStorage every 10 seconds
-  setInterval(()=>{
-    try{
-      const data=collectData();
-      localStorage.setItem("mentor_onboarding_draft", JSON.stringify({...data, step:current}));
-    }catch(e){}
-  }, 10000);
-
-  // Save on every input/select/textarea change
-  document.querySelectorAll("input,select,textarea").forEach(el=>{
-    el.addEventListener("change",()=>{
-      try{
-        const data=collectData();
-        localStorage.setItem("mentor_onboarding_draft", JSON.stringify({...data, step:current}));
-      }catch(e){}
-    });
-  });
-
-  // Save before user leaves
-  window.addEventListener("beforeunload",()=>{
-    try{
-      const data=collectData();
-      localStorage.setItem("mentor_onboarding_draft", JSON.stringify({...data, step:current}));
-    }catch(e){}
-  });
-
-  async function collectData(){ const data=currentFormState(); data.tags=uniqueNormalized(data.tags); data.best_for=uniqueNormalized(data.best_for); data.mentoring_areas=uniqueNormalized(data.mentoring_areas); return data; }
-
-  async function saveToSupabase(user,data){
-    let photo_url=null;
-    const file=document.getElementById("photo")?.files?.[0];
-    if(file){
-      const fileName=`${user.id}-${Date.now()}-${file.name}`;
-      const {error:uploadError}=await sb.storage.from("mentor-images").upload(fileName,file);
-      if(!uploadError){ const {data:urlData}=sb.storage.from("mentor-images").getPublicUrl(fileName); photo_url=urlData.publicUrl; }
-    }
-    const payload={ user_id:user.id,...(photo_url&&{profile_image:photo_url}),full_name:(user.user_metadata&&user.user_metadata.full_name)?user.user_metadata.full_name:(user.email||""),email:user.email||null,...Object.fromEntries(Object.entries({headline:data.headline,current_title:data.current_title,organization:data.organization,experience:data.experience,years_experience:data.years_experience,languages:data.languages,bio:data.bio,certifications:data.certifications,profile_link:data.profile_link,field:data.field,subfield:data.subfield,preferred_level:data.preferred_level,mentorship_style:data.mentorship_style,preferred_session_type:data.preferred_session_type,session_duration:data.session_duration,pricing_type:data.pricing_type,communication:data.communication,country:data.country,timezone:data.timezone,availability:data.availability}).map(([k,v])=>[k,v||null])),best_for:safeArr(data.best_for),mentoring_areas:safeArr(data.mentoring_areas),tags:safeArr(data.tags),active_slots:(data.active_slots==null?1:data.active_slots) };
-    const {error}=await sb.from(TABLES.mentors).upsert(payload,{onConflict:"user_id"});
-    if(error) throw error;
-  }
-
-  async function loadFromSupabase(user){
-    try{
-      const {data,error}=await sb.from(TABLES.mentors).select("*").eq("user_id",user.id).maybeSingle();
-      if(error) throw error;
-      if(!data) return false;
-      document.getElementById("headline").value=data.headline||"";
-      document.getElementById("currentTitle").value=data.current_title||"";
-      document.getElementById("organization").value=data.organization||"";
-      document.getElementById("experience").value=data.experience||"";
-      document.getElementById("yearsExperience").value=data.years_experience||"";
-      document.getElementById("languages").value=data.languages||"";
-      document.getElementById("bio").value=data.bio||"";
-      document.getElementById("certifications").value=data.certifications||"";
-      document.getElementById("profileLink").value=data.profile_link||"";
-      document.getElementById("field").value=data.field||"";
-      document.getElementById("subfield").value=data.subfield||"";
-      document.querySelectorAll("#tagbox .tag").forEach(t=>t.remove());
-      (data.tags||[]).forEach(t=>addTag(t));
-      document.querySelectorAll("#bestForMenu input[type='checkbox']").forEach(b=>b.checked=(data.best_for||[]).includes(b.value));
-      renderDropdownValue("bestForValue",data.best_for||[],"Select audience…");
-      document.querySelectorAll("#mentoringAreasMenu input[type='checkbox']").forEach(b=>b.checked=(data.mentoring_areas||[]).includes(b.value));
-      renderDropdownValue("mentoringAreasValue",data.mentoring_areas||[],"Select mentoring areas…");
-      document.getElementById("preferredLevel").value=data.preferred_level||"";
-      document.getElementById("format").value=data.mentorship_style||"";
-      document.getElementById("sessionType").value=data.preferred_session_type||"";
-      document.getElementById("sessionDuration").value=data.session_duration||"";
-      const slots=data.active_slots||1,capMap={1:"1 mentee",2:"2 mentee",3:"3 mentee",4:"4+mentee"};
-      document.getElementById("capacity").value=capMap[Math.min(4,slots)]||"";
-      document.getElementById("pricingType").value=data.pricing_type||"";
-      document.getElementById("communication").value=data.communication||"";
-      document.getElementById("country").value=data.country||"";
-      document.getElementById("timezone").value=data.timezone||"";
-      document.getElementById("availability").value=data.availability||"";
-      updateProfileCompleteness(); return true;
-    }catch(e){ console.error(e); return false; }
-  }
-
-  function setSaveStatus(status, text){
-    const dot=document.getElementById("saveDot"); const label=document.getElementById("saveText");
-    if(!dot||!label) return;
-    dot.className="save-dot "+(status||""); label.textContent=text||"";
-  }
-  function markStepDone(stepNum){
-    const nav=document.querySelector(`.step-item[data-nav="${stepNum}"]`);
-    if(nav) nav.classList.add("done");
-  }
-
-  async function saveDraft(){
-    const data={...(await collectData()),step:current};
-    localStorage.setItem("mentor_onboarding_draft",JSON.stringify(data));
-    const user=await requireSession(); if(!user) return;
-    try{ await saveToSupabase(user,data); alert("Saved."); }
-    catch(e){ console.error(e); alert("Saved locally, but could not save to Supabase."); }
-  }
-
-  async function publishAndRedirect(){
-    const user=await requireSession(); if(!user) return;
-    const data=await collectData();
-    try{ await saveToSupabase(user,data); localStorage.removeItem("mentor_onboarding_draft"); window.location.href="mentor-dashboard.html"; }
-    catch(e){ console.error(e); alert("Could not publish. Draft saved locally."); }
-  }
-
-  document.querySelectorAll("input, select, textarea").forEach(el=>{ el.addEventListener("input",updateProfileCompleteness); el.addEventListener("change",updateProfileCompleteness); });
-
-  setupDropdown("bestForDropdown","bestForTrigger","bestForMenu","bestForValue","Select audience…");
-  setupDropdown("mentoringAreasDropdown","mentoringAreasTrigger","mentoringAreasMenu","mentoringAreasValue","Select mentoring areas…");
-
-  (async function boot(){
-    const user=await requireSession(); if(!user) return;
-    const loaded=await loadFromSupabase(user);
-    if(loaded){
-      // Switch to edit mode
-      const title = document.getElementById("pageTitle");
-      const sub   = document.getElementById("pageSub");
-      if(title) title.textContent = "Edit your mentor profile";
-      if(sub)   sub.textContent   = "Update your profile details — your existing data has been loaded.";
-      showStep(1);
-      setSaveStatus("saved","Profile loaded — edit and save your changes");
+    const {error} = await sb.from("mentors").upsert(payload, {onConflict:"user_id"});
+    if(error){
+      console.error(error);
+      btn.textContent = "Publish my profile 🚀"; btn.disabled = false;
+      showErr("err5", "Something went wrong. Please try again.");
       return;
     }
-    const raw=localStorage.getItem("mentor_onboarding_draft");
-    if(raw){
-      try{
-        const d=JSON.parse(raw);
-        // Restore the step the user was on
-        if(d.step && Number(d.step) > 1){
-          setTimeout(()=>showStep(Number(d.step)), 200);
-        }
-        document.getElementById("headline").value=d.headline||""; document.getElementById("currentTitle").value=d.current_title||"";
-        document.getElementById("organization").value=d.organization||""; document.getElementById("experience").value=d.experience||"";
-        document.getElementById("yearsExperience").value=d.years_experience||""; document.getElementById("languages").value=d.languages||"";
-        document.getElementById("bio").value=d.bio||""; document.getElementById("certifications").value=d.certifications||"";
-        document.getElementById("profileLink").value=d.profile_link||""; document.getElementById("field").value=d.field||"";
-        document.getElementById("subfield").value=d.subfield||"";
-        document.querySelectorAll("#tagbox .tag").forEach(t=>t.remove()); (d.tags||[]).forEach(t=>addTag(t));
-        document.querySelectorAll("#bestForMenu input[type='checkbox']").forEach(b=>b.checked=(d.best_for||[]).includes(b.value));
-        renderDropdownValue("bestForValue",d.best_for||[],"Select audience…");
-        document.querySelectorAll("#mentoringAreasMenu input[type='checkbox']").forEach(b=>b.checked=(d.mentoring_areas||[]).includes(b.value));
-        renderDropdownValue("mentoringAreasValue",d.mentoring_areas||[],"Select mentoring areas…");
-        document.getElementById("preferredLevel").value=d.preferred_level||""; document.getElementById("format").value=d.mentorship_style||"";
-        document.getElementById("sessionType").value=d.preferred_session_type||""; document.getElementById("sessionDuration").value=d.session_duration||"";
-        document.getElementById("pricingType").value=d.pricing_type||""; document.getElementById("communication").value=d.communication||"";
-        document.getElementById("country").value=d.country||""; document.getElementById("timezone").value=d.timezone||"";
-        document.getElementById("availability").value=d.availability||"";
-        if(d.active_slots!=null){ const map={1:"1 mentee",2:"2 mentee",3:"3 mentee",4:"4+mentee"}; document.getElementById("capacity").value=map[Math.min(4,d.active_slots)]||""; }
-        showStep(d.step||1);
-      }catch(e){ showStep(1); }
-    }else{ showStep(1); }
-  })();
-</script>
+    window.location.href = "mentor-dashboard.html";
+  };
 
-<div class="mobile-nav-overlay" id="navOverlay" onclick="closeDrawer()"></div>
-<div class="mh-mobile-drawer" id="mobileDrawer">
-  <div class="drawer-brand">
-    <img src="logo.png" alt="MentifyHub"/>
-    <span>MentifyHub</span>
-  </div>
-  <a href="mentor-dashboard.html" class="mh-drawer-link"><span class="icon">🏠</span>Dashboard</a>
-<a href="messages.html" class="mh-drawer-link"><span class="icon">💬</span>Messages</a>
-<a href="sessions.html" class="mh-drawer-link"><span class="icon">📅</span>Sessions</a>
-  <div class="drawer-signout">
-    <a href="#" class="mh-drawer-link" onclick="signOut()"><span class="icon">🚪</span>Sign out</a>
-  </div>
-</div>
-<script>
-  function openDrawer(){document.getElementById('mobileDrawer').classList.add('open');document.getElementById('navOverlay').classList.add('open');document.body.style.overflow='hidden';}
-  function closeDrawer(){document.getElementById('mobileDrawer').classList.remove('open');document.getElementById('navOverlay').classList.remove('open');document.body.style.overflow='';}
+  // ── Load existing data ──
+  (async function boot(){
+    const user = await requireSession(); if(!user) return;
+    try{
+      const {data} = await sb.from("mentors").select("*").eq("user_id",user.id).maybeSingle();
+      if(!data) return;
+      if(data.headline) document.getElementById("headline").value = data.headline;
+      if(data.bio)      document.getElementById("bio").value      = data.bio;
+      if(data.country)  document.getElementById("country").value  = data.country;
+      if(data.timezone) document.getElementById("timezone").value = data.timezone;
+      function restoreChoice(cid, hid, val){
+        if(!val) return;
+        document.getElementById(hid).value = val;
+        document.querySelectorAll(`#${cid} .choice`).forEach(o=>{ if(o.dataset.val===val) o.classList.add("selected"); });
+      }
+      restoreChoice("fieldChoices","field",data.field);
+      restoreChoice("expChoices","experience",data.experience);
+      restoreChoice("commChoices","communication",data.communication);
+      restoreChoice("pricingChoices","pricingType",data.pricing_type);
+      restoreChoice("availChoices","availability",data.availability);
+      (data.tags||[]).forEach(t=>addTag(t));
+    }catch(e){ console.error(e); }
+  })();
 </script>
 </body>
 </html>

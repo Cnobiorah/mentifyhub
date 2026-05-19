@@ -3,8 +3,11 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>MentifyHub — Admin Dashboard</title>
+  <title>MentifyHub - Admin Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="auth-guard.js"></script>
+  <script src="mh-utils.js"></script>
   <link rel="stylesheet" href="mh-theme.css"/>
   <style>
     /* ─── Layout ──────────────────────────────── */
@@ -310,7 +313,7 @@
       <div class="panel active" id="panel-overview">
         <div style="margin-bottom:18px">
           <h2 style="font-size:20px;font-weight:800;letter-spacing:-.3px">Platform overview</h2>
-          <p style="color:var(--muted);font-size:13px;margin-top:4px">Live data from Supabase — all tables.</p>
+          <p style="color:var(--muted);font-size:13px;margin-top:4px">Live data from Supabase - all tables.</p>
         </div>
 
         <div class="admin-notice" id="adminNotice" style="display:none"></div>
@@ -508,9 +511,7 @@
 <div class="mh-toast" id="toast"></div>
 
 <script>
-  const SUPABASE_URL      = "https://mscgaaaobxiuzqsukvjc.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y";
-  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const sb = window.mhSb;
   const $ = id => document.getElementById(id);
 
   // ─── State
@@ -540,15 +541,9 @@
   }
 
   // ─── Completeness helpers
-  function mentorCompleteness(m){
-    const checks=[!!m.headline,!!m.current_title,!!m.experience,!!m.years_experience,!!m.bio,!!m.field,safeArr(m.best_for).length>=1,safeArr(m.tags).length>=3,!!m.preferred_level,!!m.mentorship_style,!!m.session_duration,m.active_slots!=null,!!m.pricing_type,!!m.communication,!!m.country,!!m.timezone,!!m.availability];
-    return Math.round(checks.filter(Boolean).length/checks.length*100);
-  }
-
-  function menteeCompleteness(m){
-    const checks=[!!m.goal,!!m.level,!!m.current_role,!!m.field_experience_level,!!m.preferred_language,!!m.field,safeArr(m.help_needed).length>=1,!!m.timeline,!!m.preferred_session_type,safeArr(m.tags).length>=3,!!m.country,!!m.timezone,!!m.availability,!!m.communication];
-    return Math.round(checks.filter(Boolean).length/checks.length*100);
-  }
+  // Delegate to shared functions from mh-utils.js
+  const mentorCompleteness = (m) => window.mentorCompleteness(m);
+  const menteeCompleteness = (m) => window.menteeCompleteness(m);
 
   function completeBadge(pct){
     const cls = pct>=80 ? "accepted" : pct>=50 ? "pending" : "declined";
@@ -730,7 +725,7 @@
 
     $("feedList").innerHTML = recent.length ? recent.map(e=>{
       const cfg = typeConfig[e.type] || { dot:"var(--muted)", label:e.type };
-      const detail = e.type==="request" ? ` — ${e.status||"pending"}` : e.name ? ` — ${esc(e.name)}` : "";
+      const detail = e.type==="request" ? ` - ${e.status||"pending"}` : e.name ? ` - ${esc(e.name)}` : "";
       return `<div class="feed-item">
         <div class="feed-dot" style="background:${cfg.dot}"></div>
         <div>
@@ -795,17 +790,10 @@
   }
 
   // ─── Auth + data load
-  // ── Admin access control ──────────────────────────────────────
-  // Add your admin email(s) here. Leave empty to allow any logged-in user (not recommended).
-  const ADMIN_EMAILS = []; // e.g. ["you@email.com"]
-
   async function init(){
-    const {data:{session}} = await sb.auth.getSession();
-    if(!session){ window.location.href="auth.html?mode=signin&returnTo=admin.html"; return; }
-    if(ADMIN_EMAILS.length > 0 && !ADMIN_EMAILS.includes(session.user.email)){
-      window.location.href="mentee-dashboard.html"; return;
-    }
-    $("adminChip").textContent = session.user.email || "Admin";
+    const session_user = await window.requireAdmin();
+    if(!session_user) return;
+    $("adminChip").textContent = session_user.email || "Admin";
 
     // Load all data in parallel
     const [

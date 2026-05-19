@@ -3,8 +3,10 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>MentifyHub — Messages</title>
+  <title>MentifyHub - Messages</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="auth-guard.js"></script>
   <link rel="stylesheet" href="mh-theme.css"/>
   <style>
     .layout {
@@ -132,7 +134,7 @@
       #messageBody { font-size: 16px; }
     }
 
-    /* Hamburger — hidden on desktop */
+    /* Hamburger - hidden on desktop */
     #hamburgerBtn { display: none !important; }
     @media (max-width: 768px) {
       #hamburgerBtn { display: flex !important; }
@@ -201,12 +203,8 @@
 </div>
 
 <script>
-  const SUPABASE_URL      = "https://mscgaaaobxiuzqsukvjc.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y";
-
   const $ = id => document.getElementById(id);
-  const sb = (SUPABASE_URL.startsWith("http")&&SUPABASE_ANON_KEY.startsWith("ey"))
-    ? window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY) : null;
+  const sb = window.mhSb;
 
   let USER=null,THREADS=[],CURRENT=null,ACTIVE_CHANNEL=null;
 
@@ -220,10 +218,10 @@
   }
 
   async function guardAuth(){
-    const {data:{session},error}=await sb.auth.getSession();
-    if(error||!session){ window.location.href="auth.html?returnTo=messages.html"; return false; }
-    USER=session.user;
-    $("envChip").textContent="Live";
+    const ok = await window.guardAuth("messages.html");
+    if(!ok) return false;
+    USER = window.mhCurrentUser;
+    $("envChip").textContent = "Live";
     // Set dashboard link correctly for mentors vs mentees
     const {data:_mp} = await sb.from("mentors").select("user_id").eq("user_id",USER.id).maybeSingle();
     const _dash = _mp ? "mentor-dashboard.html" : "mentee-dashboard.html";
@@ -356,8 +354,8 @@
             method: "POST",
             headers: {
               "Content-Type":  "application/json",
-              "apikey":        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y",
-              "Authorization": "Bearer " + "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y" + ""
+              "apikey":        window.MH_SUPABASE_ANON_KEY,
+              "Authorization": `Bearer ${window.MH_SUPABASE_ANON_KEY}`
             },
             body: JSON.stringify({
               recipient_email: recipientRow.email,

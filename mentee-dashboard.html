@@ -3,8 +3,11 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>MentifyHub — Mentee Dashboard</title>
+  <title>MentifyHub - Mentee Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="auth-guard.js"></script>
+  <script src="mh-utils.js"></script>
   <link rel="stylesheet" href="mh-theme.css"/>
   <style>
     .layout {
@@ -86,7 +89,7 @@
       .mentor-card { padding: 14px; }
     }
 
-    /* Hamburger — hidden on desktop, shown on mobile */
+    /* Hamburger - hidden on desktop, shown on mobile */
     #hamburgerBtn { display: none !important; }
     @media (max-width: 768px) {
       #hamburgerBtn { display: flex !important; }
@@ -102,13 +105,46 @@
       #navOverlay { display: none !important; }
       .mh-nav { display: flex !important; }
     }
+
+    /* ── Notification bell & panel ── */
+    .bell-btn {
+      width:38px; height:38px; border-radius:12px;
+      border:1px solid var(--line); background:#fff;
+      display:flex; align-items:center; justify-content:center;
+      font-size:17px; cursor:pointer; position:relative;
+      transition: box-shadow .15s ease;
+    }
+    .bell-btn:hover { box-shadow: var(--shadow); }
+    .bell-badge {
+      display:none; position:absolute; top:-5px; right:-5px;
+      width:18px; height:18px; border-radius:50%;
+      background:#ef4444; color:#fff; font-size:10px; font-weight:800;
+      align-items:center; justify-content:center; border:2px solid #fff;
+    }
+    .notif-panel {
+      display:none; position:absolute; top:calc(100% + 10px); right:0;
+      width:340px; background:#fff; border:1px solid var(--line);
+      border-radius:var(--radius); box-shadow:var(--shadow-lg);
+      z-index:50; overflow:hidden;
+    }
+    .notif-panel.open { display:block; animation: mh-modal-in .15s ease; }
+    .notif-head {
+      padding:12px 16px; border-bottom:1px solid var(--line);
+      display:flex; align-items:center; justify-content:space-between;
+      font-size:13px; font-weight:700;
+    }
+    .notif-list { max-height:360px; overflow-y:auto; }
+    .notif-footer {
+      padding:10px 16px; border-top:1px solid var(--line);
+      background:var(--soft); text-align:center;
+    }
   </style>
 </head>
 <body>
 <div class="mh-wrap">
 
   <!-- Topbar -->
-  <header class="mh-topbar"><button class="mh-hamburger" id="hamburgerBtn" onclick="openDrawer()" aria-label="Menu" style="display:none;width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:transparent;cursor:pointer;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:0;flex-shrink:0;"><span style="display:block;width:18px;height:2px;background:var(--text,#0d1f13);border-radius:2px;"></span><span style="display:block;width:18px;height:2px;background:var(--text,#0d1f13);border-radius:2px;"></span><span style="display:block;width:18px;height:2px;background:var(--text,#0d1f13);border-radius:2px;"></span></button>
+  <header class="mh-topbar">
     <a href="index.html" class="mh-brand">
       <img src="logo.png" alt="MentifyHub" class="mh-brand-logo"/>
       <div class="mh-brand-text">
@@ -125,18 +161,17 @@
 
       <!-- Notification bell -->
       <div class="bell-wrap" style="position:relative">
-        <button class="bell-btn" id="bellBtn" type="button" title="Notifications"
-          style="width:38px;height:38px;border-radius:12px;border:1px solid var(--line);background:#fff;display:flex;align-items:center;justify-content:center;font-size:17px;cursor:pointer;position:relative;">
+        <button class="bell-btn" id="bellBtn" type="button" title="Notifications">
           🔔
-          <span id="bellBadge" style="display:none;position:absolute;top:-5px;right:-5px;width:18px;height:18px;border-radius:50%;background:#ef4444;color:#fff;font-size:10px;font-weight:800;align-items:center;justify-content:center;border:2px solid #fff;"></span>
+          <span id="bellBadge" class="bell-badge"></span>
         </button>
-        <div id="notifPanel" style="display:none;position:absolute;top:calc(100% + 10px);right:0;width:340px;background:#fff;border:1px solid var(--line);border-radius:20px;box-shadow:0 20px 48px rgba(15,23,42,.10);z-index:50;overflow:hidden;">
-          <div style="padding:12px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:700;">
+        <div id="notifPanel" class="notif-panel">
+          <div class="notif-head">
             <span>Notifications</span>
             <button class="mh-btn mh-btn-sm" id="markAllBtn" type="button">Mark all read</button>
           </div>
-          <div id="notifList" style="max-height:360px;overflow-y:auto;"></div>
-          <div style="padding:10px 16px;border-top:1px solid var(--line);background:var(--soft);text-align:center;">
+          <div id="notifList" class="notif-list"></div>
+          <div class="notif-footer">
             <button class="mh-btn mh-btn-sm" id="refreshNotifBtn" type="button">Refresh</button>
           </div>
         </div>
@@ -190,16 +225,16 @@
     <main>
       <div class="journey-banner" id="journeyCard">
         <div>
-          <h2>Your mentoring journey</h2>
-          <p id="journeyText">Loading your matches…</p>
+          <h2>Find a mentor</h2>
+          <p id="journeyText">Browse mentors and reach out to one who fits your goals.…</p>
         </div>
-        <button class="mh-btn mh-btn-primary" id="refreshBtn" type="button">Refresh matches</button>
+        <button class="mh-btn mh-btn-primary" id="refreshBtn" type="button">Browse mentors</button>
       </div>
 
       <div class="mh-card mh-card-body">
         <div class="mh-section-head">
-          <h3>Top mentor matches</h3>
-          <span class="mh-chip" style="font-size:11px">Tags · Field · Level · Timezone</span>
+          <h3>Mentors you might like</h3>
+          <span class="mh-chip" style="font-size:11px">Filtered for you</span>
         </div>
         <div style="font-size:12px;color:var(--muted)" id="matchesSub">Loading mentors…</div>
         <div class="matches-grid" id="matches"></div>
@@ -271,10 +306,8 @@
 <div class="mh-toast" id="toast"></div>
 
 <script>
-  const SUPABASE_URL      = "https://mscgaaaobxiuzqsukvjc.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y";
   const TABLES = { mentees:"mentees", mentors:"mentors", requests:"mentorship_requests" };
-  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const sb = window.mhSb;
   const $ = id => document.getElementById(id);
 
   let currentUser=null, menteeProfile=null, allMentors=[], lastRequests=[], requestTarget=null;
@@ -299,10 +332,8 @@
     return profile;
   }
 
-  function calcCompleteness(mentee){
-    const checks=[!!mentee.goal,!!mentee.level,!!mentee.current_role,!!mentee.field_experience_level,!!mentee.preferred_language,!!mentee.field,safeArr(mentee.help_needed).length>=1,!!mentee.timeline,!!mentee.preferred_session_type,safeArr(mentee.tags).length>=3,!!mentee.country,!!mentee.timezone,!!mentee.availability,!!mentee.communication];
-    return Math.round(checks.filter(Boolean).length/checks.length*100);
-  }
+  // calcCompleteness delegates to shared menteeCompleteness from mh-utils.js
+  const calcCompleteness = (mentee) => window.menteeCompleteness(mentee);
 
   function scoreMentor(mentee,mentor){
     const mTags=new Set(safeArr(mentee.tags).map(normalize));
@@ -329,13 +360,12 @@
     return `Hi ${mentorName},\n\nI'm a mentee on MentifyHub and I'd love to request mentorship. My main goal is: ${goal}.\n\nI'm focused on ${field} and I'd appreciate your guidance on the next steps.\n\nThank you!`;
   }
 
+
+  // guardAuth is provided by auth-guard.js; wrap it to set local currentUser
   async function guardAuth(){
-    const {data:{session},error}=await sb.auth.getSession();
-    if(error){ console.error(error); $("envChip").textContent="Session error"; return false; }
-    if(!session){ window.location.href="auth.html?mode=signin"; return false; }
-    currentUser=session.user;
-    $("envChip").textContent="Live";
-    return true;
+    const ok = await window.guardAuth("mentee-dashboard.html");
+    if(ok){ currentUser = window.mhCurrentUser; $("envChip").textContent = "Live"; }
+    return ok;
   }
 
   async function loadMenteeProfile(){
@@ -367,11 +397,11 @@
     const pct=menteeProfile?calcCompleteness(menteeProfile):0;
     const pending=lastRequests.some(r=>(r.status||"").toLowerCase()==="pending");
     const accepted=lastRequests.some(r=>(r.status||"").toLowerCase()==="accepted");
-    if(!menteeProfile||pct<60){ $("journeyText").textContent="Step 1: Complete onboarding to unlock accurate matches."; return; }
-    if(!lastRequests.length){ $("journeyText").textContent="Step 2: Review your top matches and send a mentorship request."; return; }
-    if(accepted){ $("journeyText").textContent="Step 3: You have an accepted request — next: schedule your first session."; return; }
-    if(pending){ $("journeyText").textContent="Step 3: Request sent — waiting for mentor acceptance."; return; }
-    $("journeyText").textContent="You're on track — review matches and manage your requests.";
+    if(!menteeProfile||pct<60){ $("journeyText").textContent="Finish setting up your profile so mentors can see who you are."; return; }
+    if(!lastRequests.length){ $("journeyText").textContent="Browse the mentors below and reach out to someone who feels like a good fit."; return; }
+    if(accepted){ $("journeyText").textContent="A mentor accepted your request. Say hello and schedule your first call."; return; }
+    if(pending){ $("journeyText").textContent="Your request is with your mentor. Give them a day or two to get back to you."; return; }
+    $("journeyText").textContent="You are doing great. Keep the conversation going.";
   }
 
   async function loadMentors(){
@@ -444,7 +474,7 @@
   function openRequestModal(mentorId,mentorName){
     if(!mentorId){ showToast("Mentor profile missing."); return; }
     requestTarget={mentorId,mentorName};
-    $("requestModalTitle").textContent=`Request mentorship — ${mentorName}`;
+    $("requestModalTitle").textContent=`Message ${mentorName}`;
     $("requestModalMeta").textContent="Your request will appear in the mentor dashboard immediately.";
     $("requestMessage").value=defaultRequestMessage(mentorName);
     $("requestBackdrop").classList.add("open");
@@ -488,8 +518,8 @@
             method: "POST",
             headers: {
               "Content-Type":  "application/json",
-              "apikey":        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y",
-              "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y"
+              "apikey":        window.MH_SUPABASE_ANON_KEY,
+              "Authorization": `Bearer ${window.MH_SUPABASE_ANON_KEY}`
             },
             body: JSON.stringify({
               mentor_email: mentorRow.email,
@@ -582,6 +612,9 @@
     const badge=$("bellBadge");
     if(unread>0){ badge.textContent=unread>9?"9+":String(unread); badge.style.display="flex"; }
     else{ badge.style.display="none"; }
+    // Keep mobile bottom-nav bell in sync (no polling needed)
+    const mobileBadge=document.getElementById("bn-bell-badge");
+    if(mobileBadge) mobileBadge.style.display=unread>0?"block":"none";
   }
 
   async function markRead(id){
@@ -607,10 +640,10 @@
     const bellBtn=$("bellBtn"), notifPanel=$("notifPanel");
     if(bellBtn) bellBtn.addEventListener("click",(e)=>{
       e.stopPropagation();
-      notifPanel.style.display=notifPanel.style.display==="block"?"none":"block";
+      notifPanel.classList.toggle("open");
     });
     document.addEventListener("click",(e)=>{
-      if(bellBtn&&!bellBtn.contains(e.target)&&!notifPanel.contains(e.target)) notifPanel.style.display="none";
+      if(bellBtn&&!bellBtn.contains(e.target)&&!notifPanel.contains(e.target)) notifPanel.classList.remove("open");
     });
     const markAllBtn=$("markAllBtn");
     if(markAllBtn) markAllBtn.addEventListener("click",async()=>{
@@ -629,8 +662,8 @@
     banner.style.cssText="padding:14px 18px;border-radius:14px;border:1px solid rgba(29,78,216,.20);background:rgba(29,78,216,.06);display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:16px;";
     banner.innerHTML=`
       <div>
-        <b style="font-size:14px;font-weight:700;color:var(--accent)">Complete your profile — ${pct}% done</b>
-        <p style="font-size:13px;color:var(--muted);margin-top:3px">A complete profile unlocks accurate mentor matches and makes it easier for mentors to accept your requests.</p>
+        <b style="font-size:14px;font-weight:700;color:var(--accent)">Your profile is ${pct}% complete</b>
+        <p style="font-size:13px;color:var(--muted);margin-top:3px">Mentors are more likely to say yes when they can see who you are and what you are working on.</p>
       </div>
       <a class="mh-btn mh-btn-primary" href="mentee-onboarding.html">Finish profile →</a>`;
     const journeyCard=$("journeyCard");
@@ -683,10 +716,7 @@
     renderMatches();
 
     // Show onboarding prompt if profile incomplete
-    const pct = menteeProfile ? (function(){
-      const checks=[!!menteeProfile.goal,!!menteeProfile.level,!!menteeProfile.current_role,!!menteeProfile.field_experience_level,!!menteeProfile.preferred_language,!!menteeProfile.field,Array.isArray(menteeProfile.help_needed)?menteeProfile.help_needed.length>=1:!!menteeProfile.help_needed,!!menteeProfile.timeline,!!menteeProfile.preferred_session_type,(menteeProfile.tags||[]).length>=3,!!menteeProfile.country,!!menteeProfile.timezone,!!menteeProfile.availability,!!menteeProfile.communication];
-      return Math.round(checks.filter(Boolean).length/checks.length*100);
-    })() : 0;
+    const pct = menteeProfile ? window.menteeCompleteness(menteeProfile) : 0;
     showOnboardingPrompt(pct);
   });
 </script>

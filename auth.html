@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>MentifyHub — Account</title>
+  <title>MentifyHub - Account</title>
   <link rel="stylesheet" href="mh-theme.css"/>
   <style>
     body { display: flex; flex-direction: column; min-height: 100vh; align-items: center; justify-content: center; }
@@ -204,6 +204,8 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="auth-guard.js"></script>
 <script>
   const params = new URLSearchParams(location.search);
   let role = (params.get('role') || 'mentee').toLowerCase();
@@ -292,13 +294,8 @@
   setMode(mode);
 
   // Supabase
-  const SUPABASE_URL      = "https://mscgaaaobxiuzqsukvjc.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y";
   const TABLES = { mentees:"mentees", mentors:"mentors", profiles:"profiles" };
-
-  const sb = (SUPABASE_URL.startsWith("http") && SUPABASE_ANON_KEY.startsWith("ey"))
-    ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-    : null;
+  const sb = window.mhSb;
 
   function requireSupabase(){
     if(!sb){ setNote('error','Supabase not connected','Add your Supabase URL + anon key.'); return false; }

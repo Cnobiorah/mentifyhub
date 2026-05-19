@@ -10,343 +10,478 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; }
 
-    /* ── Hero ── */
-    .hero {
-      margin-top: 18px;
-      border-radius: 24px;
-      background: #06101f;
-      overflow: hidden;
-      position: relative;
-      min-height: 580px;
+    body { background: #f0f2f8; }
+
+    /* ── Layout ── */
+    .page {
+      min-height: 100vh;
       display: grid;
-      grid-template-columns: 1.1fr .9fr;
+      grid-template-columns: 1fr 380px;
+      gap: 0;
+      position: relative;
     }
 
-    /* Blobs */
-    .blob { position:absolute; border-radius:50%; filter:blur(90px); opacity:.3; pointer-events:none; }
-    .b1 { width:380px; height:380px; background:#1d4ed8; top:-120px; left:-80px; }
-    .b2 { width:280px; height:280px; background:#7c3aed; bottom:-80px; left:28%; }
-    .b3 { width:220px; height:220px; background:#0284c7; top:30%; right:-60px; }
-
-    /* Decorative */
-    .deco-ring   { position:absolute; width:52px; height:52px; border-radius:50%; border:3px solid #3b82f6; top:44px; left:44px; opacity:.6; }
-    .deco-diamond{ position:absolute; width:20px; height:20px; background:#f59e0b; transform:rotate(45deg); bottom:110px; left:43%; opacity:.9; }
-    .deco-dot    { position:absolute; width:14px; height:14px; border-radius:50%; background:#fff; top:42%; right:47%; opacity:.12; }
-
-    /* Left */
-    .hero-left {
-      padding: 60px 52px;
+    /* ── Left panel ── */
+    .left-panel {
+      padding: 0 60px 60px;
       display: flex;
       flex-direction: column;
       justify-content: center;
-      gap: 22px;
+      min-height: calc(100vh - 80px);
+      position: relative;
+    }
+
+    /* Big wave shape at bottom */
+    .wave-bg {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 220px;
+      background: linear-gradient(180deg, transparent, #e0e4f0);
+      border-radius: 50% 50% 0 0 / 30% 30% 0 0;
+      pointer-events: none;
+    }
+
+    /* Hero headline */
+    .hero-headline {
+      font-size: clamp(42px, 5.5vw, 72px);
+      font-weight: 900;
+      line-height: 1.05;
+      letter-spacing: -2px;
+      color: #0f172a;
+      margin: 0 0 12px;
+      text-align: center;
       position: relative;
       z-index: 2;
     }
-    .hero-tag {
-      display:inline-flex; align-items:center; gap:8px;
-      background:rgba(59,130,246,.14); border:1px solid rgba(59,130,246,.28);
-      border-radius:999px; padding:6px 16px;
-      font-size:12px; font-weight:700; color:#93c5fd; width:fit-content;
+    .hero-headline .blue { color: #2563eb; }
+
+    /* Inline search pill in headline */
+    .inline-search {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #fff;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 999px;
+      padding: 8px 16px;
+      font-size: clamp(14px, 1.8vw, 22px);
+      font-weight: 500;
+      color: #94a3b8;
+      vertical-align: middle;
+      box-shadow: 0 2px 12px rgba(15,23,42,.08);
+      cursor: pointer;
+      transition: box-shadow .2s;
+      text-decoration: none;
     }
-    .hero-left h1 {
-      font-size:clamp(36px,4.5vw,60px); font-weight:900;
-      line-height:1.04; letter-spacing:-1.5px; color:#fff; margin:0;
-    }
-    .hero-left h1 .grad {
-      background:linear-gradient(135deg,#60a5fa,#a78bfa);
-      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
-    }
-    .hero-left p { font-size:15px; color:#94a3b8; line-height:1.65; max-width:38ch; margin:0; }
-    .hero-cta { display:flex; gap:12px; flex-wrap:wrap; }
-    .btn-hp {
-      padding:14px 28px; border-radius:12px; background:#2563eb;
-      color:#fff; font-weight:700; font-size:15px; text-decoration:none;
-      border:none; transition:background .15s,transform .1s;
-    }
-    .btn-hp:hover { background:#1d4ed8; transform:translateY(-1px); }
-    .btn-ho {
-      padding:14px 28px; border-radius:12px; background:transparent;
-      color:#e2e8f0; font-weight:700; font-size:15px; text-decoration:none;
-      border:1.5px solid rgba(255,255,255,.2); transition:background .15s;
-    }
-    .btn-ho:hover { background:rgba(255,255,255,.08); }
-    .trust-row { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
-    .trust-pill {
-      display:inline-flex; align-items:center; gap:6px;
-      background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1);
-      border-radius:999px; padding:5px 14px;
-      font-size:12px; font-weight:600; color:#cbd5e1;
+    .inline-search:hover { box-shadow: 0 4px 20px rgba(37,99,235,.18); border-color: #93c5fd; }
+    .inline-search svg { width:16px; height:16px; stroke:#94a3b8; flex-shrink:0; }
+
+    /* Avatar in headline */
+    .inline-avatar {
+      display: inline-block;
+      width: clamp(36px, 4vw, 52px);
+      height: clamp(36px, 4vw, 52px);
+      border-radius: 50%;
+      border: 2px solid #fff;
+      box-shadow: 0 2px 8px rgba(15,23,42,.15);
+      vertical-align: middle;
+      object-fit: cover;
+      background: linear-gradient(135deg, #2563eb, #7c3aed);
+      overflow: hidden;
     }
 
-    /* ── Photo grid ── */
-    .hero-right {
-      position:relative; z-index:2;
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      grid-template-rows:repeat(3,1fr);
-      gap:14px;
-      padding:32px 40px 32px 12px;
-      align-content:center;
+    /* Subtext */
+    .hero-sub {
+      font-size: 16px;
+      color: #64748b;
+      text-align: center;
+      margin: 16px 0 28px;
+      position: relative;
+      z-index: 2;
     }
-    .photo-slot {
-      position:relative; overflow:hidden;
-      border:2px solid rgba(255,255,255,.08);
-      background:#0f1e35;
-      transition:transform .25s, box-shadow .25s;
+
+    /* Category pills */
+    .cat-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 32px;
+      position: relative;
+      z-index: 2;
     }
-    .photo-slot:hover { transform:translateY(-4px); box-shadow:0 16px 40px rgba(0,0,0,.5); }
-
-    /* Unique shapes */
-    .photo-slot:nth-child(1) { border-radius:999px 999px 20px 20px; aspect-ratio:3/4; }
-    .photo-slot:nth-child(2) { border-radius:20px 20px 999px 20px; aspect-ratio:3/4; margin-top:28px; }
-    .photo-slot:nth-child(3) { border-radius:50%; aspect-ratio:1/1; }
-    .photo-slot:nth-child(4) { border-radius:20px 999px 20px 20px; aspect-ratio:3/4; margin-top:-28px; }
-    .photo-slot:nth-child(5) { border-radius:20px; aspect-ratio:3/4; margin-top:20px; }
-    .photo-slot:nth-child(6) { border-radius:999px 20px 20px 999px; aspect-ratio:3/4; }
-
-    /* Gradient overlays per slot — blue variations */
-    .photo-slot:nth-child(1) { background:linear-gradient(155deg,#0f2444,#1e3a8a); }
-    .photo-slot:nth-child(2) { background:linear-gradient(155deg,#0c1a3a,#1d4ed8); }
-    .photo-slot:nth-child(3) { background:linear-gradient(155deg,#1a0f3a,#4c1d95); }
-    .photo-slot:nth-child(4) { background:linear-gradient(155deg,#0a1628,#0369a1); }
-    .photo-slot:nth-child(5) { background:linear-gradient(155deg,#0f2444,#1e40af); }
-    .photo-slot:nth-child(6) { background:linear-gradient(155deg,#160a2e,#6d28d9); }
-
-    .photo-slot img {
-      width:100%; height:100%; object-fit:cover; display:block;
+    .cat-pill {
+      font-size: 13px;
+      color: #94a3b8;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
-    /* Fallback content when no photo */
-    .slot-fallback {
-      width:100%; height:100%; min-height:120px;
-      display:flex; flex-direction:column;
-      align-items:center; justify-content:center;
-      gap:6px; padding:16px;
+    .cat-pill::after {
+      content: '';
+      width: 24px; height: 1.5px;
+      background: #cbd5e1;
     }
-    .slot-fallback .sf-emoji { font-size:28px; }
-    .slot-fallback .sf-name  { font-size:11px; font-weight:700; color:#fff; text-align:center; line-height:1.3; }
-    .slot-fallback .sf-field { font-size:10px; color:rgba(255,255,255,.45); text-align:center; }
+    .cat-pill:last-child::after { display: none; }
+    .cat-pill.active { color: #2563eb; font-weight: 700; }
 
-    /* Name badge overlay */
-    .slot-badge {
-      position:absolute; bottom:0; left:0; right:0;
-      background:linear-gradient(to top,rgba(0,0,0,.75),transparent);
-      padding:20px 10px 8px;
-      text-align:center;
-      display:none;
+    /* CTA row */
+    .cta-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      position: relative;
+      z-index: 2;
     }
-    .slot-badge .sb-name  { font-size:11px; font-weight:700; color:#fff; display:block; }
-    .slot-badge .sb-field { font-size:10px; color:rgba(255,255,255,.6); display:block; }
-    .photo-slot.has-photo .slot-badge { display:block; }
+    .stat-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #fff;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 999px;
+      padding: 10px 18px;
+      font-size: 13px;
+      color: #475569;
+      font-weight: 600;
+      box-shadow: 0 1px 4px rgba(15,23,42,.06);
+    }
+    .stat-pill .dot { width:8px; height:8px; border-radius:50%; background:#2563eb; flex-shrink:0; }
+    .btn-discover {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: #0f172a;
+      color: #fff;
+      font-weight: 700;
+      font-size: 14px;
+      padding: 12px 20px;
+      border-radius: 999px;
+      text-decoration: none;
+      transition: background .15s, transform .1s;
+    }
+    .btn-discover:hover { background: #1e293b; transform: translateY(-1px); }
+    .btn-discover .arrow {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: #2563eb;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+    }
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #2563eb;
+      color: #fff;
+      font-weight: 700;
+      font-size: 14px;
+      padding: 12px 24px;
+      border-radius: 999px;
+      text-decoration: none;
+      transition: background .15s, transform .1s;
+    }
+    .btn-secondary:hover { background: #1d4ed8; transform: translateY(-1px); }
 
-    /* ── Roles ── */
-    .roles { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:14px; }
+    /* Social proof */
+    .social-proof {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      margin-top: 36px;
+      position: relative;
+      z-index: 2;
+    }
+    .avatar-stack { display: flex; }
+    .avatar-stack img, .avatar-stack .av {
+      width: 36px; height: 36px; border-radius: 50%;
+      border: 2px solid #fff;
+      margin-left: -10px;
+      object-fit: cover;
+    }
+    .avatar-stack .av {
+      background: linear-gradient(135deg,#2563eb,#7c3aed);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700; color: #fff;
+    }
+    .avatar-stack .av:first-child { margin-left: 0; }
+    .social-text { font-size: 13px; color: #64748b; font-weight: 600; }
+    .social-text span { color: #0f172a; font-weight: 800; }
+
+    /* ── Right panel: mentor cards ── */
+    .right-panel {
+      background: #fff;
+      border-radius: 24px 0 0 24px;
+      padding: 24px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      overflow-y: auto;
+      max-height: 100vh;
+      position: sticky;
+      top: 0;
+      box-shadow: -8px 0 40px rgba(15,23,42,.06);
+    }
+    .right-panel-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #94a3b8;
+      padding: 4px 0 8px;
+    }
+
+    /* Mentor card */
+    .mentor-card {
+      border-radius: 18px;
+      overflow: hidden;
+      position: relative;
+      cursor: pointer;
+      transition: transform .25s, box-shadow .25s;
+      background: #f8faff;
+      border: 1px solid #e8edf5;
+    }
+    .mentor-card:hover { transform: translateY(-3px); box-shadow: 0 12px 36px rgba(15,23,42,.12); }
+
+    .mentor-card .mc-photo {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+      display: block;
+      background: linear-gradient(135deg, #1e3a8a, #2563eb);
+    }
+    .mc-photo-placeholder {
+      width: 100%;
+      height: 160px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 48px;
+    }
+    .mentor-card .mc-body { padding: 14px 16px; }
+    .mc-name  { font-size: 14px; font-weight: 800; color: #0f172a; margin: 0 0 2px; }
+    .mc-field { font-size: 12px; color: #64748b; display: flex; align-items: center; gap: 6px; }
+    .mc-field::before { content:''; width:20px; height:1.5px; background:#cbd5e1; flex-shrink:0; }
+    .mc-tags  { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+    .mc-tag   { font-size: 11px; background: #eff6ff; color: #2563eb; border-radius: 999px; padding: 3px 10px; font-weight: 600; }
+    .mc-arrow {
+      position: absolute; top: 12px; right: 12px;
+      width: 28px; height: 28px; border-radius: 50%;
+      background: #fff; border: 1px solid #e2e8f0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; color: #0f172a;
+      transition: background .15s, color .15s;
+    }
+    .mentor-card:hover .mc-arrow { background: #2563eb; color: #fff; border-color: #2563eb; }
+
+    /* Loading skeleton */
+    .mc-skeleton {
+      border-radius: 18px;
+      overflow: hidden;
+      background: #f1f5f9;
+      border: 1px solid #e8edf5;
+    }
+    .skel-photo { height: 160px; background: linear-gradient(90deg,#e2e8f0 25%,#f1f5f9 50%,#e2e8f0 75%); background-size:200% 100%; animation: skel 1.4s ease-in-out infinite; }
+    .skel-body  { padding: 14px 16px; }
+    .skel-line  { height: 12px; border-radius: 6px; background: linear-gradient(90deg,#e2e8f0 25%,#f1f5f9 50%,#e2e8f0 75%); background-size:200% 100%; animation: skel 1.4s ease-in-out infinite; margin-bottom: 8px; }
+    .skel-line.short { width: 60%; }
+    @keyframes skel { to { background-position: -200% 0; } }
+
+    /* ── Sections below ── */
+    .sections { padding: 60px 60px 40px; }
+
+    .roles {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
     .role-card {
-      border-radius:20px; padding:40px 36px; position:relative;
-      overflow:hidden; min-height:260px;
-      display:flex; flex-direction:column; justify-content:flex-end;
-      text-decoration:none; transition:transform .2s;
+      border-radius: 20px; padding: 40px 36px; position: relative;
+      overflow: hidden; min-height: 220px;
+      display: flex; flex-direction: column; justify-content: flex-end;
+      text-decoration: none; transition: transform .2s, box-shadow .2s;
     }
-    .role-card:hover { transform:translateY(-3px); }
-    .role-card.mentee { background:linear-gradient(145deg,#06101f 0%,#1e3a5f 55%,#1d4ed8 100%); }
-    .role-card.mentor { background:linear-gradient(145deg,#06101f 0%,#2e1065 55%,#7c3aed 100%); }
-    .rc-emoji { position:absolute; top:20px; right:24px; font-size:80px; opacity:.15; }
+    .role-card:hover { transform: translateY(-3px); }
+    .role-card.mentee { background: linear-gradient(145deg,#0f172a 0%,#1e3a5f 55%,#1d4ed8 100%); }
+    .role-card.mentor { background: linear-gradient(145deg,#0f172a 0%,#2e1065 55%,#7c3aed 100%); }
+    .role-card:hover.mentee { box-shadow: 0 20px 60px rgba(29,78,216,.3); }
+    .role-card:hover.mentor { box-shadow: 0 20px 60px rgba(124,58,237,.3); }
+    .rc-emoji { position:absolute; top:20px; right:24px; font-size:72px; opacity:.15; }
     .rc-badge {
-      display:inline-flex; align-items:center; gap:6px;
+      display:inline-flex; align-items:center;
       background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.18);
       border-radius:999px; padding:4px 12px;
       font-size:11px; font-weight:700; color:rgba(255,255,255,.8);
-      margin-bottom:12px; width:fit-content;
+      margin-bottom:10px; width:fit-content;
     }
-    .role-card h3 { font-size:22px; font-weight:900; color:#fff; margin:0 0 8px; letter-spacing:-.3px; }
-    .role-card p  { font-size:13px; color:rgba(255,255,255,.6); margin:0 0 20px; line-height:1.55; max-width:30ch; }
+    .role-card h3 { font-size:20px; font-weight:900; color:#fff; margin:0 0 8px; }
+    .role-card p  { font-size:13px; color:rgba(255,255,255,.6); margin:0 0 18px; line-height:1.55; max-width:28ch; }
     .rc-btn {
       display:inline-flex; align-items:center; gap:8px;
       background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.2);
-      border-radius:10px; padding:10px 18px;
+      border-radius:10px; padding:9px 16px;
       font-size:13px; font-weight:700; color:#fff; text-decoration:none;
       width:fit-content; transition:background .15s;
     }
     .rc-btn:hover { background:rgba(255,255,255,.22); }
 
-    /* ── Steps ── */
+    /* Steps */
     .steps-section {
-      margin-top:14px; background:#06101f; border-radius:20px;
-      padding:48px 44px; position:relative; overflow:hidden;
+      background: #0f172a; border-radius: 20px;
+      padding: 44px 40px; position: relative; overflow: hidden;
+      margin-bottom: 14px;
     }
-    .ss-b1 { position:absolute; width:300px; height:300px; background:#1d4ed8; border-radius:50%; filter:blur(100px); opacity:.1; top:-100px; right:-50px; pointer-events:none; }
-    .ss-b2 { position:absolute; width:200px; height:200px; background:#7c3aed; border-radius:50%; filter:blur(80px); opacity:.1; bottom:-60px; left:20%; pointer-events:none; }
-    .sec-label { font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:#3b82f6; margin-bottom:10px; }
-    .steps-section h2 { font-size:28px; font-weight:900; color:#fff; margin:0 0 40px; letter-spacing:-.3px; }
+    .ss-b1 { position:absolute; width:280px; height:280px; background:#2563eb; border-radius:50%; filter:blur(90px); opacity:.1; top:-80px; right:-40px; pointer-events:none; }
+    .ss-b2 { position:absolute; width:200px; height:200px; background:#7c3aed; border-radius:50%; filter:blur(80px); opacity:.1; bottom:-50px; left:15%; pointer-events:none; }
+    .sec-label { font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:#3b82f6; margin-bottom:8px; }
+    .steps-section h2 { font-size:26px; font-weight:900; color:#fff; margin:0 0 36px; letter-spacing:-.3px; }
     .steps-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:0; position:relative; }
-    .steps-grid::before {
-      content:''; position:absolute;
-      top:32px; left:calc(16.66% + 32px); right:calc(16.66% + 32px);
-      height:2px; background:linear-gradient(90deg,#2563eb,#7c3aed); z-index:0;
-    }
+    .steps-grid::before { content:''; position:absolute; top:31px; left:calc(16.66% + 31px); right:calc(16.66% + 31px); height:2px; background:linear-gradient(90deg,#2563eb,#7c3aed); z-index:0; }
     .step-item { display:flex; flex-direction:column; align-items:center; text-align:center; padding:0 20px; position:relative; z-index:1; }
-    .step-num {
-      width:64px; height:64px; border-radius:50%;
-      display:flex; align-items:center; justify-content:center;
-      font-size:26px; margin-bottom:18px;
-      border:3px solid #06101f;
-    }
-    .step-item:nth-child(1) .step-num { background:linear-gradient(135deg,#1e3a8a,#2563eb); box-shadow:0 0 0 2px #2563eb; color:#93c5fd; }
-    .step-item:nth-child(2) .step-num { background:linear-gradient(135deg,#4c1d95,#7c3aed); box-shadow:0 0 0 2px #7c3aed; color:#c4b5fd; }
-    .step-item:nth-child(3) .step-num { background:linear-gradient(135deg,#164e63,#0ea5e9); box-shadow:0 0 0 2px #0ea5e9; color:#bae6fd; }
-    .step-item h4 { font-size:15px; font-weight:800; color:#fff; margin:0 0 8px; }
+    .step-num { width:62px; height:62px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:24px; margin-bottom:16px; border:3px solid #0f172a; }
+    .step-item:nth-child(1) .step-num { background:linear-gradient(135deg,#1e3a8a,#2563eb); box-shadow:0 0 0 2px #2563eb; }
+    .step-item:nth-child(2) .step-num { background:linear-gradient(135deg,#4c1d95,#7c3aed); box-shadow:0 0 0 2px #7c3aed; }
+    .step-item:nth-child(3) .step-num { background:linear-gradient(135deg,#164e63,#0ea5e9); box-shadow:0 0 0 2px #0ea5e9; }
+    .step-item h4 { font-size:14px; font-weight:800; color:#fff; margin:0 0 6px; }
     .step-item p  { font-size:13px; color:#64748b; line-height:1.55; }
 
-    /* ── Features ── */
-    .features-section { margin-top:14px; display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
-    .feat-card {
-      background:#fff; border:1px solid var(--line); border-radius:18px;
-      padding:26px; box-shadow:var(--shadow);
-      transition:transform .2s,box-shadow .2s;
-    }
-    .feat-card:hover { transform:translateY(-3px); box-shadow:0 12px 32px rgba(15,23,42,.10); }
-    .feat-icon-wrap { width:48px; height:48px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:22px; margin-bottom:14px; }
-    .feat-card h4 { font-size:14px; font-weight:800; margin:0 0 6px; }
-    .feat-card p  { font-size:13px; color:var(--muted); line-height:1.55; margin:0; }
+    /* Features */
+    .features-section { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+    .feat-card { background:#fff; border:1px solid #e8edf5; border-radius:18px; padding:24px; box-shadow:0 1px 4px rgba(15,23,42,.05); transition:transform .2s,box-shadow .2s; }
+    .feat-card:hover { transform:translateY(-3px); box-shadow:0 10px 28px rgba(15,23,42,.09); }
+    .feat-icon-wrap { width:46px; height:46px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:22px; margin-bottom:12px; }
+    .feat-card h4 { font-size:14px; font-weight:800; margin:0 0 5px; color:#0f172a; }
+    .feat-card p  { font-size:13px; color:#64748b; line-height:1.55; margin:0; }
 
-    /* ── Responsive ── */
-    @media (max-width:900px){
-      .hero { grid-template-columns:1fr; }
-      .hero-right { display:none; }
-      .hero-left { padding:44px 28px; }
-      .roles { grid-template-columns:1fr; }
-      .steps-grid { grid-template-columns:1fr; gap:28px; }
-      .steps-grid::before { display:none; }
-      .features-section { grid-template-columns:1fr 1fr; }
-      .steps-section { padding:32px 20px; }
-    }
-    @media (max-width:600px){
-      .features-section { grid-template-columns:1fr; }
-      .hero-left { padding:32px 20px; }
-    }
-
-    /* ── Animations ─────────────────────────── */
-
-    /* Blob drift */
-    @keyframes drift1 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(30px,-20px) scale(1.08)} }
-    @keyframes drift2 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(-20px,25px) scale(1.05)} }
-    @keyframes drift3 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(15px,-15px) scale(1.06)} }
-    .b1 { animation: drift1 9s ease-in-out infinite; }
-    .b2 { animation: drift2 11s ease-in-out infinite; }
-    .b3 { animation: drift3 8s ease-in-out infinite; }
-
-    /* Deco shapes */
-    @keyframes spin-ring { to { transform: rotate(360deg); } }
-    @keyframes bob { 0%,100%{transform:rotate(45deg) translateY(0)} 50%{transform:rotate(45deg) translateY(-8px)} }
-    .deco-ring    { animation: spin-ring 18s linear infinite; }
-    .deco-diamond { animation: bob 4s ease-in-out infinite; }
-
-    /* Hero left — stagger fade up */
-    .hero-left > * { opacity:0; transform:translateY(24px); animation:heroIn .7s ease forwards; }
-    .hero-left > *:nth-child(1){ animation-delay:.1s }
-    .hero-left > *:nth-child(2){ animation-delay:.25s }
-    .hero-left > *:nth-child(3){ animation-delay:.4s }
-    .hero-left > *:nth-child(4){ animation-delay:.55s }
-    .hero-left > *:nth-child(5){ animation-delay:.7s }
-    @keyframes heroIn { to { opacity:1; transform:translateY(0); } }
+    /* ── Animations ── */
+    @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+    .hero-headline { animation: fadeUp .7s ease .1s both; }
+    .hero-sub      { animation: fadeUp .7s ease .25s both; }
+    .cat-row       { animation: fadeUp .7s ease .4s both; }
+    .cta-row       { animation: fadeUp .7s ease .55s both; }
+    .social-proof  { animation: fadeUp .7s ease .7s both; }
 
     /* Button shimmer */
-    .btn-hp { position:relative; overflow:hidden; }
-    .btn-hp::after {
-      content:''; position:absolute; top:0; left:-100%; width:60%; height:100%;
-      background:linear-gradient(90deg,transparent,rgba(255,255,255,.18),transparent);
-      animation: shimmer 3s ease-in-out infinite;
-    }
-    @keyframes shimmer { 0%{left:-100%} 60%,100%{left:150%} }
+    .btn-discover { position:relative; overflow:hidden; }
+    .btn-discover::after { content:''; position:absolute; top:0; left:-100%; width:50%; height:100%; background:linear-gradient(90deg,transparent,rgba(255,255,255,.1),transparent); animation:shimmer 3s ease-in-out infinite; }
+    @keyframes shimmer { 0%{left:-100%} 60%,100%{left:160%} }
 
-    /* Photo slots stagger in */
-    .photo-slot { opacity:0; transform:translateY(20px) scale(.96); }
-    .photo-slot.visible {
-      animation: slotIn .6s cubic-bezier(.22,1,.36,1) forwards;
-    }
-    @keyframes slotIn { to { opacity:1; transform:translateY(0) scale(1); } }
+    /* Mentor cards stagger */
+    .mentor-card, .mc-skeleton { animation: fadeUp .5s ease both; }
+    .mentor-card:nth-child(2), .mc-skeleton:nth-child(2) { animation-delay:.15s; }
+    .mentor-card:nth-child(3), .mc-skeleton:nth-child(3) { animation-delay:.3s; }
 
     /* Scroll reveal */
-    .reveal { opacity:0; transform:translateY(36px); transition:opacity .7s ease, transform .7s ease; }
-    .reveal.in-view { opacity:1; transform:translateY(0); }
-    .reveal-delay-1 { transition-delay:.1s }
-    .reveal-delay-2 { transition-delay:.2s }
-    .reveal-delay-3 { transition-delay:.3s }
-    .reveal-delay-4 { transition-delay:.4s }
-    .reveal-delay-5 { transition-delay:.5s }
-    .reveal-delay-6 { transition-delay:.6s }
+    .reveal { opacity:0; transform:translateY(28px); transition:opacity .6s ease,transform .6s ease; }
+    .reveal.in { opacity:1; transform:translateY(0); }
+    .rd1{transition-delay:.05s} .rd2{transition-delay:.15s} .rd3{transition-delay:.25s}
+    .rd4{transition-delay:.1s}  .rd5{transition-delay:.2s}  .rd6{transition-delay:.3s}
 
-    /* Role card hover glow */
-    .role-card.mentee:hover { box-shadow: 0 20px 60px rgba(29,78,216,.35); }
-    .role-card.mentor:hover { box-shadow: 0 20px 60px rgba(124,58,237,.35); }
-
-    /* Step numbers pulse on hover */
-    .step-num { transition: transform .2s, box-shadow .2s; }
-    .step-item:hover .step-num { transform: scale(1.12); }
-  
+    /* ── Responsive ── */
+    @media (max-width:1024px){ .page { grid-template-columns:1fr; } .right-panel { display:none; } }
+    @media (max-width:768px){
+      .left-panel { padding:0 24px 60px; }
+      .sections { padding:40px 24px; }
+      .roles { grid-template-columns:1fr; }
+      .steps-grid { grid-template-columns:1fr; gap:24px; }
+      .steps-grid::before { display:none; }
+      .features-section { grid-template-columns:1fr 1fr; }
+    }
+    @media (max-width:500px){ .features-section { grid-template-columns:1fr; } }
   </style>
 </head>
 <body>
-<div class="mh-wrap">
+<div style="position:sticky;top:0;z-index:100;background:rgba(240,242,248,.92);backdrop-filter:blur(12px);border-bottom:1px solid #e2e8f0;">
+  <div class="mh-wrap" style="padding-top:0;padding-bottom:0;">
+    <header class="mh-topbar" style="margin:0">
+      <a href="index.html" class="mh-brand">
+        <img src="logo.png" alt="MentifyHub" class="mh-brand-logo"/>
+        <div class="mh-brand-text">
+          <strong>MentifyHub</strong>
+          <span>Mentorship platform</span>
+        </div>
+      </a>
+      <nav class="mh-nav">
+        <span class="mh-chip hide-mobile"><span class="mh-chip-dot"></span> Real mentors. Real conversations.</span>
+        <a class="mh-btn" href="mentor-directory.html">Browse mentors</a>
+        <a class="mh-btn mh-btn-primary" href="auth.html?mode=signin">Sign in</a>
+      </nav>
+    </header>
+  </div>
+</div>
 
-  <!-- Topbar -->
-  <header class="mh-topbar">
-    <a href="index.html" class="mh-brand">
-      <img src="logo.png" alt="MentifyHub" class="mh-brand-logo"/>
-      <div class="mh-brand-text">
-        <strong>MentifyHub</strong>
-        <span>Mentorship platform</span>
-      </div>
-    </a>
-    <nav class="mh-nav">
-      <span class="mh-chip hide-mobile"><span class="mh-chip-dot"></span> Real mentors. Real conversations.</span>
-      <a class="mh-btn" href="auth.html?mode=signup">Explore</a>
-      <a class="mh-btn mh-btn-primary" href="auth.html?mode=signin">Sign in</a>
-    </nav>
-  </header>
+<div class="page">
+  <!-- Left: big hero text -->
+  <div class="left-panel">
+    <div class="wave-bg"></div>
 
-  <!-- Hero -->
-  <section class="hero">
-    <div class="blob b1"></div>
-    <div class="blob b2"></div>
-    <div class="blob b3"></div>
-    <div class="deco-ring"></div>
-    <div class="deco-diamond"></div>
-    <div class="deco-dot"></div>
+    <h1 class="hero-headline">
+      Connect with<br/>
+      <span class="inline-search">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input id="heroSearch" placeholder="Search mentors..." autocomplete="off" style="border:none;outline:none;background:transparent;font:inherit;font-size:clamp(14px,1.8vw,20px);color:#0f172a;width:160px"/>
+      </span>
+      <br/>
+      who has <span class="blue">been there.</span>
+    </h1>
 
-    <div class="hero-left">
-      <div class="hero-tag">🌱 Sustainability. Energy. Green Buildings.</div>
-      <h1>We Help People<br/>Connect With<br/>Their <span class="grad">Right Mentor.</span></h1>
-      <p>Find an experienced mentor in your field. Have real conversations. Grow faster.</p>
-      <div class="hero-cta">
-        <a class="btn-hp" href="auth.html?role=mentee">Find a mentor</a>
-        <a class="btn-ho" href="auth.html?role=mentor">Share your experience</a>
-      </div>
-      <div class="trust-row">
-        <span class="trust-pill">✅ Reviewed mentors</span>
-        <span class="trust-pill">💬 Direct messaging</span>
-        <span class="trust-pill">📅 Book sessions</span>
-      </div>
+    <p class="hero-sub">Learn from experienced professionals in sustainability, energy and green buildings.</p>
+
+    <div class="cat-row">
+      <span class="cat-pill active">Green Buildings</span>
+      <span class="cat-pill">Energy</span>
+      <span class="cat-pill">Sustainability</span>
+      <span class="cat-pill">Built Environment</span>
     </div>
 
-    <!-- Photo grid — filled dynamically from Supabase -->
-    <div class="hero-right" id="photoGrid">
-      <!-- Slots filled by JS below -->
+    <div class="cta-row">
+      <div class="stat-pill"><span class="dot"></span> Free to get started</div>
+      <a class="btn-secondary" href="auth.html?role=mentee">Get started →</a>
+      <a class="btn-discover" href="auth.html?role=mentor">
+        Become a mentor
+        <span class="arrow">→</span>
+      </a>
     </div>
-  </section>
 
-  <!-- Roles -->
-  <div class="roles reveal">
-    <a class="role-card mentee reveal reveal-delay-1" href="auth.html?role=mentee">
-      
+    <div class="social-proof">
+      <div class="avatar-stack" id="avatarStack">
+        <div class="av">M</div>
+        <div class="av">S</div>
+        <div class="av">A</div>
+        <div class="av">+</div>
+      </div>
+      <span class="social-text">Work with <span id="mentorCount">real</span> mentors on the platform</span>
+    </div>
+  </div>
+
+  <!-- Right: live mentor cards -->
+  <div class="right-panel">
+    <div class="right-panel-label" id="panelLabel">Mentors on the platform</div>
+    <div id="mentorCards">
+      <!-- Skeletons while loading -->
+      <div class="mc-skeleton"><div class="skel-photo"></div><div class="skel-body"><div class="skel-line"></div><div class="skel-line short"></div></div></div>
+      <div class="mc-skeleton"><div class="skel-photo"></div><div class="skel-body"><div class="skel-line"></div><div class="skel-line short"></div></div></div>
+      <div class="mc-skeleton"><div class="skel-photo"></div><div class="skel-body"><div class="skel-line"></div><div class="skel-line short"></div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Sections below -->
+<div class="sections">
+  <div class="roles">
+    <a class="role-card mentee reveal rd1" href="auth.html?role=mentee">
       <span class="rc-emoji">🎓</span>
       <div class="rc-badge">For mentees</div>
       <h3>I want to learn</h3>
-      <p>Find someone who has been where you want to go and learn from their real experience.</p>
+      <p>Find someone who has been where you want to go and learn from their experience.</p>
       <span class="rc-btn">Get started →</span>
     </a>
-    <a class="role-card mentor reveal reveal-delay-2" href="auth.html?role=mentor">
-      
+    <a class="role-card mentor reveal rd2" href="auth.html?role=mentor">
       <span class="rc-emoji">🧑‍🏫</span>
       <div class="rc-badge">For mentors</div>
       <h3>I want to give back</h3>
@@ -355,66 +490,27 @@
     </a>
   </div>
 
-  <!-- How it works -->
   <div class="steps-section reveal">
-    <div class="ss-b1"></div>
-    <div class="ss-b2"></div>
+    <div class="ss-b1"></div><div class="ss-b2"></div>
     <div class="sec-label">How it works</div>
     <h2>Three steps to get started</h2>
     <div class="steps-grid">
-      <div class="step-item reveal reveal-delay-1">
-        <div class="step-num">✏️</div>
-        <h4>Create your profile</h4>
-        <p>Tell us what you are working on. Takes about 3 minutes.</p>
-      </div>
-      <div class="step-item reveal reveal-delay-2">
-        <div class="step-num">🔍</div>
-        <h4>Find your mentor</h4>
-        <p>Browse real profiles and reach out to someone whose background fits your goals.</p>
-      </div>
-      <div class="step-item reveal reveal-delay-3">
-        <div class="step-num">🚀</div>
-        <h4>Grow together</h4>
-        <p>Have sessions, ask questions, share your work and build your skills.</p>
-      </div>
+      <div class="step-item reveal rd1"><div class="step-num">✏️</div><h4>Create your profile</h4><p>Tell us what you are working on. Takes about 3 minutes.</p></div>
+      <div class="step-item reveal rd2"><div class="step-num">🔍</div><h4>Find your mentor</h4><p>Browse real profiles and reach out to someone whose background fits your goals.</p></div>
+      <div class="step-item reveal rd3"><div class="step-num">🚀</div><h4>Grow together</h4><p>Have sessions, ask questions and build your skills.</p></div>
     </div>
   </div>
 
-  <!-- Features -->
-  <div class="features-section">
-    <div class="feat-card reveal reveal-delay-1">
-      <div class="feat-icon-wrap" style="background:#dbeafe">🎯</div>
-      <h4>Know what you want</h4>
-      <p>Tell mentors what you are working on, whether it is a certification, a career move or just figuring out next steps.</p>
-    </div>
-    <div class="feat-card reveal reveal-delay-2">
-      <div class="feat-icon-wrap" style="background:#ede9fe">🔍</div>
-      <h4>Find the right person</h4>
-      <p>Browse mentors by field, region, timezone and availability. Filter by what matters to you.</p>
-    </div>
-    <div class="feat-card reveal reveal-delay-3">
-      <div class="feat-icon-wrap" style="background:#d1fae5">✉️</div>
-      <h4>Reach out</h4>
-      <p>Send a personal message to a mentor and hear back directly from them.</p>
-    </div>
-    <div class="feat-card reveal reveal-delay-4">
-      <div class="feat-icon-wrap" style="background:#fef3c7">💬</div>
-      <h4>Have real conversations</h4>
-      <p>Message back and forth, ask questions and share your work. Everything in one place.</p>
-    </div>
-    <div class="feat-card reveal reveal-delay-5">
-      <div class="feat-icon-wrap" style="background:#fce7f3">📅</div>
-      <h4>Meet when it works</h4>
-      <p>Propose a time, share a meeting link and show up. Your mentor will too.</p>
-    </div>
-    <div class="feat-card reveal reveal-delay-6">
-      <div class="feat-icon-wrap" style="background:#cffafe">📈</div>
-      <h4>See how far you have come</h4>
-      <p>Your mentor logs notes after each session. You will always know where you stand.</p>
-    </div>
+  <div class="features-section" style="margin-top:14px">
+    <div class="feat-card reveal rd1"><div class="feat-icon-wrap" style="background:#dbeafe">🎯</div><h4>Know what you want</h4><p>Tell mentors what you are working on, whether it is a certification, a career move or just figuring out next steps.</p></div>
+    <div class="feat-card reveal rd2"><div class="feat-icon-wrap" style="background:#ede9fe">🔍</div><h4>Find the right person</h4><p>Browse mentors by field, region, timezone and availability.</p></div>
+    <div class="feat-card reveal rd3"><div class="feat-icon-wrap" style="background:#d1fae5">✉️</div><h4>Reach out</h4><p>Send a personal message to a mentor and hear back directly from them.</p></div>
+    <div class="feat-card reveal rd4"><div class="feat-icon-wrap" style="background:#fef3c7">💬</div><h4>Have real conversations</h4><p>Message back and forth, ask questions and share your work. Everything in one place.</p></div>
+    <div class="feat-card reveal rd5"><div class="feat-icon-wrap" style="background:#fce7f3">📅</div><h4>Meet when it works</h4><p>Propose a time, share a meeting link and show up. Your mentor will too.</p></div>
+    <div class="feat-card reveal rd6"><div class="feat-icon-wrap" style="background:#cffafe">📈</div><h4>See how far you have come</h4><p>Your mentor logs notes after each session. You will always know where you stand.</p></div>
   </div>
 
-  <footer class="mh-footer">
+  <footer class="mh-footer" style="margin-top:40px">
     <span>© <span id="yr"></span> MentifyHub. All rights reserved.</span>
     <div class="flex gap-12">
       <a href="#" onclick="return false">Privacy</a>
@@ -427,100 +523,180 @@
 <script>
 document.getElementById('yr').textContent = new Date().getFullYear();
 
-// ── Scroll reveal ──────────────────────────────────────────────────
-const revealObserver = new IntersectionObserver((entries) => {
-  entries.forEach(e => {
-    if(e.isIntersecting){ e.target.classList.add('in-view'); }
-  });
-}, { threshold: 0.12 });
-document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
-
-// ── Load real mentor photos from Supabase ──────────────────────────
 const SUPABASE_URL      = "https://mscgaaaobxiuzqsukvjc.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y";
 
-// Fallback content for each slot when no photo available
-const FALLBACKS = [
-  { emoji:"🏢", name:"Green Buildings",    field:"LEED · BREEAM · EDGE"   },
-  { emoji:"⚡", name:"Energy & Renewables", field:"Solar · Wind · Modelling"},
-  { emoji:"♻️", name:"Sustainability",      field:"ESG · Carbon · Net Zero" },
-  { emoji:"🏗️", name:"Built Environment",   field:"Architecture · Engineering"},
-  { emoji:"💻", name:"BIM & Digital",       field:"Revit · Digital Twins"   },
-  { emoji:"📋", name:"Policy & Research",   field:"Standards · Academia"    },
-];
+const FIELD_EMOJI = {
+  "Green Buildings":"🏢","Energy & Renewables":"⚡","Sustainability / ESG":"♻️",
+  "Built Environment (General)":"🏗️","BIM / Digital Twins":"💻","Policy & Research":"📋"
+};
 
-(async function loadMentorPhotos(){
-  const grid = document.getElementById("photoGrid");
-  if(!grid) return;
+// ── State ────────────────────────────────────────────────────────
+let ALL_MENTORS    = [];
+let activeCategory = "All";
+let searchQuery    = "";
 
-  let mentors = [];
+// ── Category map ─────────────────────────────────────────────────
+const CAT_MAP = {
+  "Green Buildings":  "Green Buildings",
+  "Energy":           "Energy & Renewables",
+  "Sustainability":   "Sustainability / ESG",
+  "Built Environment":"Built Environment (General)"
+};
 
+// ── Fetch all mentors from Supabase ───────────────────────────────
+async function fetchMentors() {
   try {
     const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     const { data } = await sb
       .from("mentors")
-      .select("full_name, headline, field, profile_image")
-      .not("profile_image", "is", null)
-      .limit(12);
-    if(data && data.length) mentors = data;
+      .select("full_name, headline, field, tags, profile_image")
+      .limit(50);
+    return data || [];
   } catch(e) {
-    console.warn("Could not load mentor photos:", e);
+    console.warn("Could not load mentors:", e);
+    return [];
+  }
+}
+
+// ── Render mentor cards ───────────────────────────────────────────
+function renderCards(mentors) {
+  const container = document.getElementById("mentorCards");
+  const label     = document.getElementById("panelLabel");
+  container.innerHTML = "";
+
+  if(!mentors.length){
+    container.innerHTML = `<p style="font-size:13px;color:#94a3b8;text-align:center;padding:28px 0">No mentors found.</p>`;
+    if(label) label.textContent = "No results";
+    return;
   }
 
-  // Build 6 slots
-  for(let i = 0; i < 6; i++){
-    const slot = document.createElement("div");
-    slot.className = "photo-slot";
+  if(label){
+    label.textContent = mentors.length === ALL_MENTORS.length
+      ? `${mentors.length} mentors on the platform`
+      : `${mentors.length} mentor${mentors.length===1?"":"s"} found`;
+  }
 
-    const mentor = mentors[i];
+  mentors.slice(0,6).forEach((m, i) => {
+    const card  = document.createElement("div");
+    card.className = "mentor-card";
+    card.style.animationDelay = (i * 0.07) + "s";
+    card.onclick = () => window.location.href = "mentor-directory.html";
+    const emoji = FIELD_EMOJI[m.field] || "🌱";
+    const tags  = (m.tags || []).slice(0, 3);
+    card.innerHTML = `
+      ${m.profile_image
+        ? `<img class="mc-photo" src="${m.profile_image}" alt="${m.full_name||''}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><div class="mc-photo-placeholder" style="display:none;background:linear-gradient(135deg,#1e3a8a,#2563eb)">${emoji}</div>`
+        : `<div class="mc-photo-placeholder" style="background:linear-gradient(135deg,#1e3a8a,#2563eb)">${emoji}</div>`
+      }
+      <div class="mc-body">
+        <div class="mc-name">${m.full_name || "Mentor"}</div>
+        <div class="mc-field">${m.field || m.headline || ""}</div>
+        ${tags.length ? `<div class="mc-tags">${tags.map(t=>`<span class="mc-tag">${t}</span>`).join("")}</div>` : ""}
+      </div>
+      <div class="mc-arrow">↗</div>
+    `;
+    container.appendChild(card);
+  });
+}
 
-    if(mentor && mentor.profile_image){
-      // Real photo
-      slot.classList.add("has-photo");
+// ── Filter mentors based on category + search ─────────────────────
+function filterAndRender() {
+  let filtered = ALL_MENTORS;
+
+  // Category filter
+  if(activeCategory !== "All"){
+    const fieldVal = CAT_MAP[activeCategory] || activeCategory;
+    filtered = filtered.filter(m => m.field === fieldVal);
+  }
+
+  // Search filter
+  if(searchQuery.trim()){
+    const q = searchQuery.toLowerCase();
+    filtered = filtered.filter(m =>
+      (m.full_name || "").toLowerCase().includes(q) ||
+      (m.field     || "").toLowerCase().includes(q) ||
+      (m.headline  || "").toLowerCase().includes(q) ||
+      (m.tags || []).some(t => t.toLowerCase().includes(q))
+    );
+  }
+
+  renderCards(filtered);
+}
+
+// ── Category pills ────────────────────────────────────────────────
+document.querySelectorAll(".cat-pill").forEach(pill => {
+  pill.style.cursor = "pointer";
+  pill.addEventListener("click", () => {
+    document.querySelectorAll(".cat-pill").forEach(p => p.classList.remove("active"));
+    pill.classList.add("active");
+    activeCategory = pill.textContent.trim();
+    filterAndRender();
+  });
+});
+
+// ── Search input ──────────────────────────────────────────────────
+const searchInput = document.getElementById("heroSearch");
+if(searchInput){
+  let debounceTimer;
+  searchInput.addEventListener("input", () => {
+    searchQuery = searchInput.value;
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(filterAndRender, 220);
+  });
+  searchInput.addEventListener("keydown", e => {
+    if(e.key === "Enter") window.location.href = `mentor-directory.html?q=${encodeURIComponent(searchInput.value)}`;
+  });
+}
+
+// ── Update avatar stack ───────────────────────────────────────────
+function updateAvatarStack(mentors) {
+  const stack = document.getElementById("avatarStack");
+  if(!stack) return;
+  stack.innerHTML = "";
+  mentors.slice(0, 3).forEach((m, i) => {
+    const av = document.createElement("div");
+    av.className = "av";
+    if(m.profile_image){
       const img = document.createElement("img");
-      img.src = mentor.profile_image;
-      img.alt = mentor.full_name || "Mentor";
-      img.loading = "lazy";
-      img.onerror = () => {
-        // If image fails to load, show fallback
-        slot.classList.remove("has-photo");
-        img.remove();
-        slot.appendChild(buildFallback(i));
-      };
-      slot.appendChild(img);
-
-      // Name badge overlay
-      const badge = document.createElement("div");
-      badge.className = "slot-badge";
-      badge.innerHTML = `
-        <span class="sb-name">${mentor.full_name || ""}</span>
-        <span class="sb-field">${mentor.field || mentor.headline || ""}</span>
-      `;
-      slot.appendChild(badge);
+      img.src = m.profile_image;
+      img.style.cssText = "width:100%;height:100%;object-fit:cover;border-radius:50%";
+      av.appendChild(img);
     } else {
-      // No photo - show field fallback
-      slot.appendChild(buildFallback(i));
+      av.textContent = (m.full_name || "M")[0].toUpperCase();
     }
+    stack.appendChild(av);
+  });
+  const plus = document.createElement("div");
+  plus.className = "av"; plus.textContent = "+";
+  stack.appendChild(plus);
 
-    // Stagger animation
-    slot.style.animationDelay = (i * 0.12) + 's';
-    grid.appendChild(slot);
-    // Trigger visibility after a short delay
-    setTimeout(() => slot.classList.add('visible'), 100 + i * 120);
-  }
+  const countEl = document.getElementById("mentorCount");
+  if(countEl) countEl.textContent = mentors.length + "+";
+}
+
+// ── Boot ──────────────────────────────────────────────────────────
+(async function boot(){
+  ALL_MENTORS = await fetchMentors();
+  updateAvatarStack(ALL_MENTORS);
+  filterAndRender();
+
+  // Auto-refresh every 30 seconds silently
+  setInterval(async () => {
+    const fresh = await fetchMentors();
+    if(fresh.length){
+      ALL_MENTORS = fresh;
+      updateAvatarStack(fresh);
+      filterAndRender();
+    }
+  }, 30000);
 })();
 
-function buildFallback(i){
-  const fb = FALLBACKS[i % FALLBACKS.length];
-  const div = document.createElement("div");
-  div.className = "slot-fallback";
-  div.innerHTML = `
-    <span class="sf-emoji">${fb.emoji}</span>
-    <span class="sf-name">${fb.name}</span>
-    <span class="sf-field">${fb.field}</span>
-  `;
-  return div;
-}
+// ── Scroll reveal ─────────────────────────────────────────────────
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting) e.target.classList.add("in"); });
+}, { threshold: 0.1 });
+document.querySelectorAll(".reveal").forEach(el => obs.observe(el));
 </script>
 </body>
 </html>

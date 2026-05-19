@@ -218,11 +218,10 @@
   }
 
   async function guardAuth(){
-    const ok = await window.guardAuth("messages.html");
-    if(!ok) return false;
-    USER = window.mhCurrentUser;
-    $("envChip").textContent = "Live";
-    // Set dashboard link correctly for mentors vs mentees
+    const {data:{session},error}=await sb.auth.getSession();
+    if(error||!session){ window.location.href="auth.html?returnTo=messages.html"; return false; }
+    USER=session.user;
+    $("envChip").textContent="Live";
     const {data:_mp} = await sb.from("mentors").select("user_id").eq("user_id",USER.id).maybeSingle();
     const _dash = _mp ? "mentor-dashboard.html" : "mentee-dashboard.html";
     if(document.getElementById("dashboardLink")) document.getElementById("dashboardLink").href=_dash;

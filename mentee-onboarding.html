@@ -3,12 +3,12 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>MentifyHub — Find your mentor</title>
+  <title>MentifyHub - Get Started</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="stylesheet" href="mh-theme.css"/>
   <style>
     *, *::before, *::after { box-sizing: border-box; }
-    body { background: #f0fdf4; min-height: 100vh; margin: 0; font-family: inherit; }
+    body { background: #eef2ff; min-height: 100vh; margin: 0; font-family: inherit; }
 
     .shell { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 24px 16px 48px; }
 
@@ -18,15 +18,15 @@
     .top-bar .brand span { font-size: 14px; font-weight: 700; color: var(--text); }
     .step-counter { font-size: 13px; color: var(--muted); font-weight: 600; }
 
-    .progress-strip { width: 100%; max-width: 520px; height: 4px; background: #bbf7d0; border-radius: 999px; margin-bottom: 32px; overflow: hidden; }
-    .progress-fill  { height: 100%; background: #16a34a; border-radius: 999px; transition: width .5s cubic-bezier(.4,0,.2,1); }
+    .progress-strip { width: 100%; max-width: 520px; height: 4px; background: #d4d9f5; border-radius: 999px; margin-bottom: 32px; overflow: hidden; }
+    .progress-fill  { height: 100%; background: #1d4ed8; border-radius: 999px; transition: width .5s cubic-bezier(.4,0,.2,1); }
 
     .screen { display: none; width: 100%; max-width: 520px; animation: fadeUp .3s ease; }
     .screen.active { display: block; }
-    @keyframes fadeUp { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
 
     .illus { text-align: center; margin-bottom: 24px; }
-    .illus-circle { width: 110px; height: 110px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 52px; margin-bottom: 16px; box-shadow: 0 4px 24px rgba(22,163,74,.15); }
+    .illus-circle { width: 110px; height: 110px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 52px; margin-bottom: 16px; box-shadow: 0 4px 24px rgba(29,78,216,.15); }
     .illus h2 { font-size: 22px; font-weight: 800; letter-spacing: -.3px; color: var(--text); margin: 0 0 8px; line-height: 1.25; }
     .illus p  { font-size: 14px; color: var(--muted); line-height: 1.65; margin: 0 auto; max-width: 38ch; }
 
@@ -34,41 +34,41 @@
     .choices.col2 { grid-template-columns: 1fr 1fr; }
     .choices.col3 { grid-template-columns: 1fr 1fr 1fr; }
 
-    .choice { background: #fff; border: 2px solid #d1fae5; border-radius: 16px; padding: 16px 12px; text-align: center; cursor: pointer; transition: all .18s ease; user-select: none; }
+    .choice { background: #fff; border: 2px solid #e2e8f0; border-radius: 16px; padding: 16px 12px; text-align: center; cursor: pointer; transition: all .18s ease; user-select: none; }
     .choice .c-icon  { font-size: 30px; display: block; margin-bottom: 8px; }
     .choice .c-label { font-size: 13px; font-weight: 700; color: var(--text); display: block; }
     .choice .c-sub   { font-size: 11px; color: var(--muted); display: block; margin-top: 3px; line-height: 1.4; }
-    .choice:hover    { border-color: #6ee7b7; background: #f0fdf4; transform: translateY(-2px); box-shadow: 0 4px 16px rgba(22,163,74,.12); }
-    .choice.selected { border-color: #16a34a; background: #f0fdf4; box-shadow: 0 0 0 3px rgba(22,163,74,.14); }
-    .choice.selected .c-label { color: #16a34a; }
+    .choice:hover    { border-color: #6ee7b7; background: #eef2ff; transform: translateY(-2px); box-shadow: 0 4px 16px rgba(29,78,216,.10); }
+    .choice.selected { border-color: #1d4ed8; background: #eff6ff; box-shadow: 0 0 0 3px rgba(29,78,216,.12); }
+    .choice.selected .c-label { color: #1d4ed8; }
 
     .ob-input-wrap { margin-top: 20px; }
     .ob-input-wrap label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 8px; color: var(--text); }
-    .ob-textarea { width: 100%; padding: 14px; border-radius: 14px; border: 2px solid #d1fae5; font: inherit; font-size: 14px; resize: vertical; min-height: 100px; outline: none; transition: border .2s; line-height: 1.6; background: #fff; }
-    .ob-textarea:focus { border-color: #16a34a; }
-    .ob-input { width: 100%; padding: 14px; border-radius: 14px; border: 2px solid #d1fae5; font: inherit; font-size: 14px; outline: none; transition: border .2s; background: #fff; }
-    .ob-input:focus { border-color: #16a34a; }
-    .ob-select { width: 100%; padding: 14px; border-radius: 14px; border: 2px solid #d1fae5; font: inherit; font-size: 14px; outline: none; transition: border .2s; background: #fff; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%236b7280' d='M1 1l5 5 5-5'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; }
-    .ob-select:focus { border-color: #16a34a; }
+    .ob-textarea { width: 100%; padding: 14px; border-radius: 14px; border: 2px solid #e2e8f0; font: inherit; font-size: 14px; resize: vertical; min-height: 100px; outline: none; transition: border .2s; line-height: 1.6; background: #fff; }
+    .ob-textarea:focus { border-color: #1d4ed8; }
+    .ob-input { width: 100%; padding: 14px; border-radius: 14px; border: 2px solid #e2e8f0; font: inherit; font-size: 14px; outline: none; transition: border .2s; background: #fff; }
+    .ob-input:focus { border-color: #1d4ed8; }
+    .ob-select { width: 100%; padding: 14px; border-radius: 14px; border: 2px solid #e2e8f0; font: inherit; font-size: 14px; outline: none; transition: border .2s; background: #fff; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%236b7280' d='M1 1l5 5 5-5'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; }
+    .ob-select:focus { border-color: #1d4ed8; }
 
-    .tagbox { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 10px 12px; border-radius: 14px; border: 2px solid #d1fae5; background: #fff; min-height: 54px; cursor: text; transition: border .2s; }
-    .tagbox:focus-within { border-color: #16a34a; }
-    .tag-pill { display: inline-flex; align-items: center; gap: 4px; padding: 5px 12px; border-radius: 999px; background: #f0fdf4; border: 1px solid #86efac; color: #16a34a; font-size: 12px; font-weight: 600; }
-    .tag-pill button { background: none; border: none; cursor: pointer; color: #16a34a; font-size: 15px; line-height: 1; padding: 0; }
+    .tagbox { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 10px 12px; border-radius: 14px; border: 2px solid #e2e8f0; background: #fff; min-height: 54px; cursor: text; transition: border .2s; }
+    .tagbox:focus-within { border-color: #1d4ed8; }
+    .tag-pill { display: inline-flex; align-items: center; gap: 4px; padding: 5px 12px; border-radius: 999px; background: #eff6ff; border: 1px solid #bfdbfe; color: #1d4ed8; font-size: 12px; font-weight: 600; }
+    .tag-pill button { background: none; border: none; cursor: pointer; color: #1d4ed8; font-size: 15px; line-height: 1; padding: 0; }
     .tag-input { border: none; outline: none; font: inherit; font-size: 14px; flex: 1; min-width: 120px; background: transparent; }
     .tag-suggestions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
-    .tag-chip { padding: 5px 12px; border-radius: 999px; border: 1px solid #d1fae5; background: #fff; font-size: 12px; color: var(--muted); cursor: pointer; transition: all .1s; }
-    .tag-chip:hover { background: #f0fdf4; border-color: #86efac; color: #16a34a; }
+    .tag-chip { padding: 5px 12px; border-radius: 999px; border: 1px solid #e2e8f0; background: #fff; font-size: 12px; color: var(--muted); cursor: pointer; transition: all .1s; }
+    .tag-chip:hover { background: #eff6ff; border-color: #bfdbfe; color: #1d4ed8; }
 
     .actions { display: flex; gap: 10px; margin-top: 28px; }
-    .btn-next { flex: 1; padding: 15px; border-radius: 14px; border: none; background: #16a34a; color: #fff; font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; transition: background .15s, transform .1s; }
-    .btn-next:hover  { background: #15803d; transform: translateY(-1px); }
+    .btn-next { flex: 1; padding: 15px; border-radius: 14px; border: none; background: #1d4ed8; color: #fff; font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; transition: background .15s, transform .1s; }
+    .btn-next:hover  { background: #1e40af; transform: translateY(-1px); }
     .btn-next:active { transform: translateY(0); }
-    .btn-next:disabled { background: #86efac; cursor: not-allowed; transform: none; }
-    .btn-back { padding: 15px 20px; border-radius: 14px; border: 2px solid #d1fae5; background: #fff; font: inherit; font-size: 14px; font-weight: 600; color: var(--muted); cursor: pointer; transition: all .15s; }
-    .btn-back:hover { border-color: #86efac; color: var(--text); }
+    .btn-next:disabled { background: #93c5fd; cursor: not-allowed; transform: none; }
+    .btn-back { padding: 15px 20px; border-radius: 14px; border: 2px solid #e2e8f0; background: #fff; font: inherit; font-size: 14px; font-weight: 600; color: var(--muted); cursor: pointer; transition: all .15s; }
+    .btn-back:hover { border-color: #cbd5e1; color: var(--text); }
 
-    .toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(20px); background: #14532d; color: #fff; padding: 12px 20px; border-radius: 12px; font-size: 14px; font-weight: 600; opacity: 0; transition: all .3s ease; pointer-events: none; white-space: nowrap; z-index: 100; }
+    .toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(20px); background: #1e293b; color: #fff; padding: 12px 20px; border-radius: 12px; font-size: 14px; font-weight: 600; opacity: 0; transition: all .3s ease; pointer-events: none; white-space: nowrap; z-index: 100; }
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
     .ob-error { display: none; margin-top: 14px; padding: 12px 16px; border-radius: 12px; border: 1px solid #fca5a5; background: #fef2f2; color: #b91c1c; font-size: 13px; line-height: 1.6; }
@@ -102,14 +102,14 @@
   <!-- Screen 1: Welcome -->
   <div class="screen active" id="s1">
     <div class="illus">
-      <div class="illus-circle" style="background:linear-gradient(135deg,#d1fae5,#f0fdf4)">🌱</div>
-      <h2>You're in the right place.</h2>
-      <p>Real people. Real conversations. No courses, no videos — just someone who's been where you want to go.</p>
+      <div class="illus-circle" style="background:linear-gradient(135deg,#dbeafe,#eff6ff)">🌱</div>
+      <h2>You are in the right place.</h2>
+      <p>Real people. Real conversations. Find someone who has been where you want to go.</p>
     </div>
     <div class="choices col2">
       <div class="choice selected">
         <span class="c-icon">🎓</span>
-        <span class="c-label">Yes, I'm looking for a mentor</span>
+        <span class="c-label">Yes, I am looking for a mentor</span>
         <span class="c-sub">Let's find the right one for you</span>
       </div>
       <div class="choice" onclick="window.location.href='auth.html?role=mentor'">
@@ -128,7 +128,7 @@
     <div class="illus">
       <div class="illus-circle" style="background:linear-gradient(135deg,#fef3c7,#fffbeb)">🎯</div>
       <h2>What are you hoping to get out of this?</h2>
-      <p>Pick the one that feels most like you right now. You can always change it.</p>
+      <p>Pick the one that feels most like you right now.</p>
     </div>
     <div class="choices col2" id="goalChoices">
       <div class="choice" data-val="Career transition"><span class="c-icon">🚀</span><span class="c-label">Change careers</span><span class="c-sub">I want to move into a new field</span></div>
@@ -139,7 +139,7 @@
       <div class="choice" data-val="Research support"><span class="c-icon">🔬</span><span class="c-label">Research support</span><span class="c-sub">Thesis, report or academic work</span></div>
     </div>
     <input type="hidden" id="goal"/>
-    <div class="ob-error" id="err2">Please pick what you're looking for.</div>
+    <div class="ob-error" id="err2">Please pick what you are looking for.</div>
     <div class="actions">
       <button class="btn-back" id="s2Back">←</button>
       <button class="btn-next" id="s2Next">Next →</button>
@@ -156,7 +156,7 @@
     <div class="choices col2" id="levelChoices">
       <div class="choice" data-val="Student"><span class="c-icon">📚</span><span class="c-label">Still studying</span><span class="c-sub">University or college</span></div>
       <div class="choice" data-val="Graduate"><span class="c-icon">🎓</span><span class="c-label">Recently graduated</span><span class="c-sub">Looking for my first role</span></div>
-      <div class="choice" data-val="Early professional"><span class="c-icon">🌱</span><span class="c-label">Early in my career</span><span class="c-sub">0–3 years working</span></div>
+      <div class="choice" data-val="Early professional"><span class="c-icon">🌱</span><span class="c-label">Early in my career</span><span class="c-sub">0 to 3 years working</span></div>
       <div class="choice" data-val="Mid-level professional"><span class="c-icon">📈</span><span class="c-label">Mid-level</span><span class="c-sub">Growing and wanting more</span></div>
       <div class="choice" data-val="Career switcher"><span class="c-icon">🔄</span><span class="c-label">Switching from something else</span><span class="c-sub">Coming from a different field</span></div>
       <div class="choice" data-val="Researcher"><span class="c-icon">🔭</span><span class="c-label">In research or academia</span><span class="c-sub">PhD, masters or research role</span></div>
@@ -169,12 +169,12 @@
     </div>
   </div>
 
-  <!-- Screen 4: What's your field? -->
+  <!-- Screen 4: Your field -->
   <div class="screen" id="s4">
     <div class="illus">
       <div class="illus-circle" style="background:linear-gradient(135deg,#cffafe,#f0fdfa)">🌍</div>
       <h2>What area are you trying to grow in?</h2>
-      <p>Pick the one closest to what you're working on — even if you're just starting out.</p>
+      <p>Pick the one closest to what you are working on, even if you are just starting out.</p>
     </div>
     <div class="choices col2" id="fieldChoices">
       <div class="choice" data-val="Green Buildings"><span class="c-icon">🏢</span><span class="c-label">Green Buildings</span><span class="c-sub">LEED, BREEAM, EDGE, design</span></div>
@@ -196,20 +196,20 @@
   <div class="screen" id="s5">
     <div class="illus">
       <div class="illus-circle" style="background:linear-gradient(135deg,#fce7f3,#fdf2f8)">👋</div>
-      <h2>Last bit — let your mentor know who you are.</h2>
-      <p>Just write like you're introducing yourself. No need to be formal.</p>
+      <h2>Almost done. Let your mentor know who you are.</h2>
+      <p>Keep it short and real.</p>
     </div>
 
     <div class="ob-input-wrap" style="margin-top:0">
       <label>A quick intro about yourself</label>
-      <textarea class="ob-textarea" id="bio" placeholder="e.g., I'm a recent civil engineering grad trying to move into sustainable design. I'm self-studying for LEED GA and looking for someone who can guide me through it."></textarea>
+      <textarea class="ob-textarea" id="bio" placeholder="e.g., I am a recent civil engineering grad trying to move into sustainable design. I am self-studying for LEED GA and looking for someone who can guide me through it."></textarea>
       <span class="skip-link" id="bioSkip">Skip for now, I'll add this later →</span>
     </div>
 
     <div class="ob-input-wrap">
-      <label>Add a few keywords that describe what you're into</label>
+      <label>Add a few keywords that describe what you are into</label>
       <div class="tagbox" id="tagbox">
-        <input class="tag-input" id="tagInput" placeholder="e.g., LEED, Carbon, Passive Design — press Enter after each"/>
+        <input class="tag-input" id="tagInput" placeholder="e.g., LEED, Carbon, Passive Design - press Enter after each"/>
       </div>
       <div class="tag-suggestions">
         <button type="button" class="tag-chip">LEED</button>
@@ -225,18 +225,15 @@
     </div>
 
     <div class="ob-input-wrap">
-      <label>Where are you based?</label>
-      <input class="ob-input" id="country" placeholder="e.g., United Kingdom"/>
-    </div>
-
-    <div class="ob-input-wrap">
-      <label>Your timezone</label>
-      <select class="ob-select" id="timezone">
-        <option value="">Pick one…</option>
-        <option>GMT-8</option><option>GMT-5</option><option>GMT</option>
-        <option>GMT+1</option><option>GMT+2</option><option>GMT+3</option>
-        <option>GMT+5:30</option><option>GMT+8</option>
-      </select>
+      <label>How do you prefer to connect?</label>
+      <div class="choices col3" id="commChoices" style="margin-top:0">
+        <div class="choice" data-val="Zoom"><span class="c-icon">🎥</span><span class="c-label">Zoom</span></div>
+        <div class="choice" data-val="Google Meet"><span class="c-icon">📹</span><span class="c-label">Google Meet</span></div>
+        <div class="choice" data-val="Microsoft Teams"><span class="c-icon">💼</span><span class="c-label">Teams</span></div>
+        <div class="choice" data-val="WhatsApp"><span class="c-icon">💬</span><span class="c-label">WhatsApp</span></div>
+        <div class="choice" data-val="Email"><span class="c-icon">📧</span><span class="c-label">Email</span></div>
+      </div>
+      <input type="hidden" id="communication"/>
     </div>
 
     <div class="ob-input-wrap">
@@ -250,7 +247,22 @@
       <input type="hidden" id="availability"/>
     </div>
 
-    <div class="ob-error" id="err5">Please fill in where you're based and your timezone.</div>
+    <div class="ob-input-wrap">
+      <label>Where are you based?</label>
+      <input class="ob-input" id="country" placeholder="e.g., Nigeria"/>
+    </div>
+
+    <div class="ob-input-wrap">
+      <label>Your timezone</label>
+      <select class="ob-select" id="timezone">
+        <option value="">Pick one...</option>
+        <option>GMT-8</option><option>GMT-5</option><option>GMT</option>
+        <option>GMT+1</option><option>GMT+2</option><option>GMT+3</option>
+        <option>GMT+5:30</option><option>GMT+8</option>
+      </select>
+    </div>
+
+    <div class="ob-error" id="err5">Please fill in where you are based and your timezone.</div>
     <div class="actions">
       <button class="btn-back" id="s5Back">←</button>
       <button class="btn-next" id="s5Publish">Find my mentor 🎯</button>
@@ -274,13 +286,14 @@
 
   const TOTAL = 5;
   let current = 1;
+
   function goTo(n){
     document.getElementById("s"+current).classList.remove("active");
     current = n;
     document.getElementById("s"+current).classList.add("active");
     document.getElementById("stepCounter").textContent = current + " of " + TOTAL;
     document.getElementById("progressFill").style.width = ((current-1)/(TOTAL-1)*100) + "%";
-    window.scrollTo({top:0,behavior:"smooth"});
+    window.scrollTo({top:0, behavior:"smooth"});
   }
 
   let toastTimer;
@@ -291,40 +304,45 @@
     toastTimer = setTimeout(()=>t.classList.remove("show"), 2500);
   }
 
-  function setupChoices(cid, hid){
-    const c = document.getElementById(cid); if(!c) return;
+  function setupChoices(containerId, hiddenId){
+    const c = document.getElementById(containerId); if(!c) return;
     c.querySelectorAll(".choice").forEach(opt=>{
       opt.addEventListener("click",()=>{
         c.querySelectorAll(".choice").forEach(o=>o.classList.remove("selected"));
         opt.classList.add("selected");
-        const h = document.getElementById(hid); if(h) h.value = opt.dataset.val||"";
+        const h = document.getElementById(hiddenId); if(h) h.value = opt.dataset.val||"";
       });
     });
   }
-  setupChoices("goalChoices","goal");
-  setupChoices("levelChoices","level");
-  setupChoices("fieldChoices","field");
-  setupChoices("availChoices","availability");
+  setupChoices("goalChoices",  "goal");
+  setupChoices("levelChoices", "level");
+  setupChoices("fieldChoices", "field");
+  setupChoices("commChoices",  "communication");
+  setupChoices("availChoices", "availability");
 
-  const tagbox=document.getElementById("tagbox"), tagInput=document.getElementById("tagInput");
+  const tagbox   = document.getElementById("tagbox");
+  const tagInput = document.getElementById("tagInput");
   function addTag(text){
-    const val=text.trim(); if(!val) return;
-    const existing=Array.from(document.querySelectorAll("#tagbox .tag-pill")).map(t=>t.dataset.val.toLowerCase());
+    const val = text.trim(); if(!val) return;
+    const existing = Array.from(document.querySelectorAll("#tagbox .tag-pill")).map(t=>t.dataset.val.toLowerCase());
     if(existing.includes(val.toLowerCase())) return;
-    const span=document.createElement("span"); span.className="tag-pill"; span.dataset.val=val;
-    span.innerHTML=val+' <button type="button" aria-label="remove">×</button>';
-    span.querySelector("button").onclick=()=>span.remove();
-    tagbox.insertBefore(span,tagInput);
+    const span = document.createElement("span");
+    span.className = "tag-pill"; span.dataset.val = val;
+    span.innerHTML = val + ' <button type="button" aria-label="remove">x</button>';
+    span.querySelector("button").onclick = ()=>span.remove();
+    tagbox.insertBefore(span, tagInput);
   }
-  tagInput.addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); addTag(tagInput.value); tagInput.value=""; }});
+  tagInput.addEventListener("keydown", e=>{
+    if(e.key==="Enter"){ e.preventDefault(); addTag(tagInput.value); tagInput.value=""; }
+  });
   document.querySelectorAll(".tag-chip").forEach(btn=>btn.addEventListener("click",()=>addTag(btn.textContent.trim())));
-  tagbox.addEventListener("click",()=>tagInput.focus());
+  tagbox.addEventListener("click", ()=>tagInput.focus());
   function getTags(){ return Array.from(document.querySelectorAll("#tagbox .tag-pill")).map(t=>t.dataset.val); }
 
-  function showErr(id,msg){ const el=document.getElementById(id); if(!el) return; el.textContent=msg||"Please complete this step."; el.classList.add("show"); }
+  function showErr(id, msg){ const el=document.getElementById(id); if(!el) return; el.textContent=msg||"Please complete this step."; el.classList.add("show"); }
   function clearErr(id){ const el=document.getElementById(id); if(el) el.classList.remove("show"); }
 
-  document.getElementById("s1Next").onclick = ()=>{ goTo(2); showToast("Great! Let's go 🌱"); };
+  document.getElementById("s1Next").onclick = ()=>{ goTo(2); showToast("Great! Keep going 👏"); };
   document.getElementById("s2Back").onclick = ()=>goTo(1);
   document.getElementById("s2Next").onclick = ()=>{
     if(!document.getElementById("goal").value){ showErr("err2"); return; }
@@ -338,29 +356,29 @@
   document.getElementById("s4Back").onclick = ()=>goTo(3);
   document.getElementById("s4Next").onclick = ()=>{
     if(!document.getElementById("field").value){ showErr("err4"); return; }
-    clearErr("err4"); goTo(5); showToast("Almost there ✨");
+    clearErr("err4"); goTo(5); showToast("Almost there! ✨");
   };
   document.getElementById("s5Back").onclick = ()=>goTo(4);
 
   document.getElementById("bioSkip").onclick = ()=>{
-    document.getElementById("bio").value="";
-    document.getElementById("bio").placeholder="Skipped — you can add this from your dashboard later.";
+    document.getElementById("bio").value = "";
+    document.getElementById("bio").placeholder = "Skipped. You can add this from your dashboard later.";
   };
 
   document.getElementById("s5Publish").onclick = async ()=>{
     const country  = document.getElementById("country").value.trim();
     const timezone = document.getElementById("timezone").value;
     const missing  = [];
-    if(!country)  missing.push("where you're based");
+    if(!country)  missing.push("where you are based");
     if(!timezone) missing.push("your timezone");
-    if(missing.length){ showErr("err5","Just need: "+missing.join(" and ")); return; }
+    if(missing.length){ showErr("err5", "Just need: " + missing.join(" and ")); return; }
     clearErr("err5");
 
     const btn = document.getElementById("s5Publish");
-    btn.textContent="Finding your mentors…"; btn.disabled=true;
+    btn.textContent = "Finding your mentor..."; btn.disabled = true;
 
     const user = await requireSession();
-    if(!user){ btn.textContent="Find my mentor 🎯"; btn.disabled=false; return; }
+    if(!user){ btn.textContent = "Find my mentor 🎯"; btn.disabled = false; return; }
 
     const payload = {
       user_id:      user.id,
@@ -371,45 +389,53 @@
       field:        document.getElementById("field").value || null,
       bio:          document.getElementById("bio").value.trim() || null,
       tags:         getTags(),
+      communication: document.getElementById("communication").value || null,
+      availability: document.getElementById("availability").value || null,
       country,
       timezone,
-      availability: document.getElementById("availability").value || null,
       current_role:           "Not specified",
       preferred_language:     "English",
       field_experience_level: "Beginner",
-      timeline:               "3–6 months",
+      timeline:               "3-6 months",
       preferred_session_type: "Career coaching",
       help_needed:            document.getElementById("goal").value || null,
-      communication:          "Zoom",
     };
 
-    const {error} = await sb.from("mentees").upsert(payload, {onConflict:"user_id"});
+    const {data: existing} = await sb.from("mentees").select("user_id").eq("user_id", user.id).maybeSingle();
+    let error;
+    if(existing){
+      ({error} = await sb.from("mentees").update(payload).eq("user_id", user.id));
+    } else {
+      ({error} = await sb.from("mentees").insert(payload));
+    }
+
     if(error){
       console.error(error);
-      btn.textContent="Find my mentor 🎯"; btn.disabled=false;
-      showErr("err5","Something went wrong. Please try again.");
+      btn.textContent = "Find my mentor 🎯"; btn.disabled = false;
+      showErr("err5", "Something went wrong. Please try again.");
       return;
     }
-    window.location.href="mentee-dashboard.html";
+    window.location.href = "mentee-dashboard.html";
   };
 
   (async function boot(){
     const user = await requireSession(); if(!user) return;
     try{
-      const {data} = await sb.from("mentees").select("*").eq("user_id",user.id).maybeSingle();
+      const {data} = await sb.from("mentees").select("*").eq("user_id", user.id).maybeSingle();
       if(!data) return;
-      if(data.bio)      document.getElementById("bio").value      = data.bio;
-      if(data.country)  document.getElementById("country").value  = data.country;
+      if(data.bio)      document.getElementById("bio").value     = data.bio;
+      if(data.country)  document.getElementById("country").value = data.country;
       if(data.timezone) document.getElementById("timezone").value = data.timezone;
-      function restoreChoice(cid,hid,val){
+      function restoreChoice(cid, hid, val){
         if(!val) return;
-        document.getElementById(hid).value=val;
+        document.getElementById(hid).value = val;
         document.querySelectorAll(`#${cid} .choice`).forEach(o=>{ if(o.dataset.val===val) o.classList.add("selected"); });
       }
-      restoreChoice("goalChoices","goal",data.goal);
-      restoreChoice("levelChoices","level",data.level);
-      restoreChoice("fieldChoices","field",data.field);
-      restoreChoice("availChoices","availability",data.availability);
+      restoreChoice("goalChoices",  "goal",          data.goal);
+      restoreChoice("levelChoices", "level",         data.level);
+      restoreChoice("fieldChoices", "field",         data.field);
+      restoreChoice("commChoices",  "communication", data.communication);
+      restoreChoice("availChoices", "availability",  data.availability);
       (data.tags||[]).forEach(t=>addTag(t));
     }catch(e){ console.error(e); }
   })();

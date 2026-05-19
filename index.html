@@ -3,179 +3,303 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>MentifyHub - Green Skills Mentorship</title>
-  <meta name="description" content="MentifyHub connects people with experienced mentors in sustainability, green buildings and energy."/>
+  <title>MentifyHub</title>
+  <meta name="description" content="MentifyHub connects people with experienced mentors in sustainability, energy and green buildings."/>
   <link rel="stylesheet" href="mh-theme.css"/>
   <style>
-    /* ── Landing-specific ─────────────────── */
+    *, *::before, *::after { box-sizing: border-box; }
+
+    /* ── Hero ── */
     .hero {
       display: grid;
-      grid-template-columns: 1.1fr .9fr;
-      gap: 16px;
-      margin-top: 18px;
-      align-items: stretch;
-    }
-    .hero-left  { padding: 32px; display: flex; flex-direction: column; justify-content: center; }
-    .hero-right {
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      min-height: 520px;
       border-radius: var(--radius);
       overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: #fff;
       border: 1px solid var(--line);
       box-shadow: var(--shadow);
-      min-height: 300px;
-      padding: 24px;
+      margin-top: 18px;
     }
-    .hero-right img { width: 100%; height: auto; object-fit: contain; max-height: 420px; mix-blend-mode: multiply; display: block; }
-
-    .kicker {
+    .hero-left {
+      background: linear-gradient(160deg, #0f172a 0%, #1e3a5f 100%);
+      padding: 52px 48px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 20px;
+    }
+    .hero-tag {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 6px 12px;
+      background: rgba(255,255,255,.1);
+      border: 1px solid rgba(255,255,255,.15);
       border-radius: 999px;
-      border: 1px solid rgba(29,78,216,.18);
-      background: rgba(29,78,216,.06);
+      padding: 6px 14px;
       font-size: 12px;
       font-weight: 600;
-      color: var(--accent);
-      margin-bottom: 16px;
+      color: #93c5fd;
       width: fit-content;
     }
-
-    .hero-left h2 {
-      font-size: clamp(28px, 3.2vw, 44px);
-      font-weight: 800;
-      line-height: 1.1;
-      letter-spacing: -.6px;
-      margin-bottom: 14px;
+    .hero-left h1 {
+      font-size: clamp(32px, 4vw, 52px);
+      font-weight: 900;
+      line-height: 1.08;
+      letter-spacing: -1px;
+      color: #fff;
+      margin: 0;
     }
-    .hero-left h2 em {
-      font-style: normal;
-      background: linear-gradient(135deg, var(--accent2), var(--accent));
+    .hero-left h1 span {
+      background: linear-gradient(135deg, #60a5fa, #a78bfa);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
     }
     .hero-left p {
-      color: var(--muted);
-      font-size: 15px;
-      line-height: 1.65;
-      max-width: 52ch;
-      margin-bottom: 22px;
+      font-size: 16px;
+      color: #94a3b8;
+      line-height: 1.6;
+      max-width: 40ch;
+      margin: 0;
     }
-    .cta-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-    .mini-pills {
+    .hero-cta {
       display: flex;
-      gap: 8px;
+      gap: 10px;
       flex-wrap: wrap;
-      margin-top: 16px;
     }
-    .mini-pill {
-      padding: 6px 12px;
-      border-radius: 999px;
-      border: 1px solid var(--line);
-      background: #fff;
-      font-size: 12px;
-      color: var(--muted);
+    .btn-primary-hero {
+      padding: 14px 28px;
+      border-radius: 12px;
+      background: #2563eb;
+      color: #fff;
+      font-weight: 700;
+      font-size: 15px;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      transition: background .15s, transform .1s;
     }
+    .btn-primary-hero:hover { background: #1d4ed8; transform: translateY(-1px); }
+    .btn-outline-hero {
+      padding: 14px 28px;
+      border-radius: 12px;
+      background: rgba(255,255,255,.08);
+      color: #fff;
+      font-weight: 700;
+      font-size: 15px;
+      text-decoration: none;
+      border: 1px solid rgba(255,255,255,.2);
+      transition: background .15s;
+    }
+    .btn-outline-hero:hover { background: rgba(255,255,255,.14); }
+    .hero-stats {
+      display: flex;
+      gap: 24px;
+      margin-top: 8px;
+    }
+    .hero-stat { text-align: left; }
+    .hero-stat .num { font-size: 22px; font-weight: 800; color: #fff; }
+    .hero-stat .lbl { font-size: 12px; color: #64748b; margin-top: 2px; }
 
-    /* ── Path cards ─────────────────── */
-    .paths {
+    /* Hero right - visual grid */
+    .hero-right {
+      background: #f8faff;
+      padding: 32px;
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 14px;
-      margin-top: 18px;
+      grid-template-rows: 1fr 1fr;
+      gap: 12px;
     }
-    .path-card {
-      padding: 22px;
-      border-radius: var(--radius);
-      border: 1px solid var(--line);
-      background: linear-gradient(160deg, #fff, var(--soft));
-      box-shadow: var(--shadow);
+    .hero-card {
+      background: #fff;
+      border-radius: 16px;
+      border: 1px solid #e8edf5;
+      padding: 20px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 8px;
+      box-shadow: 0 2px 8px rgba(15,23,42,.06);
+      transition: transform .2s, box-shadow .2s;
     }
-    .path-icon {
-      width: 44px;
-      height: 44px;
+    .hero-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(15,23,42,.10); }
+    .hero-card .hc-icon { font-size: 28px; }
+    .hero-card .hc-title { font-size: 14px; font-weight: 700; color: #0f172a; }
+    .hero-card .hc-sub { font-size: 12px; color: #64748b; line-height: 1.5; }
+    .hero-card.accent { background: linear-gradient(135deg, #2563eb, #7c3aed); border-color: transparent; }
+    .hero-card.accent .hc-title { color: #fff; }
+    .hero-card.accent .hc-sub { color: rgba(255,255,255,.7); }
+
+    /* ── Roles section ── */
+    .roles {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 16px;
+    }
+    .role-card {
+      border-radius: var(--radius);
+      padding: 40px 36px;
+      position: relative;
+      overflow: hidden;
+      min-height: 280px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      text-decoration: none;
+    }
+    .role-card.mentee { background: linear-gradient(160deg, #1e3a5f, #2563eb); }
+    .role-card.mentor { background: linear-gradient(160deg, #1a1a2e, #4c1d95); }
+    .role-card .rc-emoji {
+      position: absolute;
+      top: 28px;
+      right: 28px;
+      font-size: 64px;
+      opacity: .25;
+    }
+    .role-card .rc-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255,255,255,.15);
+      border: 1px solid rgba(255,255,255,.2);
+      border-radius: 999px;
+      padding: 4px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      color: rgba(255,255,255,.8);
+      margin-bottom: 14px;
+      width: fit-content;
+    }
+    .role-card h3 { font-size: 24px; font-weight: 800; color: #fff; margin: 0 0 8px; }
+    .role-card p  { font-size: 14px; color: rgba(255,255,255,.65); margin: 0 0 20px; line-height: 1.55; max-width: 32ch; }
+    .role-card .rc-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,.15);
+      border: 1px solid rgba(255,255,255,.25);
+      border-radius: 10px;
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+      text-decoration: none;
+      width: fit-content;
+      transition: background .15s;
+    }
+    .role-card .rc-btn:hover { background: rgba(255,255,255,.25); }
+
+    /* ── Steps ── */
+    .steps-section {
+      margin-top: 16px;
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      background: #fff;
+      padding: 40px;
+      box-shadow: var(--shadow);
+    }
+    .steps-section .sec-label {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: #2563eb;
+      margin-bottom: 8px;
+    }
+    .steps-section h2 {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -.3px;
+      margin: 0 0 36px;
+    }
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0;
+      position: relative;
+    }
+    .steps-grid::before {
+      content: '';
+      position: absolute;
+      top: 28px;
+      left: calc(16.66% + 28px);
+      right: calc(16.66% + 28px);
+      height: 2px;
+      background: linear-gradient(90deg, #2563eb, #7c3aed);
+      z-index: 0;
+    }
+    .step-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 0 20px;
+      position: relative;
+      z-index: 1;
+    }
+    .step-num {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      margin-bottom: 16px;
+      border: 3px solid #fff;
+      box-shadow: 0 0 0 2px #2563eb;
+    }
+    .step-item:nth-child(1) .step-num { background: linear-gradient(135deg, #dbeafe, #eff6ff); }
+    .step-item:nth-child(2) .step-num { background: linear-gradient(135deg, #ede9fe, #f5f3ff); }
+    .step-item:nth-child(3) .step-num { background: linear-gradient(135deg, #d1fae5, #f0fdf4); }
+    .step-item h4 { font-size: 15px; font-weight: 800; margin: 0 0 6px; }
+    .step-item p  { font-size: 13px; color: var(--muted); line-height: 1.55; }
+
+    /* ── Features ── */
+    .features-section {
+      margin-top: 16px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .feat-card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: var(--shadow);
+      transition: transform .2s, box-shadow .2s;
+    }
+    .feat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 28px rgba(15,23,42,.10); }
+    .feat-icon-wrap {
+      width: 48px;
+      height: 48px;
       border-radius: 14px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 20px;
+      font-size: 22px;
+      margin-bottom: 14px;
     }
-    .path-card h3 { font-size: 16px; font-weight: 700; margin: 0; }
-    .path-card p  { font-size: 13px; color: var(--muted); line-height: 1.55; flex: 1; }
+    .feat-card h4 { font-size: 15px; font-weight: 800; margin: 0 0 6px; }
+    .feat-card p  { font-size: 13px; color: var(--muted); line-height: 1.55; margin: 0; }
 
-    /* ── How it works ─────────────────── */
-    .how {
-      margin-top: 18px;
-      padding: 24px;
-      border-radius: var(--radius);
-      border: 1px solid var(--line);
-      background: #fff;
-      box-shadow: var(--shadow);
+    /* ── Responsive ── */
+    @media (max-width: 900px) {
+      .hero { grid-template-columns: 1fr; min-height: auto; }
+      .hero-right { display: none; }
+      .hero-left { padding: 36px 28px; }
+      .roles { grid-template-columns: 1fr; }
+      .steps-grid { grid-template-columns: 1fr; gap: 24px; }
+      .steps-grid::before { display: none; }
+      .features-section { grid-template-columns: 1fr 1fr; }
+      .steps-section { padding: 28px 20px; }
     }
-    .how-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 18px; }
-    .how-step {
-      padding: 18px;
-      border-radius: var(--radius-sm);
-      border: 1px solid var(--line);
-      background: linear-gradient(180deg, var(--soft), #fff);
-    }
-    .step-num {
-      width: 32px; height: 32px;
-      border-radius: 10px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 13px; font-weight: 800; color: var(--accent);
-      background: rgba(29,78,216,.08);
-      border: 1px solid rgba(29,78,216,.14);
-      margin-bottom: 10px;
-    }
-    .how-step h4 { font-size: 14px; margin-bottom: 6px; }
-    .how-step p  { font-size: 13px; color: var(--muted); line-height: 1.5; }
-
-    /* ── Features ─────────────────── */
-    .features {
-      margin-top: 18px;
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 14px;
-    }
-    .feat {
-      padding: 18px;
-      border-radius: var(--radius);
-      border: 1px solid var(--line);
-      background: linear-gradient(180deg, #fff, var(--soft));
-      box-shadow: var(--shadow);
-    }
-    .feat-icon {
-      width: 38px; height: 38px;
-      border-radius: 12px;
-      display: flex; align-items: center; justify-content: center;
-      background: rgba(29,78,216,.07);
-      border: 1px solid rgba(29,78,216,.12);
-      margin-bottom: 10px;
-      font-size: 17px;
-    }
-    .feat h4 { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
-    .feat p  { font-size: 13px; color: var(--muted); line-height: 1.55; }
-
-    /* ── Responsive ─────────────────── */
-    @media (max-width: 980px) {
-      .hero { grid-template-columns: 1fr; }
-      .hero-right { min-height: 260px; }
-      .how-grid { grid-template-columns: 1fr; }
-      .features { grid-template-columns: 1fr 1fr; }
-    }
-    @media (max-width: 640px) {
-      .paths    { grid-template-columns: 1fr; }
-      .features { grid-template-columns: 1fr; }
-      .hero-left { padding: 22px; }
+    @media (max-width: 600px) {
+      .features-section { grid-template-columns: 1fr; }
+      .hero-left { padding: 28px 20px; }
+      .hero-stats { gap: 16px; }
     }
   </style>
 </head>
@@ -200,106 +324,128 @@
 
   <!-- Hero -->
   <section class="hero">
-    <div class="mh-card hero-left">
-      <div class="kicker">
-        <span class="mh-chip-dot"></span>
-        Learn from someone who has been where you want to go.
+    <div class="hero-left">
+      <div class="hero-tag">
+        <span>🌱</span>
+        Sustainability. Energy. Green Buildings.
       </div>
-      <h2>Learn from someone<br/>who's <em>been there</em></h2>
-      <p>
-        MentifyHub connects people with experienced mentors in sustainability, energy and green buildings. Find someone who has been where you want to go.
-      </p>
-      <div class="cta-row">
-        <a class="mh-btn mh-btn-primary mh-btn-lg" href="auth.html?role=mentee">Find a mentor</a>
-        <a class="mh-btn mh-btn-lg" href="auth.html?role=mentor">Share your experience</a>
+      <h1>Learn from<br/>someone who's<br/><span>been there.</span></h1>
+      <p>Find an experienced mentor in your field. Have real conversations. Grow faster.</p>
+      <div class="hero-cta">
+        <a class="btn-primary-hero" href="auth.html?role=mentee">Find a mentor</a>
+        <a class="btn-outline-hero" href="auth.html?role=mentor">Share your experience</a>
       </div>
-      <div class="mini-pills">
-        <span class="mini-pill">⚡ Quick to get started</span>
-        <span class="mini-pill">🎯 Find the right mentor</span>
-        <span class="mini-pill">📊 Stay on top of things</span>
-        <span class="mini-pill">✅ Reviewed mentors</span>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <div class="num">🎓</div>
+          <div class="lbl">For mentees</div>
+        </div>
+        <div class="hero-stat">
+          <div class="num">🧑‍🏫</div>
+          <div class="lbl">For mentors</div>
+        </div>
+        <div class="hero-stat">
+          <div class="num">💬</div>
+          <div class="lbl">Real conversations</div>
+        </div>
       </div>
     </div>
     <div class="hero-right">
-      <img src="mentoring.svg" alt="MentifyHub - mentorship illustration"/>
+      <div class="hero-card accent">
+        <span class="hc-icon">🌟</span>
+        <span class="hc-title">Your mentor is out there</span>
+        <span class="hc-sub">Browse real professionals in sustainability and green buildings</span>
+      </div>
+      <div class="hero-card">
+        <span class="hc-icon">💬</span>
+        <span class="hc-title">Real conversations</span>
+        <span class="hc-sub">Not videos or courses. Actual people who get it.</span>
+      </div>
+      <div class="hero-card">
+        <span class="hc-icon">📅</span>
+        <span class="hc-title">Book a session</span>
+        <span class="hc-sub">Pick a time that works for both of you and show up.</span>
+      </div>
+      <div class="hero-card">
+        <span class="hc-icon">📈</span>
+        <span class="hc-title">Track your growth</span>
+        <span class="hc-sub">Your mentor logs notes after every session.</span>
+      </div>
     </div>
   </section>
 
-  <!-- Paths -->
-  <div class="paths">
-    <div class="path-card">
-      <div class="path-icon" style="background:rgba(29,78,216,.08);border:1px solid rgba(29,78,216,.14)">🎓</div>
-      <h3>I'm a mentee</h3>
-      <p>Tell us what you are working on, browse real mentor profiles, and start a conversation with someone who can actually help.</p>
-      <a class="mh-btn mh-btn-full" href="auth.html?role=mentee">Get started →</a>
-    </div>
-    <div class="path-card">
-      <div class="path-icon" style="background:rgba(5,150,105,.08);border:1px solid rgba(5,150,105,.16)">🌱</div>
-      <h3>I'm a mentor</h3>
-      <p>Share what you have learned. Set your own pace, choose who you work with, and make a real difference in someone's career.</p>
-      <a class="mh-btn mh-btn-full" href="auth.html?role=mentor">Become a mentor →</a>
-    </div>
+  <!-- Roles -->
+  <div class="roles">
+    <a class="role-card mentee" href="auth.html?role=mentee">
+      <span class="rc-emoji">🎓</span>
+      <div class="rc-badge">For mentees</div>
+      <h3>I want to learn</h3>
+      <p>Find someone who has been where you want to go and learn from their real experience.</p>
+      <span class="rc-btn">Get started →</span>
+    </a>
+    <a class="role-card mentor" href="auth.html?role=mentor">
+      <span class="rc-emoji">🧑‍🏫</span>
+      <div class="rc-badge">For mentors</div>
+      <h3>I want to give back</h3>
+      <p>Share what you have learned. Help someone avoid the mistakes you made and get where you are faster.</p>
+      <span class="rc-btn">Become a mentor →</span>
+    </a>
   </div>
 
   <!-- How it works -->
-  <div class="how">
-    <div class="flex items-center justify-between">
-      <div>
-        <h3 style="font-size:16px;font-weight:800;letter-spacing:-.2px">How it works</h3>
-        <p style="color:var(--muted);font-size:13px;margin-top:4px">Three steps to start strong.</p>
-      </div>
-      <a class="mh-btn mh-btn-primary" href="auth.html?mode=signup">Get started</a>
-    </div>
-    <div class="how-grid">
-      <div class="how-step">
-        <div class="step-num">1</div>
+  <div class="steps-section">
+    <div class="sec-label">How it works</div>
+    <h2>Three steps to get started</h2>
+    <div class="steps-grid">
+      <div class="step-item">
+        <div class="step-num">✏️</div>
         <h4>Create your profile</h4>
-        <p>Tell us a bit about yourself. It takes about 3 minutes.</p>
+        <p>Tell us what you are working on. Takes about 3 minutes.</p>
       </div>
-      <div class="how-step">
-        <div class="step-num">2</div>
+      <div class="step-item">
+        <div class="step-num">🔍</div>
         <h4>Find your mentor</h4>
-        <p>Browse real mentor profiles and reach out to someone whose background fits what you need.</p>
+        <p>Browse real profiles and reach out to someone whose background fits your goals.</p>
       </div>
-      <div class="how-step">
-        <div class="step-num">3</div>
+      <div class="step-item">
+        <div class="step-num">🚀</div>
         <h4>Grow together</h4>
-        <p>Stay in touch, schedule sessions and build your skills through real conversations.</p>
+        <p>Have sessions, ask questions, share your work and build your skills.</p>
       </div>
     </div>
   </div>
 
   <!-- Features -->
-  <div class="features">
-    <div class="feat">
-      <div class="feat-icon">🎯</div>
+  <div class="features-section">
+    <div class="feat-card">
+      <div class="feat-icon-wrap" style="background:#dbeafe">🎯</div>
       <h4>Know what you want</h4>
-      <p>Define what you want to achieve - exams, career transitions, portfolios, research, or skill growth.</p>
+      <p>Tell mentors what you are working on, whether it is a certification, a career move or just figuring out next steps.</p>
     </div>
-    <div class="feat">
-      <div class="feat-icon">🔍</div>
+    <div class="feat-card">
+      <div class="feat-icon-wrap" style="background:#ede9fe">🔍</div>
       <h4>Find the right person</h4>
       <p>Browse mentors by field, region, timezone and availability. Filter by what matters to you.</p>
     </div>
-    <div class="feat">
-      <div class="feat-icon">📋</div>
+    <div class="feat-card">
+      <div class="feat-icon-wrap" style="background:#d1fae5">✉️</div>
       <h4>Reach out</h4>
-      <p>Send a mentorship request with context, and track responses in real time - pending, accepted, or declined.</p>
+      <p>Send a personal message to a mentor and hear back directly from them.</p>
     </div>
-    <div class="feat">
-      <div class="feat-icon">💬</div>
+    <div class="feat-card">
+      <div class="feat-icon-wrap" style="background:#fef3c7">💬</div>
       <h4>Have real conversations</h4>
       <p>Message back and forth, ask questions, share your work. Everything in one place.</p>
     </div>
-    <div class="feat">
-      <div class="feat-icon">🗓️</div>
+    <div class="feat-card">
+      <div class="feat-icon-wrap" style="background:#fce7f3">📅</div>
       <h4>Meet when it works</h4>
       <p>Propose a time, share a meeting link and show up. Your mentor will too.</p>
     </div>
-    <div class="feat">
-      <div class="feat-icon">📈</div>
-      <h4>See how far you've come</h4>
-      <p>Your mentor logs notes after each session. You will always know where you stand and what is next.</p>
+    <div class="feat-card">
+      <div class="feat-icon-wrap" style="background:#cffafe">📈</div>
+      <h4>See how far you have come</h4>
+      <p>Your mentor logs notes after each session. You will always know where you stand.</p>
     </div>
   </div>
 
@@ -313,64 +459,5 @@
   </footer>
 </div>
 <script>document.getElementById('yr').textContent = new Date().getFullYear();</script>
-
-
-
-<!-- ── Bottom navigation (mobile) ──────────────── -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="config.js"></script>
-<script src="auth-guard.js"></script>
-<nav class="mh-bottom-nav" id="bottomNav" role="navigation" aria-label="Mobile navigation">
-  <a href="#" id="bn-home" class="mh-bottom-nav-item">
-    <span class="bn-icon-wrap"><span class="bn-icon">🏠</span></span>
-    <span class="bn-label">Home</span>
-  </a>
-  <a href="mentor-directory.html" class="mh-bottom-nav-item">
-    <span class="bn-icon-wrap"><span class="bn-icon">🔍</span></span>
-    <span class="bn-label">Find</span>
-  </a>
-  <a href="messages.html" class="mh-bottom-nav-item">
-    <span class="bn-icon-wrap"><span class="bn-icon">💬</span></span>
-    <span class="bn-label">Chat</span>
-  </a>
-  <a href="sessions.html" class="mh-bottom-nav-item">
-    <span class="bn-icon-wrap"><span class="bn-icon">📅</span></span>
-    <span class="bn-label">Sessions</span>
-  </a>
-  <button type="button" class="mh-bottom-nav-item" id="bn-bell" onclick="toggleMobileBell()">
-    <span class="bn-icon-wrap" style="position:relative">
-      <span class="bn-icon">🔔</span>
-      <span id="bn-bell-badge" style="display:none;position:absolute;top:-2px;right:-2px;width:8px;height:8px;border-radius:50%;background:#ef4444;border:1.5px solid #fff;"></span>
-    </span>
-    <span class="bn-label">Alerts</span>
-  </button>
-</nav>
-<script>
-  // Resolve dashboard link using the shared Supabase client from auth-guard.js
-  (async function() {
-    const el = document.getElementById("bn-home");
-    if(!el) return;
-    try {
-      const url = await window.getDashboardUrl();
-      el.href = url;
-    } catch(e) { el.href = "auth.html"; }
-  })();
-
-  // Open the notification panel on mobile (reuse desktop panel)
-  function toggleMobileBell() {
-    const panel = document.getElementById("notifPanel");
-    if(!panel) return;
-    panel.style.position = "fixed";
-    panel.style.bottom   = "70px";
-    panel.style.left     = "8px";
-    panel.style.right    = "8px";
-    panel.style.top      = "auto";
-    panel.style.width    = "auto";
-    panel.style.zIndex   = "200";
-    panel.style.display  = panel.style.display === "block" ? "none" : "block";
-  }
-
-  document.body.classList.add("has-bottom-nav");
-</script>
 </body>
 </html>

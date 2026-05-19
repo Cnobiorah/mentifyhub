@@ -244,7 +244,7 @@
     // Check if mentor or mentee
     const {data:mentor}=await sb.from("mentors").select("user_id").eq("user_id",USER.id).maybeSingle();
     const _dash=mentor?"mentor-dashboard.html":"mentee-dashboard.html";
-    $("dashLink").href=_dash;
+    if(document.getElementById("dashboardLink")) document.getElementById("dashboardLink").href=_dash;
     if(document.getElementById("drawerDashLink")) document.getElementById("drawerDashLink").href=_dash;
 
     await loadReviewedSessions();

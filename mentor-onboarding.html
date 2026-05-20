@@ -405,6 +405,11 @@
       </select>
     </div>
 
+    <div class="ob-input-wrap">
+      <label>LinkedIn or website <span style="font-weight:400;color:#94a3b8">(optional)</span></label>
+      <input class="ob-input" id="profileLink" placeholder="e.g., linkedin.com/in/yourname"/>
+    </div>
+
     <div class="ob-error" id="err5">Please add your headline, country and timezone.</div>
     <div class="actions">
       <button class="btn-back" id="s5Back">←</button>
@@ -612,7 +617,8 @@
       if(!data) return;
       if(data.headline) document.getElementById("headline").value = data.headline;
       if(data.bio)      document.getElementById("bio").value      = data.bio;
-      if(data.country)  document.getElementById("country").value  = data.country;
+      if(data.country)    document.getElementById("country").value     = data.country;
+      if(data.profile_link) document.getElementById("profileLink").value = data.profile_link;
       if(data.timezone) document.getElementById("timezone").value = data.timezone;
       function restoreChoice(cid, hid, val){
         if(!val) return;

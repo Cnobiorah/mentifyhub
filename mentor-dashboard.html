@@ -291,6 +291,17 @@
 
 
 
+      <!-- Upcoming Sessions -->
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <h3 style="font-size:14px;font-weight:700;margin:0">Upcoming sessions</h3>
+          <button class="mh-btn mh-btn-sm" id="refreshSessionsBtn" type="button">Refresh</button>
+        </div>
+        <div id="mentorSessionsList">
+          <div style="font-size:12px;color:var(--muted)">Loading…</div>
+        </div>
+      </div>
+
       <!-- Availability Manager -->
       <div class="avail-section" style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line)">
         <h3>Your availability</h3>
@@ -635,6 +646,54 @@
     window.location.href="auth.html?mode=signin";
   });
 
+  async function loadMentorSessions(user) {
+    const listEl = document.getElementById("mentorSessionsList");
+    if(!listEl) return;
+    const now = new Date().toISOString();
+    const {data: sessions, error} = await sb.from("sessions")
+      .select("scheduled_for, duration_minutes, status, mentee_id")
+      .eq("mentor_id", user.id)
+      .gte("scheduled_for", now)
+      .neq("status", "cancelled")
+      .order("scheduled_for", {ascending: true})
+      .limit(5);
+    if(error) { listEl.innerHTML = `<div style="font-size:12px;color:var(--muted)">Could not load sessions.</div>`; return; }
+    if(!sessions || !sessions.length) {
+      listEl.innerHTML = `<div style="font-size:12px;color:var(--muted)">No upcoming sessions yet.</div>`;
+      return;
+    }
+    // Fetch mentee names
+    const menteeIds = [...new Set(sessions.map(s => s.mentee_id).filter(Boolean))];
+    const {data: mentees} = await sb.from("mentees").select("user_id,full_name").in("user_id", menteeIds);
+    const menteeMap = {};
+    (mentees || []).forEach(m => { menteeMap[m.user_id] = m.full_name; });
+
+    listEl.innerHTML = sessions.map(s => {
+      const dt       = new Date(s.scheduled_for);
+      const dateStr  = dt.toLocaleDateString("en-GB", {weekday:"short", day:"numeric", month:"short", year:"numeric"});
+      const timeStr  = dt.toLocaleTimeString("en-GB", {hour:"2-digit", minute:"2-digit"});
+      const menteeName = menteeMap[s.mentee_id] || "Mentee";
+      return `<div class="session-card">
+        <div class="sc-date">${dateStr} · ${timeStr}</div>
+        <div class="sc-meta">with ${menteeName} · ${s.duration_minutes || 60} mins</div>
+        <span class="sc-badge">${s.status || "scheduled"}</span>
+      </div>`;
+    }).join("");
+  }
+
+  function subscribeSessionNotifications(user) {
+    sb.channel("sessions-mentor-" + user.id)
+      .on("postgres_changes", {
+        event:  "INSERT",
+        schema: "public",
+        table:  "sessions",
+        filter: `mentor_id=eq.${user.id}`
+      }, () => {
+        loadMentorSessions(user);
+      })
+      .subscribe();
+  }
+
   (async function init(){
     const user = await requireAuth();
     if(!user) return;
@@ -643,9 +702,12 @@
     await loadRequests(user);
     await loadProgress(user);
     await loadNotifications(user);
+    await loadMentorSessions(user);
     subscribeNotifications(user);
+    subscribeSessionNotifications(user);
     markAllBtn.addEventListener("click", () => markAllRead(user));
     refreshNotifBtn.addEventListener("click", () => loadNotifications(user));
+    document.getElementById("refreshSessionsBtn")?.addEventListener("click", () => loadMentorSessions(user));
 
     // Onboarding prompt for incomplete mentor profiles
     try{
@@ -701,20 +763,63 @@
   }
 
   var saveBtn = document.getElementById("saveAvailBtn");
+  var availStatus = document.getElementById("availStatus");
+
+  function showAvailMsg(msg, isError) {
+    if(!availStatus) return;
+    availStatus.textContent = msg;
+    availStatus.style.color = isError ? "#dc2626" : "";
+    availStatus.style.display = "block";
+    setTimeout(function(){ availStatus.style.display = "none"; availStatus.textContent = ""; availStatus.style.color = ""; }, 3500);
+  }
+
   if(saveBtn){
     saveBtn.addEventListener("click", async function(){
       saveBtn.textContent = "Saving..."; saveBtn.disabled = true;
       try {
         var s = await _sb.auth.getSession();
         var uid = s.data && s.data.session && s.data.session.user.id;
-        if(!uid){ saveBtn.textContent = "Save availability"; saveBtn.disabled = false; return; }
-        await _sb.from("mentor_availability").delete().eq("mentor_id", uid);
+        if(!uid){
+          showAvailMsg("Not logged in. Please refresh and try again.", true);
+          saveBtn.textContent = "Save availability"; saveBtn.disabled = false;
+          return;
+        }
+
+        // Delete existing rows
+        var delRes = await _sb.from("mentor_availability").delete().eq("mentor_id", uid);
+        if(delRes.error) {
+          console.error("[MentifyHub] availability delete error:", delRes.error);
+          showAvailMsg("Error clearing old availability: " + delRes.error.message, true);
+          saveBtn.textContent = "Save availability"; saveBtn.disabled = false;
+          return;
+        }
+
         var times = Array.from(selTimes);
-        var rows = Array.from(selDays).map(function(d){ return {mentor_id:uid, day_of_week:d, time_slots:times}; });
-        if(rows.length) await _sb.from("mentor_availability").insert(rows);
-        var st = document.getElementById("availStatus");
-        if(st){ st.style.display="block"; setTimeout(function(){st.style.display="none";},2500); }
-      } catch(e){ console.error(e); }
+        var days  = Array.from(selDays);
+
+        if(!days.length || !times.length) {
+          showAvailMsg("Please select at least one day and one time slot.", true);
+          saveBtn.textContent = "Save availability"; saveBtn.disabled = false;
+          return;
+        }
+
+        var rows = days.map(function(d){ return {mentor_id: uid, day_of_week: d, time_slots: times}; });
+        console.log("[MentifyHub] saving availability rows:", rows);
+
+        var insRes = await _sb.from("mentor_availability").insert(rows);
+        if(insRes.error) {
+          console.error("[MentifyHub] availability insert error:", insRes.error);
+          showAvailMsg("Error saving: " + insRes.error.message, true);
+          saveBtn.textContent = "Save availability"; saveBtn.disabled = false;
+          return;
+        }
+
+        console.log("[MentifyHub] availability saved successfully");
+        showAvailMsg("✅ Availability saved!", false);
+      } catch(e){
+        console.error("[MentifyHub] availability save exception:", e);
+        showAvailMsg("Unexpected error: " + e.message, true);
+      }
       saveBtn.textContent = "Save availability"; saveBtn.disabled = false;
     });
   }

@@ -167,6 +167,7 @@
     }
     .time-slot-btn:hover  { border-color: var(--accent); background: #eff6ff; color: var(--accent); }
     .time-slot-btn.selected { border-color: var(--accent); background: var(--accent); color: #fff; }
+    .time-slot-btn.booked { background: #f1f5f9; color: #94a3b8; border-color: #e2e8f0; cursor: not-allowed; font-size: 11px; }
     .booking-confirm-btn { width: 100%; }
     .no-slots-msg { font-size: 13px; color: var(--muted); text-align: center; padding: 20px; }
 
@@ -830,12 +831,12 @@
         <div class="dc-date">${dateStr}</div>
         <div class="dc-slots">${slots} slot${slots !== 1 ? "s" : ""}</div>`;
 
-      card.addEventListener("click", () => {
+      card.addEventListener("click", async () => {
         document.querySelectorAll(".day-card").forEach(c => c.classList.remove("selected"));
         card.classList.add("selected");
         selectedDay  = card.dataset.date;
         selectedTime = null;
-        renderTimeSlots(avail.time_slots || []);
+        await renderTimeSlots(avail.time_slots || []);
       });
 
       container.appendChild(card);
@@ -845,27 +846,50 @@
     if(!cards.length) noSlots.style.display = "block";
   }
 
-  function renderTimeSlots(times) {
+  async function renderTimeSlots(times) {
     const wrap = document.getElementById("timeSlotsWrap");
     const grid = document.getElementById("timeSlotGrid");
-    grid.innerHTML = "";
+    grid.innerHTML = "<div style='font-size:12px;color:var(--muted);padding:8px 0'>Checking availability…</div>";
     wrap.style.display = "block";
     document.getElementById("confirmBookingBtn").style.display = "none";
 
+    // Fetch already-booked times for this mentor on the selected day
+    const dayStart = selectedDay + "T00:00:00";
+    const dayEnd   = selectedDay + "T23:59:59";
+    const {data: bookedSessions} = await sb.from("sessions")
+      .select("scheduled_for")
+      .eq("mentor_id", bookingMentorId)
+      .gte("scheduled_for", dayStart)
+      .lte("scheduled_for", dayEnd)
+      .neq("status", "cancelled");
+
+    const bookedTimes = new Set(
+      (bookedSessions || []).map(s => {
+        const t = s.scheduled_for.split("T")[1] || "";
+        return t.slice(0, 5);
+      })
+    );
+
+    grid.innerHTML = "";
     times.sort().forEach(t => {
-      const btn = document.createElement("button");
-      btn.className = "time-slot-btn";
-      // Format time nicely
-      const [h, m] = t.split(":").map(Number);
-      const ampm   = h >= 12 ? "PM" : "AM";
-      const hour   = h % 12 || 12;
-      btn.textContent = `${hour}:${String(m).padStart(2,"0")} ${ampm}`;
-      btn.addEventListener("click", () => {
-        document.querySelectorAll(".time-slot-btn").forEach(b => b.classList.remove("selected"));
-        btn.classList.add("selected");
-        selectedTime = t;
-        document.getElementById("confirmBookingBtn").style.display = "block";
-      });
+      const btn      = document.createElement("button");
+      const isBooked = bookedTimes.has(t);
+      btn.className  = "time-slot-btn" + (isBooked ? " booked" : "");
+      btn.disabled   = isBooked;
+      const [h, m]   = t.split(":").map(Number);
+      const ampm     = h >= 12 ? "PM" : "AM";
+      const hour     = h % 12 || 12;
+      btn.textContent = isBooked
+        ? `${hour}:${String(m).padStart(2,"0")} ${ampm} · Booked`
+        : `${hour}:${String(m).padStart(2,"0")} ${ampm}`;
+      if(!isBooked) {
+        btn.addEventListener("click", () => {
+          document.querySelectorAll(".time-slot-btn").forEach(b => b.classList.remove("selected"));
+          btn.classList.add("selected");
+          selectedTime = t;
+          document.getElementById("confirmBookingBtn").style.display = "block";
+        });
+      }
       grid.appendChild(btn);
     });
   }
@@ -893,6 +917,23 @@
       alert("Could not book. Please try again.");
       return;
     }
+
+    // Notify the mentor about the booking
+    try {
+      const {data: menteeProf} = await sb.from("mentees").select("full_name").eq("user_id", currentUser.id).maybeSingle();
+      const menteeName  = menteeProf?.full_name || "A mentee";
+      const sessionDate = new Date(scheduledFor).toLocaleString("en-GB", {
+        weekday:"long", day:"numeric", month:"long", year:"numeric",
+        hour:"2-digit", minute:"2-digit"
+      });
+      await sb.from("notifications").insert({
+        user_id:  bookingMentorId,
+        title:    "New session booked! 📅",
+        message:  `${menteeName} has booked a session with you on ${sessionDate}.`,
+        type:     "session_booked",
+        is_read:  false
+      });
+    } catch(notifErr) { console.warn("Could not notify mentor:", notifErr); }
 
     btn.textContent = "Booked!";
     setTimeout(() => {

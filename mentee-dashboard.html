@@ -773,13 +773,8 @@
         <button id="confirmBookingBtn" class="mh-btn mh-btn-primary booking-confirm-btn" style="display:none;">
           Confirm booking
         </button>`;
-      const activityCard = document.getElementById("activityCard");
-      if(activityCard) {
-        activityCard.parentElement.insertBefore(section, activityCard);
-      } else {
-        document.querySelector(".mh-main, main, .main-col") && 
-          document.querySelector(".mh-main, main, .main-col").appendChild(section);
-      }
+      const mainEl = document.querySelector(".layout main");
+      if(mainEl) mainEl.appendChild(section);
     }
 
     // Get mentor name

@@ -391,7 +391,10 @@
 
 <script>
   const TABLES = { mentees:"mentees", mentors:"mentors", requests:"mentorship_requests" };
-  const sb = window.mhSb;
+  const sb = window.mhSb || window.supabase?.createClient(
+    window.MH_SUPABASE_URL || "https://mscgaaaobxiuzqsukvjc.supabase.co",
+    window.MH_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y"
+  );
   const $ = id => document.getElementById(id);
 
   let currentUser=null, menteeProfile=null, allMentors=[], lastRequests=[], requestTarget=null;
@@ -447,14 +450,21 @@
 
   // Auth check using Supabase directly - avoids infinite recursion
   async function guardAuth(){
-    const {data:{session}, error} = await window.mhSb.auth.getSession();
-    if(error || !session){ window.location.href = "auth.html?mode=signin&returnTo=mentee-dashboard.html"; return false; }
-    currentUser = session.user;
-    $("envChip").textContent = "Live";
-    const {data:mp} = await window.mhSb.from("mentors").select("user_id").eq("user_id", session.user.id).maybeSingle();
-    const dash = mp ? "mentor-dashboard.html" : "mentee-dashboard.html";
-    if(document.getElementById("dashboardLink")) document.getElementById("dashboardLink").href = dash;
-    return true;
+    // Use sb directly - already set from window.mhSb at top of script
+    try {
+      const {data:{session}, error} = await sb.auth.getSession();
+      if(error || !session){ window.location.href = "auth.html?mode=signin&returnTo=mentee-dashboard.html"; return false; }
+      currentUser = session.user;
+      $("envChip").textContent = "Live";
+      const {data:mp} = await sb.from("mentors").select("user_id").eq("user_id", session.user.id).maybeSingle();
+      const dash = mp ? "mentor-dashboard.html" : "mentee-dashboard.html";
+      if(document.getElementById("dashboardLink")) document.getElementById("dashboardLink").href = dash;
+      return true;
+    } catch(e) {
+      console.error("guardAuth error:", e);
+      window.location.href = "auth.html?mode=signin&returnTo=mentee-dashboard.html";
+      return false;
+    }
   }
 
   async function loadMenteeProfile(){

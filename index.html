@@ -15,9 +15,8 @@
     /* ── Layout ── */
     .page {
       min-height: 100vh;
-      display: grid;
-      grid-template-columns: 1fr 380px;
-      gap: 0;
+      display: flex;
+      flex-direction: column;
       position: relative;
     }
 
@@ -212,111 +211,70 @@
     .social-text { font-size: 13px; color: #64748b; font-weight: 600; }
     .social-text span { color: #0f172a; font-weight: 800; }
 
-    /* ── Right panel: mentor cards ── */
-    .right-panel {
-      background: #f8faff;
-      border-radius: 24px 0 0 24px;
-      padding: 20px 16px;
-      overflow-y: auto;
-      max-height: 100vh;
-      position: sticky;
-      top: 0;
-      box-shadow: -8px 0 40px rgba(15,23,42,.06);
-    }
-    .right-panel-label {
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      color: #94a3b8;
-      padding: 4px 0 12px;
-      text-align: center;
-    }
-
-    /* Masonry grid */
-    #mentorCards {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      grid-template-rows: auto;
-      gap: 10px;
-    }
-
-    /* Mentor card */
-    .mentor-card {
-      border-radius: 20px;
-      overflow: hidden;
-      position: relative;
-      cursor: pointer;
-      transition: transform .25s, box-shadow .25s;
-      background: #fff;
-      border: 1px solid #e8edf5;
-    }
-    .mentor-card:hover { transform: translateY(-4px) scale(1.02); box-shadow: 0 16px 40px rgba(15,23,42,.14); }
-
-    /* Varied shapes per position */
-    .mentor-card:nth-child(1) { border-radius: 999px 999px 20px 20px; grid-row: span 2; }
-    .mentor-card:nth-child(2) { border-radius: 20px 20px 999px 20px; }
-    .mentor-card:nth-child(3) { border-radius: 50%; aspect-ratio: 1; }
-    .mentor-card:nth-child(4) { border-radius: 20px 999px 20px 20px; grid-row: span 2; }
-    .mentor-card:nth-child(5) { border-radius: 20px; }
-    .mentor-card:nth-child(6) { border-radius: 999px 20px 20px 999px; }
-
-    .mentor-card .mc-photo {
+    /* ── Mentor slider ── */
+    .mentor-slider-wrap {
       width: 100%;
-      height: 100%;
-      min-height: 140px;
+      overflow: hidden;
+      margin: 32px 0 24px;
+      position: relative;
+      z-index: 2;
+    }
+    .mentor-slider-wrap::before,
+    .mentor-slider-wrap::after {
+      content: '';
+      position: absolute;
+      top: 0; bottom: 0;
+      width: 80px;
+      z-index: 3;
+      pointer-events: none;
+    }
+    .mentor-slider-wrap::before { left: 0; background: linear-gradient(to right, #f0f2f8, transparent); }
+    .mentor-slider-wrap::after  { right: 0; background: linear-gradient(to left, #f0f2f8, transparent); }
+
+    .mentor-slider {
+      display: flex;
+      gap: 14px;
+      animation: slide 30s linear infinite;
+      width: max-content;
+    }
+    .mentor-slider:hover { animation-play-state: paused; }
+    @keyframes slide { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+    .mentor-slide-card {
+      width: 100px;
+      flex-shrink: 0;
+      cursor: pointer;
+      transition: transform .2s;
+    }
+    .mentor-slide-card:hover { transform: translateY(-4px); }
+    .slide-photo {
+      width: 100px; height: 100px;
+      border-radius: 50%;
       object-fit: cover;
       display: block;
+      border: 3px solid #fff;
+      box-shadow: 0 4px 16px rgba(15,23,42,.12);
     }
-    .mc-photo-placeholder {
-      width: 100%;
-      min-height: 140px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      font-size: 36px;
-      padding: 20px;
-    }
-    .mc-ph-name  { font-size: 11px; font-weight: 700; color: #fff; text-align: center; line-height: 1.3; }
-    .mc-ph-field { font-size: 10px; color: rgba(255,255,255,.5); text-align: center; }
-
-    /* Name overlay on hover */
-    .mc-overlay {
-      position: absolute; bottom: 0; left: 0; right: 0;
-      background: linear-gradient(to top, rgba(15,23,42,.85), transparent);
-      padding: 28px 12px 12px;
-      opacity: 0;
-      transition: opacity .2s;
-    }
-    .mentor-card:hover .mc-overlay { opacity: 1; }
-    .mc-overlay-name  { font-size: 12px; font-weight: 800; color: #fff; display: block; }
-    .mc-overlay-field { font-size: 10px; color: rgba(255,255,255,.65); display: block; margin-top: 2px; }
-
-    .mc-arrow {
-      position: absolute; top: 10px; right: 10px;
-      width: 26px; height: 26px; border-radius: 50%;
-      background: #fff; border: 1px solid #e2e8f0;
+    .slide-placeholder {
+      width: 100px; height: 100px;
+      border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
-      font-size: 11px; color: #0f172a;
-      transition: background .15s, color .15s, opacity .15s;
-      opacity: 0;
+      font-size: 32px;
+      border: 3px solid #fff;
+      box-shadow: 0 4px 16px rgba(15,23,42,.12);
     }
-    .mentor-card:hover .mc-arrow { opacity: 1; background: #2563eb; color: #fff; border-color: #2563eb; }
+    .slide-name {
+      font-size: 11px; font-weight: 700; color: #0f172a;
+      text-align: center; margin-top: 8px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .slide-field {
+      font-size: 10px; color: #94a3b8;
+      text-align: center; margin-top: 2px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
 
-    /* Loading skeleton */
-    .mc-skeleton {
-      border-radius: 18px;
-      overflow: hidden;
-      background: #f1f5f9;
-      border: 1px solid #e8edf5;
-    }
-    .skel-photo { height: 160px; background: linear-gradient(90deg,#e2e8f0 25%,#f1f5f9 50%,#e2e8f0 75%); background-size:200% 100%; animation: skel 1.4s ease-in-out infinite; }
-    .skel-body  { padding: 14px 16px; }
-    .skel-line  { height: 12px; border-radius: 6px; background: linear-gradient(90deg,#e2e8f0 25%,#f1f5f9 50%,#e2e8f0 75%); background-size:200% 100%; animation: skel 1.4s ease-in-out infinite; margin-bottom: 8px; }
-    .skel-line.short { width: 60%; }
-    @keyframes skel { to { background-position: -200% 0; } }
+
 
     /* ── Sections below ── */
     .sections { padding: 60px 60px 40px; }
@@ -398,10 +356,7 @@
     .btn-discover::after { content:''; position:absolute; top:0; left:-100%; width:50%; height:100%; background:linear-gradient(90deg,transparent,rgba(255,255,255,.1),transparent); animation:shimmer 3s ease-in-out infinite; }
     @keyframes shimmer { 0%{left:-100%} 60%,100%{left:160%} }
 
-    /* Mentor cards stagger */
-    .mentor-card, .mc-skeleton { animation: fadeUp .5s ease both; }
-    .mentor-card:nth-child(2), .mc-skeleton:nth-child(2) { animation-delay:.15s; }
-    .mentor-card:nth-child(3), .mc-skeleton:nth-child(3) { animation-delay:.3s; }
+
 
     /* Scroll reveal */
     .reveal { opacity:0; transform:translateY(28px); transition:opacity .6s ease,transform .6s ease; }
@@ -410,7 +365,7 @@
     .rd4{transition-delay:.1s}  .rd5{transition-delay:.2s}  .rd6{transition-delay:.3s}
 
     /* ── Responsive ── */
-    @media (max-width:1024px){ .page { grid-template-columns:1fr; } .right-panel { display:none; } }
+
     @media (max-width:768px){
       .left-panel { padding:0 24px 60px; }
       .sections { padding:40px 24px; }
@@ -447,6 +402,9 @@
   <div class="left-panel">
     <div class="wave-bg"></div>
 
+    <div style="display:flex;justify-content:center;margin-bottom:20px;position:relative;z-index:2">
+      <img src="logo.png" alt="MentifyHub" style="width:64px;height:64px;border-radius:20px;box-shadow:0 8px 24px rgba(37,99,235,.2);border:2px solid #fff"/>
+    </div>
     <h1 class="hero-headline">
       Connect with<br/>
       <span class="inline-search" onclick="if(!document.getElementById('heroSearch').matches(':focus')) window.location.href='auth.html?mode=signup&returnTo=mentor-directory.html'" style="cursor:pointer">
@@ -475,6 +433,13 @@
       </a>
     </div>
 
+    <!-- Mentor slider -->
+    <div class="mentor-slider-wrap">
+      <div class="mentor-slider" id="mentorSlider">
+        <!-- Filled by JS -->
+      </div>
+    </div>
+
     <div class="social-proof">
       <div class="avatar-stack" id="avatarStack">
         <div class="av">M</div>
@@ -486,19 +451,7 @@
     </div>
   </div>
 
-  <!-- Right: live mentor cards -->
-  <div class="right-panel">
-    <div class="right-panel-label" id="panelLabel">Mentors on the platform</div>
-    <div id="mentorCards">
-      <!-- Skeletons while loading -->
-      <div class="mc-skeleton" style="border-radius:999px 999px 20px 20px;grid-row:span 2"><div class="skel-photo" style="height:260px"></div></div>
-      <div class="mc-skeleton" style="border-radius:20px 20px 999px 20px"><div class="skel-photo" style="height:120px"></div></div>
-      <div class="mc-skeleton" style="border-radius:50%;aspect-ratio:1"><div class="skel-photo" style="height:120px"></div></div>
-      <div class="mc-skeleton" style="border-radius:20px 999px 20px 20px;grid-row:span 2"><div class="skel-photo" style="height:260px"></div></div>
-      <div class="mc-skeleton" style="border-radius:20px"><div class="skel-photo" style="height:120px"></div></div>
-      <div class="mc-skeleton" style="border-radius:999px 20px 20px 999px"><div class="skel-photo" style="height:120px"></div></div>
-    </div>
-  </div>
+
 </div>
 
 <!-- Sections below -->
@@ -589,54 +542,73 @@ async function fetchMentors() {
   }
 }
 
-// ── Render mentor cards ───────────────────────────────────────────
-function renderCards(mentors) {
-  const container = document.getElementById("mentorCards");
-  const label     = document.getElementById("panelLabel");
-  container.innerHTML = "";
+// ── Gradients per slot ───────────────────────────────────────────
+const GRADIENTS = [
+  "linear-gradient(145deg,#0f2444,#1d4ed8)",
+  "linear-gradient(145deg,#0c1a3a,#2563eb)",
+  "linear-gradient(145deg,#1a0f3a,#4c1d95)",
+  "linear-gradient(145deg,#0a1628,#0369a1)",
+  "linear-gradient(145deg,#0f2444,#1e40af)",
+  "linear-gradient(145deg,#160a2e,#6d28d9)",
+];
 
-  if(!mentors.length){
-    container.innerHTML = `<p style="font-size:13px;color:#94a3b8;text-align:center;padding:28px 0">No mentors found.</p>`;
-    if(label) label.textContent = "No results";
-    return;
+// ── Build a single slide card ─────────────────────────────────────
+function buildSlideCard(m, i) {
+  const card  = document.createElement("div");
+  card.className = "mentor-slide-card";
+  card.onclick = () => window.location.href = "auth.html?mode=signup&returnTo=mentor-directory.html";
+  const emoji = FIELD_EMOJI[m.field] || "🌱";
+  const grad  = GRADIENTS[i % GRADIENTS.length];
+
+  if(m.profile_image){
+    const img = document.createElement("img");
+    img.className = "slide-photo";
+    img.src = m.profile_image;
+    img.alt = m.full_name || "Mentor";
+    img.loading = "lazy";
+    img.onerror = () => {
+      img.replaceWith(buildPlaceholder(emoji, grad));
+    };
+    card.appendChild(img);
+  } else {
+    card.appendChild(buildPlaceholder(emoji, grad));
   }
 
-  if(label){
-    label.textContent = mentors.length === ALL_MENTORS.length
-      ? `${mentors.length} mentors on the platform`
-      : `${mentors.length} mentor${mentors.length===1?"":"s"} found`;
-  }
+  const name  = document.createElement("div");
+  name.className = "slide-name";
+  name.textContent = m.full_name || "Mentor";
+  const field = document.createElement("div");
+  field.className = "slide-field";
+  field.textContent = m.field || "";
+  card.appendChild(name);
+  card.appendChild(field);
+  return card;
+}
 
-  mentors.slice(0,6).forEach((m, i) => {
-    const card  = document.createElement("div");
-    card.className = "mentor-card";
-    card.style.animationDelay = (i * 0.07) + "s";
-    card.onclick = () => window.location.href = "auth.html?mode=signup&returnTo=mentor-directory.html";
-    const emoji = FIELD_EMOJI[m.field] || "🌱";
-    const tags  = (m.tags || []).slice(0, 3);
-    const gradients = [
-      "linear-gradient(145deg,#0f2444,#1d4ed8)",
-      "linear-gradient(145deg,#0c1a3a,#2563eb)",
-      "linear-gradient(145deg,#1a0f3a,#4c1d95)",
-      "linear-gradient(145deg,#0a1628,#0369a1)",
-      "linear-gradient(145deg,#0f2444,#1e40af)",
-      "linear-gradient(145deg,#160a2e,#6d28d9)",
-    ];
-    const grad = gradients[i % gradients.length];
+function buildPlaceholder(emoji, grad) {
+  const div = document.createElement("div");
+  div.className = "slide-placeholder";
+  div.style.background = grad;
+  div.textContent = emoji;
+  return div;
+}
 
-    card.innerHTML = `
-      ${m.profile_image
-        ? `<img class="mc-photo" src="${m.profile_image}" alt="${m.full_name||''}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><div class="mc-photo-placeholder" style="display:none;background:${grad}">${emoji}<span class="mc-ph-name">${m.full_name||''}</span><span class="mc-ph-field">${m.field||''}</span></div>`
-        : `<div class="mc-photo-placeholder" style="background:${grad}">${emoji}<span class="mc-ph-name">${m.full_name||''}</span><span class="mc-ph-field">${m.field||''}</span></div>`
-      }
-      <div class="mc-overlay">
-        <span class="mc-overlay-name">${m.full_name || "Mentor"}</span>
-        <span class="mc-overlay-field">${m.field || m.headline || ""}</span>
-      </div>
-      <div class="mc-arrow">↗</div>
-    `;
-    container.appendChild(card);
+// ── Render slider ─────────────────────────────────────────────────
+function renderSlider(mentors) {
+  const slider = document.getElementById("mentorSlider");
+  if(!slider || !mentors.length) return;
+  slider.innerHTML = "";
+
+  // Duplicate list for seamless infinite scroll
+  const all = [...mentors, ...mentors];
+  all.forEach((m, i) => {
+    slider.appendChild(buildSlideCard(m, i));
   });
+}
+
+// ── Filter mentors and update slider ─────────────────────────────
+function renderCards(mentors) {
+  renderSlider(mentors.length ? mentors : ALL_MENTORS);
 }
 
 // ── Filter mentors based on category + search ─────────────────────

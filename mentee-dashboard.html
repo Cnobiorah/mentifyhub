@@ -595,6 +595,7 @@
     const {data}=await sb.from("sessions").select("*").eq("mentee_id",currentUser.id).order("scheduled_for",{ascending:false});
     if(!data||!data.length) return;
     const next=data[0];
+    if(!$("upcomingSessions")) return;
     $("upcomingSessions").innerHTML=`
       <div style="padding:16px;border:1px solid var(--line);border-radius:var(--radius-sm);background:#fff;text-align:center">
         <div style="font-weight:700;font-size:13px">Next session</div>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>MentifyHub — Mentor Directory</title>
+  <title>MentifyHub - Mentor Directory</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
   <script src="auth-guard.js"></script>
@@ -90,7 +90,7 @@
       .mentor-card { padding: 16px; }
     }
 
-    /* Hamburger — hidden on desktop */
+    /* Hamburger - hidden on desktop */
     #hamburgerBtn { display: none !important; }
     @media (max-width: 768px) {
       #hamburgerBtn { display: flex !important; }
@@ -133,7 +133,7 @@
   <!-- Heading -->
   <div style="margin-top:22px">
     <h1 style="font-size:24px;font-weight:800;letter-spacing:-.3px">Find your mentor</h1>
-    <p style="color:var(--muted);font-size:14px;margin-top:6px">We'll show your <strong>top matches</strong> first based on your profile — field, tags, availability, timezone, and communication.</p>
+    <p style="color:var(--muted);font-size:14px;margin-top:6px">We show mentors who are a good fit for you based on your profile.</p>
   </div>
 
   <!-- Filters -->
@@ -150,7 +150,7 @@
   <div class="dir-section" id="topSection">
     <div class="flex justify-between items-center" style="flex-wrap:wrap;gap:10px">
       <div>
-        <h2>Top matches for you</h2>
+        <h2>Mentors for you</h2>
         <p id="topHint">Based on your profile.</p>
       </div>
       <span class="mh-chip" id="countHint">—</span>
@@ -162,7 +162,7 @@
   <!-- All mentors section -->
   <div class="dir-section">
     <h2>All mentors</h2>
-    <p>Browse everyone — use filters to narrow down.</p>
+    <p>Browse everyone - use filters to narrow down.</p>
     <div class="mentor-grid" id="allGrid"></div>
     <div class="mh-empty" id="allEmpty" style="display:none;margin-top:12px">No mentors match your filters.</div>
   </div>
@@ -305,8 +305,8 @@
 
   function openModal(mentor){
     CURRENT=mentor;
-    els.modalTitle.textContent=`Request mentorship — ${mentor.full_name||"Mentor"}`;
-    els.modalMeta.textContent=[mentorTitle(mentor),[mentor.availability,mentor.communication,mentor.timezone].filter(Boolean).join(" · ")].filter(Boolean).join(" — ");
+    els.modalTitle.textContent=`Request mentorship - ${mentor.full_name||"Mentor"}`;
+    els.modalMeta.textContent=[mentorTitle(mentor),[mentor.availability,mentor.communication,mentor.timezone].filter(Boolean).join(" · ")].filter(Boolean).join(" - ");
     els.message.value=defaultMessage(mentor);
     els.backdrop.classList.add("open");
     els.message.focus();
@@ -386,7 +386,7 @@
     const {data:mentors,error:moErr}=await sb.from(TABLES.mentors).select("*").order("updated_at",{ascending:false}).limit(500);
     if(moErr) console.error(moErr);
     MENTORS=mentors||[];
-    if(!MENTORS.length) toast("No mentors returned — check RLS policy on mentors table.");
+    if(!MENTORS.length) toast("No mentors found. Try adjusting your filters.");
     const {data:reqs}=await sb.from(TABLES.requests).select("mentor_id,status").eq("mentee_id",USER.id);
     REQUESTED=new Set((reqs||[]).map(r=>r.mentor_id));
     if(MENTEE){
@@ -395,7 +395,7 @@
       els.topHint.textContent=focus?`Based on: ${focus}`:"Based on your profile.";
     }else{
       SCORED=MENTORS.map(m=>({...m,_match:null}));
-      els.topHint.textContent="Browse mentors freely.";
+      els.topHint.textContent="These mentors match your profile.";
     }
     fillFilters();
     render();

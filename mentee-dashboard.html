@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>MentifyHub — Mentee Dashboard</title>
+  <title>MentifyHub - Mentee Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
   <script src="auth-guard.js"></script>
@@ -89,7 +89,7 @@
       .mentor-card { padding: 14px; }
     }
 
-    /* Hamburger — hidden on desktop, shown on mobile */
+    /* Hamburger - hidden on desktop, shown on mobile */
     #hamburgerBtn { display: none !important; }
     @media (max-width: 768px) {
       #hamburgerBtn { display: flex !important; }
@@ -138,6 +138,39 @@
       padding:10px 16px; border-top:1px solid var(--line);
       background:var(--soft); text-align:center;
     }
+
+    /* ── Session booking ── */
+    .booking-section { margin-top: 18px; }
+    .booking-section h3 { font-size: 15px; font-weight: 800; margin-bottom: 4px; }
+    .booking-section p  { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
+    .day-cards { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 16px; }
+    .day-card {
+      flex-shrink: 0; min-width: 90px;
+      border: 1.5px solid var(--line); border-radius: 14px;
+      background: #fff; padding: 12px 10px; text-align: center;
+      cursor: pointer; transition: all .15s;
+    }
+    .day-card:hover { border-color: var(--accent); }
+    .day-card.selected { border-color: var(--accent); background: #eff6ff; }
+    .day-card .dc-day  { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+    .day-card .dc-date { font-size: 18px; font-weight: 900; color: var(--text); margin: 4px 0; }
+    .day-card .dc-slots{ font-size: 11px; font-weight: 700; color: var(--green); }
+    .day-card.selected .dc-day  { color: var(--accent); }
+    .day-card.selected .dc-date { color: var(--accent); }
+    .time-slots-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
+    .time-slot-btn {
+      padding: 12px 8px; border-radius: 12px;
+      border: 1.5px solid var(--line); background: #fff;
+      font: inherit; font-size: 13px; font-weight: 700;
+      color: var(--text); cursor: pointer; transition: all .15s;
+      text-align: center;
+    }
+    .time-slot-btn:hover  { border-color: var(--accent); background: #eff6ff; color: var(--accent); }
+    .time-slot-btn.selected { border-color: var(--accent); background: var(--accent); color: #fff; }
+    .time-slot-btn.booked { background: #f1f5f9; color: #94a3b8; border-color: #e2e8f0; cursor: not-allowed; font-size: 11px; }
+    .booking-confirm-btn { width: 100%; }
+    .no-slots-msg { font-size: 13px; color: var(--muted); text-align: center; padding: 20px; }
+
   </style>
 </head>
 <body>
@@ -225,16 +258,16 @@
     <main>
       <div class="journey-banner" id="journeyCard">
         <div>
-          <h2>Your mentoring journey</h2>
-          <p id="journeyText">Loading your matches…</p>
+          <h2 id="journeyTitle">Welcome, let's get started</h2>
+          <p id="journeyText">Browse mentors and reach out to one who fits your goals.…</p>
         </div>
-        <button class="mh-btn mh-btn-primary" id="refreshBtn" type="button">Refresh matches</button>
+
       </div>
 
       <div class="mh-card mh-card-body">
         <div class="mh-section-head">
-          <h3>Top mentor matches</h3>
-          <span class="mh-chip" style="font-size:11px">Tags · Field · Level · Timezone</span>
+          <h3>Mentors you might like</h3>
+          <span class="mh-chip" style="font-size:11px">Filtered for you</span>
         </div>
         <div style="font-size:12px;color:var(--muted)" id="matchesSub">Loading mentors…</div>
         <div class="matches-grid" id="matches"></div>
@@ -269,15 +302,12 @@
 
       <div id="reqList" style="display:none;margin-top:10px"></div>
 
-      <div style="margin-top:18px">
+      <div style="margin-top:18px" id="upcomingSessionsWrap">
         <div style="font-weight:700;font-size:13px;margin-bottom:8px">Upcoming sessions</div>
         <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Sessions appear after a mentor accepts your request.</div>
         <div id="upcomingSessions" class="mh-empty">
           <strong>No sessions scheduled</strong>
-          After acceptance, you'll be able to propose session times.
-          <div style="margin-top:10px">
-            <a class="mh-btn mh-btn-full" href="sessions.html">Open sessions</a>
-          </div>
+          Once a mentor accepts your request, you can book a session directly from your dashboard.
         </div>
       </div>
     </aside>
@@ -361,11 +391,16 @@
   }
 
 
-  // guardAuth is provided by auth-guard.js; wrap it to set local currentUser
+  // Auth check using Supabase directly - avoids infinite recursion
   async function guardAuth(){
-    const ok = await window.guardAuth("mentee-dashboard.html");
-    if(ok){ currentUser = window.mhCurrentUser; $("envChip").textContent = "Live"; }
-    return ok;
+    const {data:{session}, error} = await window.mhSb.auth.getSession();
+    if(error || !session){ window.location.href = "auth.html?mode=signin&returnTo=mentee-dashboard.html"; return false; }
+    currentUser = session.user;
+    $("envChip").textContent = "Live";
+    const {data:mp} = await window.mhSb.from("mentors").select("user_id").eq("user_id", session.user.id).maybeSingle();
+    const dash = mp ? "mentor-dashboard.html" : "mentee-dashboard.html";
+    if(document.getElementById("dashboardLink")) document.getElementById("dashboardLink").href = dash;
+    return true;
   }
 
   async function loadMenteeProfile(){
@@ -397,11 +432,11 @@
     const pct=menteeProfile?calcCompleteness(menteeProfile):0;
     const pending=lastRequests.some(r=>(r.status||"").toLowerCase()==="pending");
     const accepted=lastRequests.some(r=>(r.status||"").toLowerCase()==="accepted");
-    if(!menteeProfile||pct<60){ $("journeyText").textContent="Step 1: Complete onboarding to unlock accurate matches."; return; }
-    if(!lastRequests.length){ $("journeyText").textContent="Step 2: Review your top matches and send a mentorship request."; return; }
-    if(accepted){ $("journeyText").textContent="Step 3: You have an accepted request — next: schedule your first session."; return; }
-    if(pending){ $("journeyText").textContent="Step 3: Request sent — waiting for mentor acceptance."; return; }
-    $("journeyText").textContent="You're on track — review matches and manage your requests.";
+    if(!menteeProfile||pct<60){ $("journeyText").textContent="Finish setting up your profile so mentors can see who you are."; return; }
+    if(!lastRequests.length){ $("journeyText").textContent="Browse the mentors below and reach out to someone who feels like a good fit."; return; }
+    if(accepted){ $("journeyText").textContent="A mentor accepted your request. Say hello and schedule your first call."; return; }
+    if(pending){ $("journeyText").textContent="Your request is with your mentor. Give them a day or two to get back to you."; return; }
+    $("journeyText").textContent="You are doing great. Keep the conversation going.";
   }
 
   async function loadMentors(){
@@ -474,7 +509,7 @@
   function openRequestModal(mentorId,mentorName){
     if(!mentorId){ showToast("Mentor profile missing."); return; }
     requestTarget={mentorId,mentorName};
-    $("requestModalTitle").textContent=`Request mentorship — ${mentorName}`;
+    $("requestModalTitle").textContent=`Message ${mentorName}`;
     $("requestModalMeta").textContent="Your request will appear in the mentor dashboard immediately.";
     $("requestMessage").value=defaultRequestMessage(mentorName);
     $("requestBackdrop").classList.add("open");
@@ -542,7 +577,7 @@
   $("cancelRequestBtn").addEventListener("click",closeRequestModal);
   $("sendRequestBtn").addEventListener("click",sendRequest);
   $("requestBackdrop").addEventListener("click",e=>{ if(e.target===$("requestBackdrop")) closeRequestModal(); });
-  $("refreshBtn").addEventListener("click",async()=>{ await loadMentors(); renderMatches(); showToast("Matches refreshed"); });
+  if($("refreshBtn")) $("refreshBtn").addEventListener("click",async()=>{ await loadMentors(); renderMatches(); showToast("Matches refreshed"); });
   $("reloadReqBtn").addEventListener("click",async()=>{ await loadRequests(); renderMatches(); showToast("Updated"); });
   $("signOutBtn").addEventListener("click",async()=>{ try{ await sb.auth.signOut(); window.location.replace("auth.html?mode=signin"); }catch(err){ console.error(err); showToast("Could not sign out"); } });
 
@@ -560,6 +595,7 @@
     const {data}=await sb.from("sessions").select("*").eq("mentee_id",currentUser.id).order("scheduled_for",{ascending:false});
     if(!data||!data.length) return;
     const next=data[0];
+    if(!$("upcomingSessions")) return;
     $("upcomingSessions").innerHTML=`
       <div style="padding:16px;border:1px solid var(--line);border-radius:var(--radius-sm);background:#fff;text-align:center">
         <div style="font-weight:700;font-size:13px">Next session</div>
@@ -662,8 +698,8 @@
     banner.style.cssText="padding:14px 18px;border-radius:14px;border:1px solid rgba(29,78,216,.20);background:rgba(29,78,216,.06);display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:16px;";
     banner.innerHTML=`
       <div>
-        <b style="font-size:14px;font-weight:700;color:var(--accent)">Complete your profile — ${pct}% done</b>
-        <p style="font-size:13px;color:var(--muted);margin-top:3px">A complete profile unlocks accurate mentor matches and makes it easier for mentors to accept your requests.</p>
+        <b style="font-size:14px;font-weight:700;color:var(--accent)">Your profile is ${pct}% complete</b>
+        <p style="font-size:13px;color:var(--muted);margin-top:3px">Mentors are more likely to say yes when they can see who you are and what you are working on.</p>
       </div>
       <a class="mh-btn mh-btn-primary" href="mentee-onboarding.html">Finish profile →</a>`;
     const journeyCard=$("journeyCard");
@@ -700,6 +736,227 @@
     if(activityCard) activityCard.parentElement.insertBefore(section, activityCard);
   }
 
+
+  // ── Session booking ───────────────────────────────────────────────
+  let bookingMentorId   = null;
+  let bookingRequestId  = null;
+  let selectedDay       = null;
+  let selectedTime      = null;
+  let availabilityData  = [];
+
+  async function loadBookingSection() {
+    // Only show if there is an accepted request
+    const {data: requests} = await sb.from("mentorship_requests")
+      .select("*").eq("mentee_id", currentUser.id).eq("status", "accepted").limit(1);
+
+    if(!requests || !requests.length) return;
+
+    const req = requests[0];
+    bookingMentorId  = req.mentor_id;
+    bookingRequestId = req.id;
+
+    // Inject booking UI into the upcoming sessions sidebar slot
+    if(!document.getElementById("bookingSection")) {
+      const wrap = document.getElementById("upcomingSessionsWrap");
+      if(wrap) {
+        wrap.innerHTML = `
+          <div id="bookingSection">
+            <div style="font-weight:700;font-size:13px;margin-bottom:8px">Book a session</div>
+            <p id="bookingMentorName" style="font-size:12px;color:var(--muted);margin-bottom:12px;"></p>
+            <div class="day-cards" id="dayCards"></div>
+            <p id="noSlotsMsg" class="no-slots-msg" style="display:none;">
+              Your mentor hasn't set availability yet. Check back soon.
+            </p>
+            <div id="timeSlotsWrap" style="display:none;">
+              <div style="font-size:13px;font-weight:700;margin-bottom:10px;">Pick a time</div>
+              <div class="time-slots-grid" id="timeSlotGrid"></div>
+            </div>
+            <button id="confirmBookingBtn" class="mh-btn mh-btn-primary booking-confirm-btn" style="display:none;">
+              Confirm booking
+            </button>
+          </div>`;
+      }
+    }
+
+    // Get mentor name
+    const {data: mentor} = await sb.from("mentors").select("full_name").eq("user_id", req.mentor_id).maybeSingle();
+    document.getElementById("bookingMentorName").textContent =
+      "Pick a time to meet " + (mentor?.full_name || "your mentor") + ".";
+
+    // Get mentor availability
+    const {data: avail, error: availErr} = await sb.from("mentor_availability")
+      .select("*").eq("mentor_id", req.mentor_id);
+
+    if(availErr) {
+      console.error("[MentifyHub] mentor_availability fetch error:", availErr.message, availErr);
+    }
+    console.log("[MentifyHub] mentor_availability rows:", avail);
+
+    availabilityData = avail || [];
+    renderDayCards();
+  }
+
+  function renderDayCards() {
+    const container = document.getElementById("dayCards");
+    const noSlots   = document.getElementById("noSlotsMsg");
+    container.innerHTML = "";
+
+    if(!availabilityData.length) {
+      noSlots.style.display = "block";
+      return;
+    }
+
+    // Generate next 14 days that match available days
+    const dayNames = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+    const cards = [];
+    const today = new Date();
+
+    for(let i = 0; i < 14; i++) {
+      const d    = new Date(today);
+      d.setDate(today.getDate() + i);
+      const name = dayNames[d.getDay()];
+      const avail = availabilityData.find(a => a.day_of_week === name);
+      if(!avail) continue;
+
+      const card = document.createElement("div");
+      card.className = "day-card";
+      card.dataset.date = d.toISOString().split("T")[0];
+      card.dataset.day  = name;
+
+      const dayAbbr = name.slice(0, 3).toUpperCase();
+      const dateStr = d.toLocaleDateString("en-GB", {day:"2-digit", month:"short"});
+      const slots   = (avail.time_slots || []).length;
+
+      card.innerHTML = `
+        <div class="dc-day">${dayAbbr}</div>
+        <div class="dc-date">${dateStr}</div>
+        <div class="dc-slots">${slots} slot${slots !== 1 ? "s" : ""}</div>`;
+
+      card.addEventListener("click", async () => {
+        document.querySelectorAll(".day-card").forEach(c => c.classList.remove("selected"));
+        card.classList.add("selected");
+        selectedDay  = card.dataset.date;
+        selectedTime = null;
+        await renderTimeSlots(avail.time_slots || []);
+      });
+
+      container.appendChild(card);
+      cards.push(card);
+    }
+
+    if(!cards.length) noSlots.style.display = "block";
+  }
+
+  async function renderTimeSlots(times) {
+    const wrap = document.getElementById("timeSlotsWrap");
+    const grid = document.getElementById("timeSlotGrid");
+    grid.innerHTML = "<div style='font-size:12px;color:var(--muted);padding:8px 0'>Checking availability…</div>";
+    wrap.style.display = "block";
+    document.getElementById("confirmBookingBtn").style.display = "none";
+
+    // Fetch already-booked times for this mentor on the selected day
+    const dayStart = selectedDay + "T00:00:00";
+    const dayEnd   = selectedDay + "T23:59:59";
+    const {data: bookedSessions} = await sb.from("sessions")
+      .select("scheduled_for")
+      .eq("mentor_id", bookingMentorId)
+      .gte("scheduled_for", dayStart)
+      .lte("scheduled_for", dayEnd)
+      .neq("status", "cancelled");
+
+    const bookedTimes = new Set(
+      (bookedSessions || []).map(s => {
+        const t = s.scheduled_for.split("T")[1] || "";
+        return t.slice(0, 5);
+      })
+    );
+
+    grid.innerHTML = "";
+    times.sort().forEach(t => {
+      const btn      = document.createElement("button");
+      const isBooked = bookedTimes.has(t);
+      btn.className  = "time-slot-btn" + (isBooked ? " booked" : "");
+      btn.disabled   = isBooked;
+      const [h, m]   = t.split(":").map(Number);
+      const ampm     = h >= 12 ? "PM" : "AM";
+      const hour     = h % 12 || 12;
+      btn.textContent = isBooked
+        ? `${hour}:${String(m).padStart(2,"0")} ${ampm} · Booked`
+        : `${hour}:${String(m).padStart(2,"0")} ${ampm}`;
+      if(!isBooked) {
+        btn.addEventListener("click", () => {
+          document.querySelectorAll(".time-slot-btn").forEach(b => b.classList.remove("selected"));
+          btn.classList.add("selected");
+          selectedTime = t;
+          document.getElementById("confirmBookingBtn").style.display = "block";
+        });
+      }
+      grid.appendChild(btn);
+    });
+  }
+
+  document.addEventListener("click", async (e) => { if(e.target.id !== "confirmBookingBtn") return;
+    if(!selectedDay || !selectedTime || !bookingRequestId) return;
+    const btn = e.target;
+    btn.textContent = "Booking..."; btn.disabled = true;
+
+    const scheduledFor = `${selectedDay}T${selectedTime}:00`;
+
+    const {error} = await sb.from("sessions").insert({
+      request_id:       bookingRequestId,
+      mentor_id:        bookingMentorId,
+      mentee_id:        currentUser.id,
+      proposed_by:      currentUser.id,
+      scheduled_for:    scheduledFor,
+      duration_minutes: 60,
+      status:           "scheduled",
+    });
+
+    if(error) {
+      console.error(error);
+      btn.textContent = "Confirm booking"; btn.disabled = false;
+      // Check if it's a duplicate booking (race condition - someone else just took this slot)
+      if(error.code === "23505" || (error.message && error.message.includes("unique"))) {
+        alert("Sorry, this time slot was just booked by someone else. Please pick a different time.");
+        await renderTimeSlots(availabilityData.find(a => {
+          const dayName = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][new Date(selectedDay).getDay()];
+          return a.day_of_week === dayName;
+        })?.time_slots || []);
+      } else {
+        alert("Could not book. Please try again.");
+      }
+      return;
+    }
+
+    // Notify the mentor about the booking
+    try {
+      const {data: menteeProf} = await sb.from("mentees").select("full_name").eq("user_id", currentUser.id).maybeSingle();
+      const menteeName  = menteeProf?.full_name || "A mentee";
+      const sessionDate = new Date(scheduledFor).toLocaleString("en-GB", {
+        weekday:"long", day:"numeric", month:"long", year:"numeric",
+        hour:"2-digit", minute:"2-digit"
+      });
+      await sb.from("notifications").insert({
+        user_id:  bookingMentorId,
+        title:    "New session booked! 📅",
+        message:  `${menteeName} has booked a session with you on ${sessionDate}.`,
+        type:     "session_booked",
+        is_read:  false
+      });
+    } catch(notifErr) { console.warn("Could not notify mentor:", notifErr); }
+
+    btn.textContent = "Booked!";
+    setTimeout(() => {
+      const wrap = document.getElementById("upcomingSessionsWrap");
+      if(wrap) wrap.innerHTML = `
+        <div style="font-weight:700;font-size:13px;margin-bottom:8px">Upcoming sessions</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Session booked! ✅</div>
+        <div class="mh-empty">
+          <a class="mh-btn mh-btn-primary" href="sessions.html" style="width:100%;justify-content:center">View sessions</a>
+        </div>`;
+    }, 2000);
+  });
+
   window.addEventListener("load", async () => {
     const ok = await guardAuth();
     if(!ok) return;
@@ -708,6 +965,7 @@
     await new Promise(r=>setTimeout(r,120));
     await loadMentors();
     await loadRequests();
+    await loadBookingSection();
     await loadMentorshipProgress();
     await loadSessions();
     await loadNotifications();

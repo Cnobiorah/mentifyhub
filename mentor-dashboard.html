@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>MentifyHub — Mentor Dashboard</title>
+  <title>MentifyHub - Mentor Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
   <script src="auth-guard.js"></script>
@@ -143,7 +143,7 @@
       .stats-row { grid-template-columns: 1fr; }
     }
 
-    /* Hamburger — hidden on desktop, shown on mobile */
+    /* Hamburger - hidden on desktop, shown on mobile */
     #hamburgerBtn { display: none !important; }
     @media (max-width: 768px) {
       #hamburgerBtn { display: flex !important; }
@@ -159,6 +159,31 @@
       #navOverlay { display: none !important; }
       .mh-nav { display: flex !important; }
     }
+
+    /* ── Availability manager ── */
+    .avail-section { margin-top: 18px; }
+    .avail-section h3 { font-size: 15px; font-weight: 800; margin-bottom: 4px; }
+    .avail-section p  { font-size: 13px; color: var(--muted); margin-bottom: 14px; }
+    .day-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-bottom: 16px; }
+    .day-btn {
+      padding: 10px 6px; border-radius: 10px; border: 1.5px solid var(--line);
+      background: #fff; font: inherit; font-size: 12px; font-weight: 700;
+      color: var(--muted); cursor: pointer; text-align: center; transition: all .15s;
+    }
+    .day-btn.selected { border-color: var(--accent); background: #eff6ff; color: var(--accent); }
+    .day-btn:hover { border-color: var(--accent); }
+    .time-slots-wrap { margin-top: 12px; }
+    .time-slots-wrap label { font-size: 13px; font-weight: 700; display: block; margin-bottom: 8px; }
+    .time-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+    .time-chip {
+      padding: 6px 14px; border-radius: 999px; border: 1.5px solid var(--line);
+      background: #fff; font: inherit; font-size: 12px; font-weight: 600;
+      color: var(--muted); cursor: pointer; transition: all .15s;
+    }
+    .time-chip.selected { border-color: var(--accent); background: #eff6ff; color: var(--accent); }
+    .avail-save-btn { margin-top: 14px; }
+    .avail-status { font-size: 12px; color: var(--green); font-weight: 600; margin-top: 8px; display: none; }
+
   </style>
 </head>
 <body>
@@ -264,6 +289,56 @@
         </div>
       </div>
 
+
+
+      <!-- Upcoming Sessions -->
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <h3 style="font-size:14px;font-weight:700;margin:0">Upcoming sessions</h3>
+          <button class="mh-btn mh-btn-sm" id="refreshSessionsBtn" type="button">Refresh</button>
+        </div>
+        <div id="mentorSessionsList">
+          <div style="font-size:12px;color:var(--muted)">Loading…</div>
+        </div>
+      </div>
+
+      <!-- Availability Manager -->
+      <div class="avail-section" style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line)">
+        <h3>Your availability</h3>
+        <p>Set the days and times mentees can book sessions with you.</p>
+
+        <div class="day-grid" id="dayGrid">
+          <button class="day-btn" data-day="Monday">Mon</button>
+          <button class="day-btn" data-day="Tuesday">Tue</button>
+          <button class="day-btn" data-day="Wednesday">Wed</button>
+          <button class="day-btn" data-day="Thursday">Thu</button>
+          <button class="day-btn" data-day="Friday">Fri</button>
+          <button class="day-btn" data-day="Saturday">Sat</button>
+          <button class="day-btn" data-day="Sunday">Sun</button>
+        </div>
+
+        <div class="time-slots-wrap">
+          <label>Available time slots</label>
+          <div class="time-chips" id="timeChips">
+            <button class="time-chip" data-time="08:00">8:00 AM</button>
+            <button class="time-chip" data-time="09:00">9:00 AM</button>
+            <button class="time-chip" data-time="10:00">10:00 AM</button>
+            <button class="time-chip" data-time="11:00">11:00 AM</button>
+            <button class="time-chip" data-time="12:00">12:00 PM</button>
+            <button class="time-chip" data-time="13:00">1:00 PM</button>
+            <button class="time-chip" data-time="14:00">2:00 PM</button>
+            <button class="time-chip" data-time="15:00">3:00 PM</button>
+            <button class="time-chip" data-time="16:00">4:00 PM</button>
+            <button class="time-chip" data-time="17:00">5:00 PM</button>
+            <button class="time-chip" data-time="18:00">6:00 PM</button>
+            <button class="time-chip" data-time="19:00">7:00 PM</button>
+            <button class="time-chip" data-time="20:00">8:00 PM</button>
+          </div>
+        </div>
+
+        <button class="mh-btn mh-btn-primary avail-save-btn" id="saveAvailBtn">Save availability</button>
+        <div class="avail-status" id="availStatus">Saved!</div>
+      </div>
       <div style="margin-top:16px;display:flex;flex-direction:column;gap:8px">
         <a class="mh-btn mh-btn-primary mh-btn-full" href="mentor-onboarding.html">Edit profile</a>
         <a class="mh-btn mh-btn-full" href="sessions.html">View sessions</a>
@@ -571,6 +646,54 @@
     window.location.href="auth.html?mode=signin";
   });
 
+  async function loadMentorSessions(user) {
+    const listEl = document.getElementById("mentorSessionsList");
+    if(!listEl) return;
+    const now = new Date().toISOString();
+    const {data: sessions, error} = await sb.from("sessions")
+      .select("scheduled_for, duration_minutes, status, mentee_id")
+      .eq("mentor_id", user.id)
+      .gte("scheduled_for", now)
+      .neq("status", "cancelled")
+      .order("scheduled_for", {ascending: true})
+      .limit(5);
+    if(error) { listEl.innerHTML = `<div style="font-size:12px;color:var(--muted)">Could not load sessions.</div>`; return; }
+    if(!sessions || !sessions.length) {
+      listEl.innerHTML = `<div style="font-size:12px;color:var(--muted)">No upcoming sessions yet.</div>`;
+      return;
+    }
+    // Fetch mentee names
+    const menteeIds = [...new Set(sessions.map(s => s.mentee_id).filter(Boolean))];
+    const {data: mentees} = await sb.from("mentees").select("user_id,full_name").in("user_id", menteeIds);
+    const menteeMap = {};
+    (mentees || []).forEach(m => { menteeMap[m.user_id] = m.full_name; });
+
+    listEl.innerHTML = sessions.map(s => {
+      const dt       = new Date(s.scheduled_for);
+      const dateStr  = dt.toLocaleDateString("en-GB", {weekday:"short", day:"numeric", month:"short", year:"numeric"});
+      const timeStr  = dt.toLocaleTimeString("en-GB", {hour:"2-digit", minute:"2-digit"});
+      const menteeName = menteeMap[s.mentee_id] || "Mentee";
+      return `<div class="session-card">
+        <div class="sc-date">${dateStr} · ${timeStr}</div>
+        <div class="sc-meta">with ${menteeName} · ${s.duration_minutes || 60} mins</div>
+        <span class="sc-badge">${s.status || "scheduled"}</span>
+      </div>`;
+    }).join("");
+  }
+
+  function subscribeSessionNotifications(user) {
+    sb.channel("sessions-mentor-" + user.id)
+      .on("postgres_changes", {
+        event:  "INSERT",
+        schema: "public",
+        table:  "sessions",
+        filter: `mentor_id=eq.${user.id}`
+      }, () => {
+        loadMentorSessions(user);
+      })
+      .subscribe();
+  }
+
   (async function init(){
     const user = await requireAuth();
     if(!user) return;
@@ -579,9 +702,12 @@
     await loadRequests(user);
     await loadProgress(user);
     await loadNotifications(user);
+    await loadMentorSessions(user);
     subscribeNotifications(user);
+    subscribeSessionNotifications(user);
     markAllBtn.addEventListener("click", () => markAllRead(user));
     refreshNotifBtn.addEventListener("click", () => loadNotifications(user));
+    document.getElementById("refreshSessionsBtn")?.addEventListener("click", () => loadMentorSessions(user));
 
     // Onboarding prompt for incomplete mentor profiles
     try{
@@ -591,13 +717,121 @@
         if(pct<80){
           const banner=document.createElement("div");
           banner.style.cssText="padding:14px 18px;border-radius:14px;border:1px solid rgba(29,78,216,.20);background:rgba(29,78,216,.06);display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:16px;";
-          banner.innerHTML=`<div><b style="font-size:14px;font-weight:700;color:var(--accent)">Complete your mentor profile — ${pct}% done</b><p style="font-size:13px;color:var(--muted);margin-top:3px">A complete profile helps mentees find and trust you. Finish your profile to improve your match score.</p></div><a class="mh-btn mh-btn-primary" href="mentor-onboarding.html">Finish profile →</a>`;
+          banner.innerHTML=`<div><b style="font-size:14px;font-weight:700;color:var(--accent)">Your profile is ${pct}% complete</b><p style="font-size:13px;color:var(--muted);margin-top:3px">Mentees are more likely to reach out when your profile is complete.</p></div><a class="mh-btn mh-btn-primary" href="mentor-onboarding.html">Finish profile →</a>`;
           const list=document.getElementById("list");
           if(list) list.parentElement.insertBefore(banner,list.parentElement.firstChild);
         }
       }
     }catch(e){ console.error(e); }
   })();
+</script>
+
+<script>
+(function(){
+  var _sb = window.mhSb;
+  var selDays = new Set(), selTimes = new Set();
+
+  document.querySelectorAll(".day-btn").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      btn.classList.toggle("selected");
+      selDays.has(btn.dataset.day) ? selDays.delete(btn.dataset.day) : selDays.add(btn.dataset.day);
+    });
+  });
+
+  document.querySelectorAll(".time-chip").forEach(function(chip){
+    chip.addEventListener("click", function(){
+      chip.classList.toggle("selected");
+      selTimes.has(chip.dataset.time) ? selTimes.delete(chip.dataset.time) : selTimes.add(chip.dataset.time);
+    });
+  });
+
+  async function loadAvailability(userId){
+    try {
+      var res = await _sb.from("mentor_availability").select("*").eq("mentor_id", userId);
+      if(!res.data || !res.data.length) return;
+      res.data.forEach(function(row){
+        selDays.add(row.day_of_week);
+        (row.time_slots||[]).forEach(function(t){ selTimes.add(t); });
+      });
+      document.querySelectorAll(".day-btn").forEach(function(btn){
+        if(selDays.has(btn.dataset.day)) btn.classList.add("selected");
+      });
+      document.querySelectorAll(".time-chip").forEach(function(chip){
+        if(selTimes.has(chip.dataset.time)) chip.classList.add("selected");
+      });
+    } catch(e){ console.error(e); }
+  }
+
+  var saveBtn = document.getElementById("saveAvailBtn");
+  var availStatus = document.getElementById("availStatus");
+
+  function showAvailMsg(msg, isError) {
+    if(!availStatus) return;
+    availStatus.textContent = msg;
+    availStatus.style.color = isError ? "#dc2626" : "";
+    availStatus.style.display = "block";
+    setTimeout(function(){ availStatus.style.display = "none"; availStatus.textContent = ""; availStatus.style.color = ""; }, 3500);
+  }
+
+  if(saveBtn){
+    saveBtn.addEventListener("click", async function(){
+      saveBtn.textContent = "Saving..."; saveBtn.disabled = true;
+      try {
+        var s = await _sb.auth.getSession();
+        var uid = s.data && s.data.session && s.data.session.user.id;
+        if(!uid){
+          showAvailMsg("Not logged in. Please refresh and try again.", true);
+          saveBtn.textContent = "Save availability"; saveBtn.disabled = false;
+          return;
+        }
+
+        // Delete existing rows
+        var delRes = await _sb.from("mentor_availability").delete().eq("mentor_id", uid);
+        if(delRes.error) {
+          console.error("[MentifyHub] availability delete error:", delRes.error);
+          showAvailMsg("Error clearing old availability: " + delRes.error.message, true);
+          saveBtn.textContent = "Save availability"; saveBtn.disabled = false;
+          return;
+        }
+
+        var times = Array.from(selTimes);
+        var days  = Array.from(selDays);
+
+        if(!days.length || !times.length) {
+          showAvailMsg("Please select at least one day and one time slot.", true);
+          saveBtn.textContent = "Save availability"; saveBtn.disabled = false;
+          return;
+        }
+
+        var rows = days.map(function(d){ return {mentor_id: uid, day_of_week: d, time_slots: times}; });
+        console.log("[MentifyHub] saving availability rows:", rows);
+
+        var insRes = await _sb.from("mentor_availability").insert(rows);
+        if(insRes.error) {
+          console.error("[MentifyHub] availability insert error:", insRes.error);
+          showAvailMsg("Error saving: " + insRes.error.message, true);
+          saveBtn.textContent = "Save availability"; saveBtn.disabled = false;
+          return;
+        }
+
+        console.log("[MentifyHub] availability saved successfully");
+        showAvailMsg("✅ Availability saved!", false);
+      } catch(e){
+        console.error("[MentifyHub] availability save exception:", e);
+        showAvailMsg("Unexpected error: " + e.message, true);
+      }
+      saveBtn.textContent = "Save availability"; saveBtn.disabled = false;
+    });
+  }
+
+  (async function(){
+    try {
+      var s = await _sb.auth.getSession();
+      var uid = s.data && s.data.session && s.data.session.user.id;
+      if(uid) loadAvailability(uid);
+    } catch(e){}
+  })();
+})();
 </script>
 
 <!-- ── Mobile right-side drawer ── -->

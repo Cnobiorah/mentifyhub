@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>MentifyHub — Admin Dashboard</title>
+  <title>MentifyHub - Admin Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
   <script src="auth-guard.js"></script>
@@ -313,7 +313,7 @@
       <div class="panel active" id="panel-overview">
         <div style="margin-bottom:18px">
           <h2 style="font-size:20px;font-weight:800;letter-spacing:-.3px">Platform overview</h2>
-          <p style="color:var(--muted);font-size:13px;margin-top:4px">Live data from Supabase — all tables.</p>
+          <p style="color:var(--muted);font-size:13px;margin-top:4px">Live data from Supabase - all tables.</p>
         </div>
 
         <div class="admin-notice" id="adminNotice" style="display:none"></div>
@@ -725,7 +725,7 @@
 
     $("feedList").innerHTML = recent.length ? recent.map(e=>{
       const cfg = typeConfig[e.type] || { dot:"var(--muted)", label:e.type };
-      const detail = e.type==="request" ? ` — ${e.status||"pending"}` : e.name ? ` — ${esc(e.name)}` : "";
+      const detail = e.type==="request" ? ` - ${e.status||"pending"}` : e.name ? ` - ${esc(e.name)}` : "";
       return `<div class="feed-item">
         <div class="feed-dot" style="background:${cfg.dot}"></div>
         <div>

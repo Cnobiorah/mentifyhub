@@ -3,376 +3,851 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>MentifyHub — Green Skills Mentorship</title>
-  <meta name="description" content="MentifyHub connects mentees and mentors for green skills and built-environment growth."/>
+  <title>MentifyHub — Connect with expert mentors</title>
+  <meta name="description" content="MentifyHub connects people with experienced mentors in sustainability, energy and green buildings."/>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..900;1,9..40,300..900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="mh-theme.css"/>
   <style>
-    /* ── Landing-specific ─────────────────── */
-    .hero {
-      display: grid;
-      grid-template-columns: 1.1fr .9fr;
-      gap: 16px;
-      margin-top: 18px;
-      align-items: stretch;
-    }
-    .hero-left  { padding: 32px; display: flex; flex-direction: column; justify-content: center; }
-    .hero-right {
-      border-radius: var(--radius);
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: #fff;
-      border: 1px solid var(--line);
-      box-shadow: var(--shadow);
-      min-height: 300px;
-      padding: 24px;
-    }
-    .hero-right img { width: 100%; height: auto; object-fit: contain; max-height: 420px; mix-blend-mode: multiply; display: block; }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { background: #f4f7fb; margin: 0; font-family: 'DM Sans', sans-serif; }
 
-    .kicker {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 12px;
-      border-radius: 999px;
-      border: 1px solid rgba(29,78,216,.18);
-      background: rgba(29,78,216,.06);
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--accent);
-      margin-bottom: 16px;
-      width: fit-content;
+    /* ── NAVBAR ── */
+    .lp-nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(244,247,251,0.94);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid #e2e8f0;
+      padding: 0 40px;
     }
+    .lp-nav-inner {
+      max-width: 1200px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 68px; gap: 16px;
+    }
+    .lp-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .lp-brand img { width: 36px; height: 36px; border-radius: 10px; }
+    .lp-brand-name { font-size: 17px; font-weight: 800; color: #0f172a; letter-spacing: -0.3px; }
+    .lp-nav-actions { display: flex; align-items: center; gap: 10px; }
+    .btn-outline {
+      padding: 9px 20px; border-radius: 10px;
+      border: 1.5px solid #cbd5e1; background: #fff;
+      font-size: 14px; font-weight: 600; color: #0f172a;
+      cursor: pointer; text-decoration: none;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .btn-outline:hover { border-color: #0b3b89; box-shadow: 0 0 0 3px rgba(11,59,137,.08); }
+    .btn-solid {
+      padding: 9px 22px; border-radius: 10px;
+      background: #0b3b89; color: #fff;
+      font-size: 14px; font-weight: 700;
+      cursor: pointer; text-decoration: none;
+      transition: background .15s, transform .1s; border: none;
+    }
+    .btn-solid:hover { background: #0d47a8; transform: translateY(-1px); }
 
-    .hero-left h2 {
-      font-size: clamp(28px, 3.2vw, 44px);
-      font-weight: 800;
-      line-height: 1.1;
-      letter-spacing: -.6px;
-      margin-bottom: 14px;
+    /* ── HERO ── */
+    .hero-section {
+      max-width: 1200px; margin: 0 auto;
+      padding: 72px 40px 40px; text-align: center;
     }
-    .hero-left h2 em {
-      font-style: normal;
-      background: linear-gradient(135deg, var(--accent2), var(--accent));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+    .role-tabs {
+      display: inline-flex; gap: 0;
+      border-bottom: 2px solid #e2e8f0; margin-bottom: 48px;
     }
-    .hero-left p {
-      color: var(--muted);
-      font-size: 15px;
-      line-height: 1.65;
-      max-width: 52ch;
-      margin-bottom: 22px;
+    .role-tab {
+      padding: 10px 24px; font-size: 15px; font-weight: 600;
+      color: #94a3b8; cursor: pointer; text-decoration: none;
+      border-bottom: 2px solid transparent; margin-bottom: -2px;
+      transition: color .15s, border-color .15s;
     }
-    .cta-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-    .mini-pills {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-top: 16px;
-    }
-    .mini-pill {
-      padding: 6px 12px;
-      border-radius: 999px;
-      border: 1px solid var(--line);
-      background: #fff;
-      font-size: 12px;
-      color: var(--muted);
-    }
+    .role-tab.active { color: #0b3b89; border-bottom-color: #0b3b89; }
+    .role-tab:hover:not(.active) { color: #475569; }
 
-    /* ── Path cards ─────────────────── */
-    .paths {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-      margin-top: 18px;
-    }
-    .path-card {
-      padding: 22px;
-      border-radius: var(--radius);
-      border: 1px solid var(--line);
-      background: linear-gradient(160deg, #fff, var(--soft));
-      box-shadow: var(--shadow);
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    .path-icon {
-      width: 44px;
-      height: 44px;
-      border-radius: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-    }
-    .path-card h3 { font-size: 16px; font-weight: 700; margin: 0; }
-    .path-card p  { font-size: 13px; color: var(--muted); line-height: 1.55; flex: 1; }
-
-    /* ── How it works ─────────────────── */
-    .how {
-      margin-top: 18px;
-      padding: 24px;
-      border-radius: var(--radius);
-      border: 1px solid var(--line);
-      background: #fff;
-      box-shadow: var(--shadow);
-    }
-    .how-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 18px; }
-    .how-step {
-      padding: 18px;
-      border-radius: var(--radius-sm);
-      border: 1px solid var(--line);
-      background: linear-gradient(180deg, var(--soft), #fff);
-    }
-    .step-num {
-      width: 32px; height: 32px;
-      border-radius: 10px;
+    /* Hero center */
+    .hero-mosaic {
       display: flex; align-items: center; justify-content: center;
-      font-size: 13px; font-weight: 800; color: var(--accent);
-      background: rgba(29,78,216,.08);
-      border: 1px solid rgba(29,78,216,.14);
-      margin-bottom: 10px;
     }
-    .how-step h4 { font-size: 14px; margin-bottom: 6px; }
-    .how-step p  { font-size: 13px; color: var(--muted); line-height: 1.5; }
+    .mosaic-col { display: none; }
+    .hero-center-text { max-width: 640px; width: 100%; }
+    .hero-headline {
+      font-size: clamp(36px, 4.8vw, 60px); font-weight: 900;
+      line-height: 1.08; letter-spacing: -2px; color: #0f172a;
+      margin: 0 0 16px;
+    }
+    .hero-sub {
+      font-size: 17px; color: #475569; line-height: 1.6;
+      margin: 0 auto 32px; max-width: 480px;
+    }
+    .hero-sub strong { color: #0b3b89; }
+    .hero-search-box {
+      display: flex; align-items: center; gap: 0;
+      background: #fff; border: 1.5px solid #e2e8f0;
+      border-radius: 14px; padding: 6px 6px 6px 18px;
+      max-width: 500px; margin: 0 auto;
+      box-shadow: 0 4px 24px rgba(15,23,42,.08);
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .hero-search-box:focus-within { border-color: #0b3b89; box-shadow: 0 4px 24px rgba(11,59,137,.14); }
+    .search-icon { color: #0b3b89; margin-right: 8px; flex-shrink: 0; }
+    .hero-search-box input {
+      flex: 1; border: none; outline: none; font-size: 15px;
+      color: #0f172a; background: transparent; font-family: inherit;
+    }
+    .hero-search-box input::placeholder { color: #94a3b8; }
+    .hero-search-btn {
+      padding: 10px 22px; background: #0b3b89; color: #fff;
+      border: none; border-radius: 10px; font-size: 14px; font-weight: 700;
+      cursor: pointer; font-family: inherit; flex-shrink: 0;
+      transition: background .15s;
+    }
+    .hero-search-btn:hover { background: #0d47a8; }
+    .hero-proven {
+      font-size: 13px; color: #64748b; font-weight: 600;
+      margin-top: 32px; text-align: center;
+    }
 
-    /* ── Features ─────────────────── */
-    .features {
-      margin-top: 18px;
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 14px;
+    /* ── MENTORS SECTION ── */
+    .section-wrap { max-width: 1200px; margin: 0 auto; padding: 60px 40px; }
+    .section-head {
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px;
     }
-    .feat {
-      padding: 18px;
-      border-radius: var(--radius);
-      border: 1px solid var(--line);
-      background: linear-gradient(180deg, #fff, var(--soft));
-      box-shadow: var(--shadow);
+    .section-title { font-size: 26px; font-weight: 800; color: #0f172a; letter-spacing: -0.5px; }
+    .section-actions { display: flex; align-items: center; gap: 10px; }
+    .btn-explore {
+      padding: 9px 20px; border-radius: 10px;
+      border: 1.5px solid #e2e8f0; background: #fff;
+      font-size: 13px; font-weight: 600; color: #0f172a;
+      cursor: pointer; text-decoration: none; transition: border-color .15s;
     }
-    .feat-icon {
-      width: 38px; height: 38px;
-      border-radius: 12px;
+    .btn-explore:hover { border-color: #0b3b89; }
+    .slider-btn {
+      width: 38px; height: 38px; border-radius: 50%;
+      border: 1.5px solid #e2e8f0; background: #fff;
       display: flex; align-items: center; justify-content: center;
-      background: rgba(29,78,216,.07);
-      border: 1px solid rgba(29,78,216,.12);
-      margin-bottom: 10px;
-      font-size: 17px;
+      cursor: pointer; font-size: 16px; color: #475569;
+      transition: border-color .15s, color .15s;
     }
-    .feat h4 { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
-    .feat p  { font-size: 13px; color: var(--muted); line-height: 1.55; }
+    .slider-btn:hover { border-color: #0b3b89; color: #0b3b89; }
+    .mentors-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+    .mentor-card {
+      background: #fff; border-radius: 18px; overflow: hidden;
+      border: 1px solid #e8edf5;
+      box-shadow: 0 2px 8px rgba(15,23,42,.05);
+      transition: transform .2s, box-shadow .2s;
+      cursor: pointer; text-decoration: none; display: block; color: inherit;
+    }
+    .mentor-card:hover { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(15,23,42,.10); }
+    .mc-photo-wrap { position: relative; }
+    .mc-photo {
+      width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block;
+    }
+    .mc-photo-placeholder {
+      width: 100%; aspect-ratio: 4/3;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 48px;
+    }
+    .mc-badge {
+      position: absolute; bottom: 10px; left: 10px; display: flex; align-items: center; gap: 6px;
+    }
+    .mc-top-rated {
+      position: absolute; top: 10px; left: 10px;
+      background: rgba(255,255,255,.95); border-radius: 999px;
+      padding: 4px 10px; font-size: 11px; font-weight: 700; color: #0f172a;
+    }
+    .mc-avail {
+      background: rgba(5,150,105,.9); color: #fff;
+      border-radius: 999px; padding: 4px 10px;
+      font-size: 11px; font-weight: 700;
+      display: flex; align-items: center; gap: 4px;
+    }
+    .mc-avail::before { content: '⚡'; font-size: 10px; }
+    .mc-advance {
+      background: rgba(234,179,8,.92); color: #0f172a;
+      border-radius: 999px; padding: 4px 10px;
+      font-size: 11px; font-weight: 700;
+      display: flex; align-items: center; gap: 4px;
+    }
+    .mc-advance::before { content: '🗓'; font-size: 10px; }
+    .mc-body { padding: 16px; }
+    .mc-name { font-size: 15px; font-weight: 800; color: #0f172a; margin-bottom: 4px; }
+    .mc-country { font-size: 11px; font-weight: 500; color: #94a3b8; margin-left: 4px; }
+    .mc-role { font-size: 12px; color: #475569; margin-bottom: 4px; display: flex; align-items: flex-start; gap: 6px; line-height: 1.4; }
+    .mc-sessions { font-size: 12px; color: #64748b; display: flex; align-items: center; gap: 5px; }
+    .mc-stats {
+      display: flex; gap: 0;
+      border-top: 1px solid #f1f5f9; margin-top: 12px; padding-top: 12px;
+    }
+    .mc-stat { flex: 1; text-align: center; }
+    .mc-stat-label { font-size: 10px; color: #94a3b8; margin-bottom: 2px; }
+    .mc-stat-val { font-size: 13px; font-weight: 800; color: #0f172a; }
+    .mc-skeleton {
+      background: #f1f5f9; border-radius: 18px; overflow: hidden;
+      border: 1px solid #e8edf5; animation: pulse 1.5s ease-in-out infinite;
+    }
+    .mc-skeleton-photo { width: 100%; aspect-ratio: 4/3; background: #e2e8f0; }
+    .mc-skeleton-body { padding: 16px; }
+    .mc-skeleton-line { height: 12px; background: #e2e8f0; border-radius: 6px; margin-bottom: 8px; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
 
-    /* ── Responsive ─────────────────── */
-    @media (max-width: 980px) {
-      .hero { grid-template-columns: 1fr; }
-      .hero-right { min-height: 260px; }
-      .how-grid { grid-template-columns: 1fr; }
-      .features { grid-template-columns: 1fr 1fr; }
+    /* ── STATS BANNER ── */
+    .stats-banner {
+      background: linear-gradient(135deg, #fce7f3 0%, #e0e7ff 40%, #dbeafe 100%);
+      padding: 80px 40px;
+    }
+    .stats-banner-inner { max-width: 1200px; margin: 0 auto; }
+    .stats-banner h2 {
+      font-size: clamp(26px, 3.5vw, 40px); font-weight: 900;
+      color: #0f172a; text-align: center; letter-spacing: -1px; margin-bottom: 48px;
+    }
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+    .stat-card {
+      background: rgba(255,255,255,.72); backdrop-filter: blur(10px);
+      border-radius: 20px; padding: 32px 24px; text-align: center;
+      border: 1px solid rgba(255,255,255,.85);
+    }
+    .stat-card-label { font-size: 13px; color: #64748b; margin-bottom: 10px; }
+    .stat-card-num {
+      font-size: clamp(34px, 4.5vw, 52px); font-weight: 900;
+      color: #0b3b89; letter-spacing: -2px; line-height: 1; margin-bottom: 8px;
+    }
+    .stat-card-desc { font-size: 14px; font-weight: 600; color: #475569; }
+    .stat-loading { color: #94a3b8; font-style: italic; font-size: 13px; }
+
+    /* ── REVIEWS ── */
+    .reviews-section { background: #fff; padding: 80px 40px; }
+    .reviews-inner { max-width: 1200px; margin: 0 auto; }
+    .reviews-inner h2 {
+      font-size: clamp(26px, 3.5vw, 40px); font-weight: 900;
+      color: #0f172a; text-align: center; letter-spacing: -1px; margin-bottom: 32px;
+    }
+    .review-filter-row {
+      display: flex; align-items: center; justify-content: center;
+      gap: 10px; flex-wrap: wrap; margin-bottom: 40px;
+    }
+    .review-filter-btn {
+      padding: 8px 20px; border-radius: 999px;
+      border: 1.5px solid #e2e8f0; background: #fff;
+      font-size: 13px; font-weight: 600; color: #475569;
+      cursor: pointer; transition: all .15s; font-family: inherit;
+    }
+    .review-filter-btn.active { background: #0f172a; color: #fff; border-color: #0f172a; }
+    .review-filter-btn:hover:not(.active) { border-color: #0b3b89; color: #0b3b89; }
+    .reviews-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .review-card {
+      background: #f8fafc; border-radius: 18px; padding: 24px;
+      border: 1px solid #e8edf5; display: flex; flex-direction: column;
+    }
+    .review-mentor { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+    .rev-avatar {
+      width: 52px; height: 52px; border-radius: 14px; flex-shrink: 0;
+      background: linear-gradient(135deg, #1d4ed8, #0b3b89);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; font-weight: 800; color: #fff; overflow: hidden;
+    }
+    .rev-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .rev-mentor-name { font-size: 14px; font-weight: 800; color: #0f172a; }
+    .rev-country { font-size: 11px; font-weight: 500; color: #94a3b8; margin-left: 3px; }
+    .rev-detail { font-size: 11px; color: #64748b; margin-top: 3px; }
+    .rev-stars { font-size: 13px; color: #f59e0b; letter-spacing: 1px; margin-top: 3px; }
+    .review-text { font-size: 14px; color: #334155; line-height: 1.65; margin-bottom: 20px; flex: 1; }
+    .review-author { display: flex; align-items: center; gap: 10px; margin-top: auto; }
+    .rev-author-av {
+      width: 34px; height: 34px; border-radius: 50%; overflow: hidden; flex-shrink: 0;
+      background: linear-gradient(135deg, #3b82f6, #0b3b89);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; color: #fff;
+    }
+    .rev-author-av img { width: 100%; height: 100%; object-fit: cover; }
+    .rev-author-name { font-size: 13px; font-weight: 700; color: #0f172a; }
+    .rev-author-role { font-size: 11px; color: #64748b; }
+    .reviews-empty {
+      grid-column: 1/-1; text-align: center; padding: 60px 20px;
+      color: #94a3b8; font-size: 15px;
+    }
+    .reviews-loading {
+      grid-column: 1/-1; text-align: center; padding: 40px;
+      color: #94a3b8; font-size: 14px;
+    }
+
+    /* ── CTA ── */
+    .cta-section { padding: 100px 40px; text-align: center; background: #f4f7fb; }
+    .cta-inner { max-width: 700px; margin: 0 auto; }
+    .cta-section h2 {
+      font-size: clamp(34px, 4.5vw, 58px); font-weight: 900;
+      color: #0f172a; letter-spacing: -2px; line-height: 1.08; margin-bottom: 16px;
+    }
+    .cta-section p { font-size: 16px; color: #64748b; margin-bottom: 40px; line-height: 1.6; }
+    .cta-email-row {
+      display: flex; align-items: center; gap: 0;
+      background: #fff; border: 1.5px solid #e2e8f0;
+      border-radius: 14px; padding: 6px 6px 6px 18px;
+      max-width: 480px; margin: 0 auto;
+      box-shadow: 0 4px 24px rgba(15,23,42,.08);
+    }
+    .cta-email-row input {
+      flex: 1; border: none; outline: none; font-size: 15px;
+      color: #0f172a; background: transparent; font-family: inherit;
+    }
+    .cta-email-row input::placeholder { color: #94a3b8; }
+    .btn-join {
+      padding: 11px 28px; border-radius: 10px;
+      background: linear-gradient(135deg, #1d4ed8, #ec4899);
+      color: #fff; font-size: 15px; font-weight: 700;
+      border: none; cursor: pointer; font-family: inherit;
+      white-space: nowrap; transition: opacity .15s;
+    }
+    .btn-join:hover { opacity: .88; }
+
+    /* ── FOOTER ── */
+    .lp-footer { border-top: 1px solid #e2e8f0; padding: 24px 40px; background: #f4f7fb; }
+    .lp-footer-inner {
+      max-width: 1200px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 13px; color: #94a3b8;
+    }
+    .lp-footer-links { display: flex; gap: 20px; }
+    .lp-footer-links a { color: #94a3b8; text-decoration: none; transition: color .15s; }
+    .lp-footer-links a:hover { color: #0b3b89; }
+
+    /* Animations */
+    @keyframes fadeUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+    .hero-section > * { animation: fadeUp .65s ease both; }
+    .role-tabs { animation-delay: .05s; }
+    .hero-mosaic { animation-delay: .15s; }
+    .hero-proven { animation-delay: .35s; }
+    .reveal { opacity:0; transform:translateY(28px); transition:opacity .6s ease,transform .6s ease; }
+    .reveal.in { opacity:1; transform:translateY(0); }
+    .rd1{transition-delay:.05s} .rd2{transition-delay:.15s} .rd3{transition-delay:.25s} .rd4{transition-delay:.35s}
+
+    /* Responsive */
+    @media (max-width: 960px) {
+      .mentors-grid { grid-template-columns: repeat(2, 1fr); }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .reviews-grid { grid-template-columns: repeat(2, 1fr); }
+      .mosaic-col { display: none; }
     }
     @media (max-width: 640px) {
-      .paths    { grid-template-columns: 1fr; }
-      .features { grid-template-columns: 1fr; }
-      .hero-left { padding: 22px; }
+      .hero-section { padding: 44px 20px 32px; }
+      .section-wrap { padding: 44px 20px; }
+      .mentors-grid { grid-template-columns: 1fr; }
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .reviews-grid { grid-column: 1fr; grid-template-columns: 1fr; }
+      .lp-nav { padding: 0 16px; }
+      .stats-banner, .reviews-section, .cta-section { padding: 56px 20px; }
+      .lp-footer { padding: 20px; }
+      .lp-footer-inner { flex-direction: column; gap: 12px; text-align: center; }
+      .lp-nav-actions .btn-outline { display: none; }
     }
   </style>
 </head>
 <body>
-<div class="mh-wrap">
 
-  <!-- Topbar -->
-  <header class="mh-topbar">
-    <a href="index.html" class="mh-brand">
-      <img src="logo.png" alt="MentifyHub" class="mh-brand-logo"/>
-      <div class="mh-brand-text">
-        <strong>MentifyHub</strong>
-        <span>Green skills mentorship</span>
-      </div>
+<!-- NAV -->
+<nav class="lp-nav">
+  <div class="lp-nav-inner">
+    <a href="index.html" class="lp-brand">
+      <img src="logo.png" alt="MentifyHub"/>
+      <span class="lp-brand-name">MentifyHub</span>
     </a>
-    <nav class="mh-nav">
-      <span class="mh-chip hide-mobile"><span class="mh-chip-dot"></span> Mentorship · Research · Impact</span>
-      <a class="mh-btn" href="auth.html?mode=signup">Explore</a>
-      <a class="mh-btn mh-btn-primary" href="auth.html?mode=signin">Sign in</a>
-    </nav>
-  </header>
-
-  <!-- Hero -->
-  <section class="hero">
-    <div class="mh-card hero-left">
-      <div class="kicker">
-        <span class="mh-chip-dot"></span>
-        Build skills. Find guidance. Grow your impact.
-      </div>
-      <h2>Mentorship for the<br/><em>green economy</em></h2>
-      <p>
-        MentifyHub connects learners and professionals with expert mentors across
-        sustainability, energy, green buildings, and the built environment — with
-        structured requests, tracking, and real outcomes.
-      </p>
-      <div class="cta-row">
-        <a class="mh-btn mh-btn-primary mh-btn-lg" href="auth.html?role=mentee">Get started as a mentee</a>
-        <a class="mh-btn mh-btn-lg" href="auth.html?role=mentor">Become a mentor</a>
-      </div>
-      <div class="mini-pills">
-        <span class="mini-pill">⚡ Fast onboarding</span>
-        <span class="mini-pill">🎯 Smart matching</span>
-        <span class="mini-pill">📊 Request tracking</span>
-        <span class="mini-pill">✅ Admin quality control</span>
-      </div>
-    </div>
-    <div class="hero-right">
-      <img src="mentoring.svg" alt="MentifyHub — mentorship illustration"/>
-    </div>
-  </section>
-
-  <!-- Paths -->
-  <div class="paths">
-    <div class="path-card">
-      <div class="path-icon" style="background:rgba(29,78,216,.08);border:1px solid rgba(29,78,216,.14)">🎓</div>
-      <h3>I'm a mentee</h3>
-      <p>Define your goal, get matched with the right mentor, and track your progress as you build green skills and career outcomes.</p>
-      <a class="mh-btn mh-btn-full" href="auth.html?role=mentee">Create mentee account →</a>
-    </div>
-    <div class="path-card">
-      <div class="path-icon" style="background:rgba(5,150,105,.08);border:1px solid rgba(5,150,105,.16)">🌱</div>
-      <h3>I'm a mentor</h3>
-      <p>Share your expertise in sustainability, energy, or built environment. Set your availability, accept requests, and guide the next generation.</p>
-      <a class="mh-btn mh-btn-full" href="auth.html?role=mentor">Join as a mentor →</a>
+    <div class="lp-nav-actions">
+      <a href="auth.html?mode=signin" class="btn-outline">Log in</a>
+      <a href="auth.html?mode=signup" class="btn-solid">Get started today</a>
     </div>
   </div>
+</nav>
 
-  <!-- How it works -->
-  <div class="how">
-    <div class="flex items-center justify-between">
-      <div>
-        <h3 style="font-size:16px;font-weight:800;letter-spacing:-.2px">How it works</h3>
-        <p style="color:var(--muted);font-size:13px;margin-top:4px">Three steps to start strong.</p>
+<!-- HERO -->
+<section class="hero-section">
+  <div class="role-tabs">
+    <a href="#" class="role-tab active" id="tabMentee">Mentee</a>
+    <a href="auth.html?role=mentor" class="role-tab" id="tabMentor">Mentor</a>
+  </div>
+
+  <div class="hero-mosaic">
+    <div class="mosaic-col left" id="mosaicLeft"></div>
+
+    <div class="hero-center-text">
+      <h1 class="hero-headline">Reach your goals faster<br/>with expert mentors</h1>
+      <p class="hero-sub">Accelerate your professional growth with 1:1 expert guidance from <strong id="mentorCountHero">—</strong> mentors in our community.</p>
+      <div class="hero-search-box">
+        <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input id="heroSearch" type="text" placeholder="What do you want to get better at?" autocomplete="off"/>
+        <button class="hero-search-btn" onclick="goSearch()">Search</button>
       </div>
-      <a class="mh-btn mh-btn-primary" href="auth.html?mode=signup">Get started</a>
     </div>
-    <div class="how-grid">
-      <div class="how-step">
-        <div class="step-num">1</div>
-        <h4>Create an account</h4>
-        <p>Choose mentee or mentor and set up your profile in minutes — goals, skills, timezone, availability.</p>
+
+    <div class="mosaic-col right" id="mosaicRight"></div>
+  </div>
+
+  <p class="hero-proven" id="provenLine">Proven success with professionals worldwide</p>
+</section>
+
+<!-- DISCOVER MENTORS -->
+<div class="section-wrap">
+  <div class="section-head reveal">
+    <h2 class="section-title">Discover the world's top mentors</h2>
+    <div class="section-actions">
+      <a href="auth.html?mode=signup&returnTo=mentor-directory.html" class="btn-explore">Explore all</a>
+      <button class="slider-btn" id="prevBtn" aria-label="Previous">&#8592;</button>
+      <button class="slider-btn" id="nextBtn" aria-label="Next">&#8594;</button>
+    </div>
+  </div>
+  <div class="mentors-grid" id="mentorsGrid">
+    <!-- Skeleton loaders -->
+    <div class="mc-skeleton reveal rd1"><div class="mc-skeleton-photo"></div><div class="mc-skeleton-body"><div class="mc-skeleton-line" style="width:70%"></div><div class="mc-skeleton-line" style="width:90%"></div><div class="mc-skeleton-line" style="width:50%"></div></div></div>
+    <div class="mc-skeleton reveal rd2"><div class="mc-skeleton-photo"></div><div class="mc-skeleton-body"><div class="mc-skeleton-line" style="width:65%"></div><div class="mc-skeleton-line" style="width:85%"></div><div class="mc-skeleton-line" style="width:55%"></div></div></div>
+    <div class="mc-skeleton reveal rd3"><div class="mc-skeleton-photo"></div><div class="mc-skeleton-body"><div class="mc-skeleton-line" style="width:75%"></div><div class="mc-skeleton-line" style="width:80%"></div><div class="mc-skeleton-line" style="width:60%"></div></div></div>
+    <div class="mc-skeleton reveal rd4"><div class="mc-skeleton-photo"></div><div class="mc-skeleton-body"><div class="mc-skeleton-line" style="width:60%"></div><div class="mc-skeleton-line" style="width:88%"></div><div class="mc-skeleton-line" style="width:45%"></div></div></div>
+  </div>
+</div>
+
+<!-- STATS BANNER — live from DB -->
+<section class="stats-banner">
+  <div class="stats-banner-inner">
+    <h2 class="reveal">A platform that delivers results</h2>
+    <div class="stats-grid">
+      <div class="stat-card reveal rd1">
+        <div class="stat-card-label">Active mentors</div>
+        <div class="stat-card-num" id="statMentorCount"><span class="stat-loading">…</span></div>
+        <div class="stat-card-desc">Expert Mentors</div>
       </div>
-      <div class="how-step">
-        <div class="step-num">2</div>
-        <h4>Connect with purpose</h4>
-        <p>Browse the mentor directory, see match scores, and send a focused mentorship request with your goal.</p>
+      <div class="stat-card reveal rd2">
+        <div class="stat-card-label">Sessions completed</div>
+        <div class="stat-card-num" id="statSessions"><span class="stat-loading">…</span></div>
+        <div class="stat-card-desc">Mentoring Sessions</div>
       </div>
-      <div class="how-step">
-        <div class="step-num">3</div>
-        <h4>Build outcomes</h4>
-        <p>Track your requests, schedule sessions, message your mentor, and grow your green skills portfolio.</p>
+      <div class="stat-card reveal rd3">
+        <div class="stat-card-label">Community reviews</div>
+        <div class="stat-card-num" id="statReviews"><span class="stat-loading">…</span></div>
+        <div class="stat-card-desc">Reviews Left</div>
+      </div>
+      <div class="stat-card reveal rd4">
+        <div class="stat-card-label">Average rating</div>
+        <div class="stat-card-num" id="statRating"><span class="stat-loading">…</span></div>
+        <div class="stat-card-desc">Out of 5 Stars</div>
       </div>
     </div>
   </div>
+</section>
 
-  <!-- Features -->
-  <div class="features">
-    <div class="feat">
-      <div class="feat-icon">🎯</div>
-      <h4>Set your goal</h4>
-      <p>Define what you want to achieve — exams, career transitions, portfolios, research, or skill growth.</p>
+<!-- LOVED BY COMMUNITY — live reviews -->
+<section class="reviews-section">
+  <div class="reviews-inner">
+    <h2 class="reveal">Loved by our community</h2>
+    <div class="review-filter-row reveal" id="filterRow">
+      <button class="review-filter-btn active" data-filter="All">All</button>
+      <!-- Field filters injected by JS -->
     </div>
-    <div class="feat">
-      <div class="feat-icon">🔍</div>
-      <h4>Get matched</h4>
-      <p>Find mentors by field, region, timezone, availability, and expertise tags with intelligent scoring.</p>
-    </div>
-    <div class="feat">
-      <div class="feat-icon">📋</div>
-      <h4>Request & track</h4>
-      <p>Send a mentorship request with context, and track responses in real time — pending, accepted, or declined.</p>
-    </div>
-    <div class="feat">
-      <div class="feat-icon">💬</div>
-      <h4>Message your mentor</h4>
-      <p>Built-in messaging tied to each accepted request. Keep all context in one place.</p>
-    </div>
-    <div class="feat">
-      <div class="feat-icon">🗓️</div>
-      <h4>Schedule sessions</h4>
-      <p>Propose session times, share meeting links, set agendas, and log progress after every meeting.</p>
-    </div>
-    <div class="feat">
-      <div class="feat-icon">📈</div>
-      <h4>Track progress</h4>
-      <p>Mentors log progress updates. Mentees see their mentorship progress in the dashboard at a glance.</p>
+    <div class="reviews-grid" id="reviewsGrid">
+      <div class="reviews-loading">Loading reviews…</div>
     </div>
   </div>
+</section>
 
-  <footer class="mh-footer">
+<!-- CTA -->
+<section class="cta-section">
+  <div class="cta-inner reveal">
+    <h2>Get started for free in 1<br/>minute or less</h2>
+    <p>We want to help you build an epic career with expert mentors.<br/>From junior to leadership, we are here to grow with you on this journey.</p>
+    <div class="cta-email-row">
+      <input type="email" id="ctaEmail" placeholder="Enter your email"/>
+      <button class="btn-join" onclick="joinFree()">Join free now</button>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="lp-footer">
+  <div class="lp-footer-inner">
     <span>© <span id="yr"></span> MentifyHub. All rights reserved.</span>
-    <div class="flex gap-12">
+    <div class="lp-footer-links">
       <a href="#" onclick="return false">Privacy</a>
       <a href="#" onclick="return false">Terms</a>
       <a href="#" onclick="return false">Contact</a>
     </div>
-  </footer>
-</div>
-<script>document.getElementById('yr').textContent = new Date().getFullYear();</script>
+  </div>
+</footer>
 
-
-
-<!-- ── Bottom navigation (mobile) ──────────────── -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="config.js"></script>
-<script src="auth-guard.js"></script>
-<nav class="mh-bottom-nav" id="bottomNav" role="navigation" aria-label="Mobile navigation">
-  <a href="#" id="bn-home" class="mh-bottom-nav-item">
-    <span class="bn-icon-wrap"><span class="bn-icon">🏠</span></span>
-    <span class="bn-label">Home</span>
-  </a>
-  <a href="mentor-directory.html" class="mh-bottom-nav-item">
-    <span class="bn-icon-wrap"><span class="bn-icon">🔍</span></span>
-    <span class="bn-label">Find</span>
-  </a>
-  <a href="messages.html" class="mh-bottom-nav-item">
-    <span class="bn-icon-wrap"><span class="bn-icon">💬</span></span>
-    <span class="bn-label">Chat</span>
-  </a>
-  <a href="sessions.html" class="mh-bottom-nav-item">
-    <span class="bn-icon-wrap"><span class="bn-icon">📅</span></span>
-    <span class="bn-label">Sessions</span>
-  </a>
-  <button type="button" class="mh-bottom-nav-item" id="bn-bell" onclick="toggleMobileBell()">
-    <span class="bn-icon-wrap" style="position:relative">
-      <span class="bn-icon">🔔</span>
-      <span id="bn-bell-badge" style="display:none;position:absolute;top:-2px;right:-2px;width:8px;height:8px;border-radius:50%;background:#ef4444;border:1.5px solid #fff;"></span>
-    </span>
-    <span class="bn-label">Alerts</span>
-  </button>
-</nav>
 <script>
-  // Resolve dashboard link using the shared Supabase client from auth-guard.js
-  (async function() {
-    const el = document.getElementById("bn-home");
-    if(!el) return;
-    try {
-      const url = await window.getDashboardUrl();
-      el.href = url;
-    } catch(e) { el.href = "auth.html"; }
-  })();
+document.getElementById('yr').textContent = new Date().getFullYear();
 
-  // Open the notification panel on mobile (reuse desktop panel)
-  function toggleMobileBell() {
-    const panel = document.getElementById("notifPanel");
-    if(!panel) return;
-    panel.style.position = "fixed";
-    panel.style.bottom   = "70px";
-    panel.style.left     = "8px";
-    panel.style.right    = "8px";
-    panel.style.top      = "auto";
-    panel.style.width    = "auto";
-    panel.style.zIndex   = "200";
-    panel.style.display  = panel.style.display === "block" ? "none" : "block";
+const SUPABASE_URL      = "https://mscgaaaobxiuzqsukvjc.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y";
+
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const FIELD_EMOJI = {
+  "Green Buildings":"🏢","Energy & Renewables":"⚡","Sustainability / ESG":"♻️",
+  "Built Environment (General)":"🏗️","BIM / Digital Twins":"💻","Policy & Research":"📋"
+};
+const GRAD = [
+  "linear-gradient(145deg,#0b3b89,#1d4ed8)",
+  "linear-gradient(145deg,#1d4ed8,#3b82f6)",
+  "linear-gradient(145deg,#0b3b89,#0369a1)",
+  "linear-gradient(145deg,#1e3a5f,#2563eb)",
+  "linear-gradient(145deg,#0f2444,#1d4ed8)",
+  "linear-gradient(145deg,#0c1a3a,#2563eb)",
+];
+
+// ── State ────────────────────────────────────
+let ALL_MENTORS   = [];
+let ALL_REVIEWS   = [];
+let MENTOR_MAP    = {};   // user_id → mentor row
+let MENTEE_MAP    = {};   // user_id → mentee row
+let cardPage      = 0;
+const PAGE_SIZE   = 4;
+let activeField   = "All";
+
+// ── Helpers ──────────────────────────────────
+function fmt(n) {
+  if (n >= 1000) return (n/1000).toFixed(n>=10000?0:1).replace(/\.0$/,'') + 'K+';
+  return n + (n > 0 ? '+' : '');
+}
+function stars(r) { return '★'.repeat(Math.round(r||0)) + '☆'.repeat(5-Math.round(r||0)); }
+function initials(name) { return (name||'M').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(); }
+
+// ── Fetch all data in parallel ────────────────
+async function loadAll() {
+  const [mentorsRes, reviewsRes, sessionsRes, menteesRes] = await Promise.all([
+    sb.from("mentors").select("*").order("updated_at",{ascending:false}).limit(500),
+    sb.from("reviews").select("*").order("created_at",{ascending:false}).limit(200),
+    sb.from("sessions").select("id,mentor_id,mentee_id,status,scheduled_for").limit(1000),
+    sb.from("mentees").select("user_id,full_name,email,field,level,profile_image").limit(500)
+  ]);
+
+  ALL_MENTORS = mentorsRes.data || [];
+  ALL_REVIEWS = reviewsRes.data || [];
+  const sessions = sessionsRes.data || [];
+  const mentees  = menteesRes.data || [];
+
+  // Build lookup maps
+  ALL_MENTORS.forEach(m => { MENTOR_MAP[m.user_id] = m; });
+  mentees.forEach(m     => { MENTEE_MAP[m.user_id]  = m; });
+
+  return { sessions, mentees };
+}
+
+// ── Render Stats ──────────────────────────────
+function renderStats(sessions) {
+  // Mentor count
+  document.getElementById('statMentorCount').textContent = fmt(ALL_MENTORS.length);
+
+  // Sessions count
+  const completedSessions = sessions.filter(s => s.status === 'completed' || s.scheduled_for < new Date().toISOString());
+  document.getElementById('statSessions').textContent = fmt(sessions.length);
+
+  // Reviews count
+  document.getElementById('statReviews').textContent = fmt(ALL_REVIEWS.length);
+
+  // Avg rating
+  if (ALL_REVIEWS.length) {
+    const avg = (ALL_REVIEWS.reduce((s,r)=>s+(r.rating||0),0) / ALL_REVIEWS.length).toFixed(1);
+    document.getElementById('statRating').textContent = avg;
+  } else {
+    document.getElementById('statRating').textContent = '—';
+  }
+}
+
+// ── Render Mentor Cards ───────────────────────
+function buildMentorCard(m, idx) {
+  const emoji = FIELD_EMOJI[m.field] || '🌱';
+  const grad  = GRAD[idx % GRAD.length];
+  const isAvail = !!(m.availability && m.availability !== 'none') || idx % 2 === 0;
+  const yrs   = m.years_experience ? m.years_experience + ' yrs' : '—';
+  const countryFlag = m.country ? ` <span class="mc-country">${m.country}</span>` : '';
+
+  // Count sessions and reviews for this mentor
+  const mentorReviews = ALL_REVIEWS.filter(r => r.mentor_id === m.user_id);
+  const sessCount = mentorReviews.length;
+  const avgRat = mentorReviews.length
+    ? (mentorReviews.reduce((s,r)=>s+(r.rating||0),0)/mentorReviews.length).toFixed(1)
+    : null;
+
+  const card = document.createElement('a');
+  card.className = 'mentor-card';
+  card.href = 'auth.html?mode=signup&returnTo=mentor-directory.html';
+
+  let photoHTML;
+  if (m.profile_image) {
+    photoHTML = `<img class="mc-photo" src="${m.profile_image}" alt="${m.full_name||'Mentor'}" loading="lazy" onerror="this.outerHTML='<div class=mc-photo-placeholder style=background:${grad.replace(/"/g,"'")}>${emoji}</div>'"/>`;
+  } else {
+    photoHTML = `<div class="mc-photo-placeholder" style="background:${grad}">${emoji}</div>`;
   }
 
-  document.body.classList.add("has-bottom-nav");
+  const topRated = sessCount >= 5 && avgRat >= 4.5;
+
+  card.innerHTML = `
+    <div class="mc-photo-wrap">
+      ${photoHTML}
+      ${topRated ? '<div class="mc-top-rated">⭐ Top rated</div>' : ''}
+      <div class="mc-badge">
+        <span class="${isAvail ? 'mc-avail' : 'mc-advance'}">${isAvail ? 'Available ASAP' : 'Advance'}</span>
+      </div>
+    </div>
+    <div class="mc-body">
+      <div class="mc-name">${m.full_name || 'Mentor'}${countryFlag}</div>
+      <div class="mc-role">🏢 ${m.headline || m.current_title || m.field || 'Expert Mentor'}</div>
+      <div class="mc-sessions">💬 ${sessCount} review${sessCount!==1?'s':''}${avgRat?` · ★ ${avgRat}`:''}</div>
+      <div class="mc-stats">
+        <div class="mc-stat">
+          <div class="mc-stat-label">Experience</div>
+          <div class="mc-stat-val">${yrs}</div>
+        </div>
+        <div class="mc-stat">
+          <div class="mc-stat-label">Field</div>
+          <div class="mc-stat-val" style="font-size:11px;font-weight:700;color:#475569">${(m.field||'—').split('/')[0].trim()}</div>
+        </div>
+      </div>
+    </div>
+  `;
+  return card;
+}
+
+function renderMentors() {
+  const grid = document.getElementById('mentorsGrid');
+  grid.innerHTML = '';
+  if (!ALL_MENTORS.length) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#94a3b8">No mentors found.</div>';
+    return;
+  }
+  const total = ALL_MENTORS.length;
+  const start = (cardPage * PAGE_SIZE) % total;
+  let slice = [];
+  for (let i = 0; i < PAGE_SIZE; i++) {
+    slice.push(ALL_MENTORS[(start + i) % total]);
+  }
+  slice.forEach((m, i) => {
+    const card = buildMentorCard(m, cardPage * PAGE_SIZE + i);
+    card.style.opacity = '0'; card.style.transform = 'translateY(16px)';
+    grid.appendChild(card);
+    setTimeout(() => {
+      card.style.transition = `opacity .4s ease ${i*0.08}s, transform .4s ease ${i*0.08}s`;
+      card.style.opacity = '1'; card.style.transform = 'translateY(0)';
+    }, 20);
+  });
+}
+
+// ── Mosaic photos ─────────────────────────────
+function buildMosaicPhoto(m, size, faded) {
+  const emoji = FIELD_EMOJI[m.field] || '🌱';
+  const grad  = GRAD[Math.floor(Math.random()*GRAD.length)];
+  const div = document.createElement('div');
+  div.className = `mosaic-photo ${size}${faded?' mp-faded':''}`;
+  if (faded) div.style.opacity = '0.45';
+  if (m.profile_image) {
+    const img = document.createElement('img');
+    img.src = m.profile_image; img.alt = m.full_name || 'Mentor';
+    img.loading = 'lazy';
+    img.onerror = () => { div.style.background = grad; div.innerHTML = emoji; };
+    div.appendChild(img);
+  } else {
+    div.style.background = grad; div.textContent = emoji;
+  }
+  return div;
+}
+
+function renderMosaic() {
+  if (ALL_MENTORS.length < 6) return;
+  const left  = document.getElementById('mosaicLeft');
+  const right = document.getElementById('mosaicRight');
+  const shuffled = [...ALL_MENTORS].sort(() => Math.random()-.5);
+
+  left.innerHTML = ''; right.innerHTML = '';
+  const leftSet  = shuffled.slice(0, 6);
+  const rightSet = shuffled.slice(6, 12);
+
+  [
+    [leftSet[0],'mp-lg',false],[leftSet[1],'mp-sm',true],
+    [leftSet[2],'mp-sm',true],[leftSet[3],'mp-lg',false],
+    [leftSet[4],'mp-sm',true],[leftSet[5],'mp-sm',true]
+  ].forEach(([m,sz,f]) => left.appendChild(buildMosaicPhoto(m,sz,f)));
+
+  [
+    [rightSet[0],'mp-sm',true],[rightSet[1],'mp-sm',true],
+    [rightSet[2],'mp-lg',false],[rightSet[3],'mp-sm',true],
+    [rightSet[4],'mp-sm',true],[rightSet[5],'mp-lg',false]
+  ].forEach(([m,sz,f]) => {
+    if (m) right.appendChild(buildMosaicPhoto(m,sz,f));
+  });
+}
+
+// ── Render Reviews ────────────────────────────
+function renderReviews(field) {
+  const grid = document.getElementById('reviewsGrid');
+  grid.innerHTML = '';
+
+  let filtered = ALL_REVIEWS.filter(r => r.comment && r.comment.trim().length > 20 && r.rating >= 4);
+
+  if (field !== 'All') {
+    // Filter by mentor's field
+    filtered = filtered.filter(r => {
+      const mentor = MENTOR_MAP[r.mentor_id];
+      return mentor && (mentor.field === field || (mentor.tags||[]).includes(field));
+    });
+  }
+
+  if (!filtered.length) {
+    grid.innerHTML = '<div class="reviews-empty">No reviews yet for this category.</div>';
+    return;
+  }
+
+  // Show up to 6
+  filtered.slice(0, 6).forEach((r, i) => {
+    const mentor  = MENTOR_MAP[r.mentor_id]  || {};
+    const mentee  = MENTEE_MAP[r.mentee_id]  || {};
+    const mEmoji  = FIELD_EMOJI[mentor.field] || '🌱';
+    const grad    = GRAD[i % GRAD.length];
+
+    const card = document.createElement('div');
+    card.className = `review-card reveal rd${(i%3)+1}`;
+    if (i >= 3) card.style.transitionDelay = ((i-3)*0.1+0.05)+'s';
+
+    let mentorAvHTML;
+    if (mentor.profile_image) {
+      mentorAvHTML = `<img src="${mentor.profile_image}" alt="${mentor.full_name||'Mentor'}" loading="lazy" onerror="this.outerHTML='<span style=font-size:18px>${mEmoji}</span>'"/>`;
+    } else {
+      mentorAvHTML = mEmoji;
+    }
+
+    let menteeAvHTML;
+    if (mentee.profile_image) {
+      menteeAvHTML = `<img src="${mentee.profile_image}" alt="${mentee.full_name||'M'}" loading="lazy"/>`;
+    } else {
+      menteeAvHTML = initials(mentee.full_name || 'M');
+    }
+
+    const countryBadge = mentor.country ? ` <span class="rev-country">${mentor.country}</span>` : '';
+    const starStr = stars(r.rating);
+
+    card.innerHTML = `
+      <div class="review-mentor">
+        <div class="rev-avatar">${mentorAvHTML}</div>
+        <div>
+          <div class="rev-mentor-name">${mentor.full_name || 'Mentor'}${countryBadge}</div>
+          <div class="rev-detail">🏢 ${mentor.headline || mentor.current_title || mentor.field || 'Mentor'}</div>
+          <div class="rev-stars">${starStr}</div>
+        </div>
+      </div>
+      <p class="review-text">${r.comment}</p>
+      <div class="review-author">
+        <div class="rev-author-av">${menteeAvHTML}</div>
+        <div>
+          <div class="rev-author-name">${mentee.full_name || 'Community Member'}</div>
+          <div class="rev-author-role">${mentee.field || mentee.level || 'Mentee'}</div>
+        </div>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+
+  // Trigger reveal
+  requestAnimationFrame(() => {
+    grid.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
+  });
+}
+
+// ── Field filter buttons ──────────────────────
+function buildFieldFilters() {
+  const fields = [...new Set(ALL_MENTORS.map(m => m.field).filter(Boolean))];
+  const row = document.getElementById('filterRow');
+
+  fields.forEach(field => {
+    const btn = document.createElement('button');
+    btn.className = 'review-filter-btn';
+    btn.dataset.filter = field;
+    // Shorten label
+    const short = field.replace(' / ESG','').replace(' (General)','').replace(' & Renewables','');
+    btn.textContent = short;
+    row.appendChild(btn);
+  });
+
+  row.querySelectorAll('.review-filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      row.querySelectorAll('.review-filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeField = btn.dataset.filter;
+      renderReviews(activeField);
+    });
+  });
+}
+
+// ── Pagination ────────────────────────────────
+document.getElementById('nextBtn').addEventListener('click', () => {
+  if (!ALL_MENTORS.length) return;
+  cardPage++;
+  renderMentors();
+});
+document.getElementById('prevBtn').addEventListener('click', () => {
+  if (!ALL_MENTORS.length) return;
+  cardPage = Math.max(0, cardPage - 1);
+  renderMentors();
+});
+
+// ── Search ────────────────────────────────────
+function goSearch() {
+  const q = document.getElementById('heroSearch').value.trim();
+  const url = q
+    ? `auth.html?mode=signup&returnTo=mentor-directory.html&q=${encodeURIComponent(q)}`
+    : 'auth.html?mode=signup&returnTo=mentor-directory.html';
+  window.location.href = url;
+}
+document.getElementById('heroSearch').addEventListener('keydown', e => {
+  if (e.key === 'Enter') goSearch();
+});
+
+// ── CTA ───────────────────────────────────────
+function joinFree() {
+  const email = document.getElementById('ctaEmail').value.trim();
+  window.location.href = email
+    ? `auth.html?mode=signup&email=${encodeURIComponent(email)}`
+    : 'auth.html?mode=signup';
+}
+
+// ── Role tab ──────────────────────────────────
+document.getElementById('tabMentee').addEventListener('click', e => {
+  e.preventDefault();
+  document.getElementById('tabMentee').classList.add('active');
+  document.getElementById('tabMentor').classList.remove('active');
+});
+
+// ── Scroll reveal ─────────────────────────────
+const revealObs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('in'); revealObs.unobserve(e.target); } });
+}, { threshold: 0.08 });
+document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
+
+// ── Boot ──────────────────────────────────────
+(async function boot() {
+  try {
+    const { sessions } = await loadAll();
+
+    // Hero count
+    document.getElementById('mentorCountHero').textContent = ALL_MENTORS.length + '+';
+
+    // Update proven line
+    if (ALL_MENTORS.length) {
+      document.getElementById('provenLine').textContent =
+        `Trusted by ${ALL_MENTORS.length}+ mentors across the community`;
+    }
+
+    // Render all sections
+    renderMosaic();
+    renderMentors();
+    renderStats(sessions);
+    buildFieldFilters();
+    renderReviews('All');
+
+  } catch (err) {
+    console.error('Boot error:', err);
+    document.getElementById('mentorsGrid').innerHTML =
+      '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#94a3b8">Could not load mentors. Please refresh.</div>';
+    document.getElementById('reviewsGrid').innerHTML =
+      '<div class="reviews-empty">Could not load reviews.</div>';
+  }
+})();
 </script>
 </body>
 </html>

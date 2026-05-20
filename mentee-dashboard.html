@@ -753,6 +753,35 @@
     bookingMentorId  = req.mentor_id;
     bookingRequestId = req.id;
 
+    // Inject the booking section HTML into the DOM if it doesn't exist yet
+    if(!document.getElementById("bookingSection")) {
+      const section = document.createElement("div");
+      section.className = "mh-card mh-card-body booking-section";
+      section.id = "bookingSection";
+      section.style.display = "none";
+      section.innerHTML = `
+        <div class="mh-section-head"><h3>Book a session</h3></div>
+        <p id="bookingMentorName"></p>
+        <div class="day-cards" id="dayCards"></div>
+        <p id="noSlotsMsg" class="no-slots-msg" style="display:none;">
+          Your mentor hasn't set availability yet. Check back soon.
+        </p>
+        <div id="timeSlotsWrap" style="display:none;">
+          <div style="font-size:13px;font-weight:700;margin-bottom:10px;">Pick a time</div>
+          <div class="time-slots-grid" id="timeSlotGrid"></div>
+        </div>
+        <button id="confirmBookingBtn" class="mh-btn mh-btn-primary booking-confirm-btn" style="display:none;">
+          Confirm booking
+        </button>`;
+      const activityCard = document.getElementById("activityCard");
+      if(activityCard) {
+        activityCard.parentElement.insertBefore(section, activityCard);
+      } else {
+        document.querySelector(".mh-main, main, .main-col") && 
+          document.querySelector(".mh-main, main, .main-col").appendChild(section);
+      }
+    }
+
     // Get mentor name
     const {data: mentor} = await sb.from("mentors").select("full_name").eq("user_id", req.mentor_id).maybeSingle();
     document.getElementById("bookingMentorName").textContent =

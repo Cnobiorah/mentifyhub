@@ -391,10 +391,11 @@
 
 <script>
   const TABLES = { mentees:"mentees", mentors:"mentors", requests:"mentorship_requests" };
-  const sb = window.mhSb || window.supabase?.createClient(
-    window.MH_SUPABASE_URL || "https://mscgaaaobxiuzqsukvjc.supabase.co",
-    window.MH_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y"
-  );
+  // Initialize Supabase directly - guaranteed to work regardless of script load order
+  const SUPABASE_URL      = "https://mscgaaaobxiuzqsukvjc.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y";
+  const sb = window.mhSb || window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  if(!window.mhSb) window.mhSb = sb;
   const $ = id => document.getElementById(id);
 
   let currentUser=null, menteeProfile=null, allMentors=[], lastRequests=[], requestTarget=null;
@@ -914,4 +915,22 @@
     });
   }
 
+  // ── Main init ─────────────────────────────────────────────────
+  (async function init(){
+    const ok = await guardAuth();
+    if(!ok) return;
+    menteeProfile = await ensureMenteeProfile();
+    await loadMenteeProfile();
+    await new Promise(r => setTimeout(r, 120));
+    await loadMentors();
+    await loadRequests();
+    await loadBookingSection();
+    await loadMentorshipProgress();
+    await loadSessions();
+    await loadNotifications();
+    await loadMenteeProgressDetails();
+  })();
 
+</script>
+</body>
+</html>

@@ -214,12 +214,9 @@
 
     /* ── Right panel: mentor cards ── */
     .right-panel {
-      background: #fff;
+      background: #f8faff;
       border-radius: 24px 0 0 24px;
-      padding: 24px 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
+      padding: 20px 16px;
       overflow-y: auto;
       max-height: 100vh;
       position: sticky;
@@ -232,51 +229,81 @@
       letter-spacing: 1.5px;
       text-transform: uppercase;
       color: #94a3b8;
-      padding: 4px 0 8px;
+      padding: 4px 0 12px;
+      text-align: center;
+    }
+
+    /* Masonry grid */
+    #mentorCards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: auto;
+      gap: 10px;
     }
 
     /* Mentor card */
     .mentor-card {
-      border-radius: 18px;
+      border-radius: 20px;
       overflow: hidden;
       position: relative;
       cursor: pointer;
       transition: transform .25s, box-shadow .25s;
-      background: #f8faff;
+      background: #fff;
       border: 1px solid #e8edf5;
     }
-    .mentor-card:hover { transform: translateY(-3px); box-shadow: 0 12px 36px rgba(15,23,42,.12); }
+    .mentor-card:hover { transform: translateY(-4px) scale(1.02); box-shadow: 0 16px 40px rgba(15,23,42,.14); }
+
+    /* Varied shapes per position */
+    .mentor-card:nth-child(1) { border-radius: 999px 999px 20px 20px; grid-row: span 2; }
+    .mentor-card:nth-child(2) { border-radius: 20px 20px 999px 20px; }
+    .mentor-card:nth-child(3) { border-radius: 50%; aspect-ratio: 1; }
+    .mentor-card:nth-child(4) { border-radius: 20px 999px 20px 20px; grid-row: span 2; }
+    .mentor-card:nth-child(5) { border-radius: 20px; }
+    .mentor-card:nth-child(6) { border-radius: 999px 20px 20px 999px; }
 
     .mentor-card .mc-photo {
       width: 100%;
-      height: 160px;
+      height: 100%;
+      min-height: 140px;
       object-fit: cover;
       display: block;
-      background: linear-gradient(135deg, #1e3a8a, #2563eb);
     }
     .mc-photo-placeholder {
       width: 100%;
-      height: 160px;
+      min-height: 140px;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      font-size: 48px;
+      gap: 6px;
+      font-size: 36px;
+      padding: 20px;
     }
-    .mentor-card .mc-body { padding: 14px 16px; }
-    .mc-name  { font-size: 14px; font-weight: 800; color: #0f172a; margin: 0 0 2px; }
-    .mc-field { font-size: 12px; color: #64748b; display: flex; align-items: center; gap: 6px; }
-    .mc-field::before { content:''; width:20px; height:1.5px; background:#cbd5e1; flex-shrink:0; }
-    .mc-tags  { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
-    .mc-tag   { font-size: 11px; background: #eff6ff; color: #2563eb; border-radius: 999px; padding: 3px 10px; font-weight: 600; }
+    .mc-ph-name  { font-size: 11px; font-weight: 700; color: #fff; text-align: center; line-height: 1.3; }
+    .mc-ph-field { font-size: 10px; color: rgba(255,255,255,.5); text-align: center; }
+
+    /* Name overlay on hover */
+    .mc-overlay {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      background: linear-gradient(to top, rgba(15,23,42,.85), transparent);
+      padding: 28px 12px 12px;
+      opacity: 0;
+      transition: opacity .2s;
+    }
+    .mentor-card:hover .mc-overlay { opacity: 1; }
+    .mc-overlay-name  { font-size: 12px; font-weight: 800; color: #fff; display: block; }
+    .mc-overlay-field { font-size: 10px; color: rgba(255,255,255,.65); display: block; margin-top: 2px; }
+
     .mc-arrow {
-      position: absolute; top: 12px; right: 12px;
-      width: 28px; height: 28px; border-radius: 50%;
+      position: absolute; top: 10px; right: 10px;
+      width: 26px; height: 26px; border-radius: 50%;
       background: #fff; border: 1px solid #e2e8f0;
       display: flex; align-items: center; justify-content: center;
-      font-size: 12px; color: #0f172a;
-      transition: background .15s, color .15s;
+      font-size: 11px; color: #0f172a;
+      transition: background .15s, color .15s, opacity .15s;
+      opacity: 0;
     }
-    .mentor-card:hover .mc-arrow { background: #2563eb; color: #fff; border-color: #2563eb; }
+    .mentor-card:hover .mc-arrow { opacity: 1; background: #2563eb; color: #fff; border-color: #2563eb; }
 
     /* Loading skeleton */
     .mc-skeleton {
@@ -408,7 +435,7 @@
       </a>
       <nav class="mh-nav">
         <span class="mh-chip hide-mobile"><span class="mh-chip-dot"></span> Real mentors. Real conversations.</span>
-        <a class="mh-btn" href="mentor-directory.html">Browse mentors</a>
+        <a class="mh-btn" href="auth.html?mode=signup&returnTo=mentor-directory.html">Browse mentors</a>
         <a class="mh-btn mh-btn-primary" href="auth.html?mode=signin">Sign in</a>
       </nav>
     </header>
@@ -422,7 +449,7 @@
 
     <h1 class="hero-headline">
       Connect with<br/>
-      <span class="inline-search">
+      <span class="inline-search" onclick="if(!document.getElementById('heroSearch').matches(':focus')) window.location.href='auth.html?mode=signup&returnTo=mentor-directory.html'" style="cursor:pointer">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
         <input id="heroSearch" placeholder="Search mentors..." autocomplete="off" style="border:none;outline:none;background:transparent;font:inherit;font-size:clamp(14px,1.8vw,20px);color:#0f172a;width:160px"/>
       </span>
@@ -464,9 +491,12 @@
     <div class="right-panel-label" id="panelLabel">Mentors on the platform</div>
     <div id="mentorCards">
       <!-- Skeletons while loading -->
-      <div class="mc-skeleton"><div class="skel-photo"></div><div class="skel-body"><div class="skel-line"></div><div class="skel-line short"></div></div></div>
-      <div class="mc-skeleton"><div class="skel-photo"></div><div class="skel-body"><div class="skel-line"></div><div class="skel-line short"></div></div></div>
-      <div class="mc-skeleton"><div class="skel-photo"></div><div class="skel-body"><div class="skel-line"></div><div class="skel-line short"></div></div></div>
+      <div class="mc-skeleton" style="border-radius:999px 999px 20px 20px;grid-row:span 2"><div class="skel-photo" style="height:260px"></div></div>
+      <div class="mc-skeleton" style="border-radius:20px 20px 999px 20px"><div class="skel-photo" style="height:120px"></div></div>
+      <div class="mc-skeleton" style="border-radius:50%;aspect-ratio:1"><div class="skel-photo" style="height:120px"></div></div>
+      <div class="mc-skeleton" style="border-radius:20px 999px 20px 20px;grid-row:span 2"><div class="skel-photo" style="height:260px"></div></div>
+      <div class="mc-skeleton" style="border-radius:20px"><div class="skel-photo" style="height:120px"></div></div>
+      <div class="mc-skeleton" style="border-radius:999px 20px 20px 999px"><div class="skel-photo" style="height:120px"></div></div>
     </div>
   </div>
 </div>
@@ -581,18 +611,27 @@ function renderCards(mentors) {
     const card  = document.createElement("div");
     card.className = "mentor-card";
     card.style.animationDelay = (i * 0.07) + "s";
-    card.onclick = () => window.location.href = "mentor-directory.html";
+    card.onclick = () => window.location.href = "auth.html?mode=signup&returnTo=mentor-directory.html";
     const emoji = FIELD_EMOJI[m.field] || "🌱";
     const tags  = (m.tags || []).slice(0, 3);
+    const gradients = [
+      "linear-gradient(145deg,#0f2444,#1d4ed8)",
+      "linear-gradient(145deg,#0c1a3a,#2563eb)",
+      "linear-gradient(145deg,#1a0f3a,#4c1d95)",
+      "linear-gradient(145deg,#0a1628,#0369a1)",
+      "linear-gradient(145deg,#0f2444,#1e40af)",
+      "linear-gradient(145deg,#160a2e,#6d28d9)",
+    ];
+    const grad = gradients[i % gradients.length];
+
     card.innerHTML = `
       ${m.profile_image
-        ? `<img class="mc-photo" src="${m.profile_image}" alt="${m.full_name||''}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><div class="mc-photo-placeholder" style="display:none;background:linear-gradient(135deg,#1e3a8a,#2563eb)">${emoji}</div>`
-        : `<div class="mc-photo-placeholder" style="background:linear-gradient(135deg,#1e3a8a,#2563eb)">${emoji}</div>`
+        ? `<img class="mc-photo" src="${m.profile_image}" alt="${m.full_name||''}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><div class="mc-photo-placeholder" style="display:none;background:${grad}">${emoji}<span class="mc-ph-name">${m.full_name||''}</span><span class="mc-ph-field">${m.field||''}</span></div>`
+        : `<div class="mc-photo-placeholder" style="background:${grad}">${emoji}<span class="mc-ph-name">${m.full_name||''}</span><span class="mc-ph-field">${m.field||''}</span></div>`
       }
-      <div class="mc-body">
-        <div class="mc-name">${m.full_name || "Mentor"}</div>
-        <div class="mc-field">${m.field || m.headline || ""}</div>
-        ${tags.length ? `<div class="mc-tags">${tags.map(t=>`<span class="mc-tag">${t}</span>`).join("")}</div>` : ""}
+      <div class="mc-overlay">
+        <span class="mc-overlay-name">${m.full_name || "Mentor"}</span>
+        <span class="mc-overlay-field">${m.field || m.headline || ""}</span>
       </div>
       <div class="mc-arrow">↗</div>
     `;
@@ -645,7 +684,7 @@ if(searchInput){
     debounceTimer = setTimeout(filterAndRender, 220);
   });
   searchInput.addEventListener("keydown", e => {
-    if(e.key === "Enter") window.location.href = `mentor-directory.html?q=${encodeURIComponent(searchInput.value)}`;
+    if(e.key === "Enter") window.location.href = `auth.html?mode=signup&returnTo=mentor-directory.html`;
   });
 }
 

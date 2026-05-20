@@ -301,7 +301,7 @@
 
       <div id="reqList" style="display:none;margin-top:10px"></div>
 
-      <div style="margin-top:18px">
+      <div style="margin-top:18px" id="upcomingSessionsWrap">
         <div style="font-weight:700;font-size:13px;margin-bottom:8px">Upcoming sessions</div>
         <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Sessions appear after a mentor accepts your request.</div>
         <div id="upcomingSessions" class="mh-empty">
@@ -753,28 +753,27 @@
     bookingMentorId  = req.mentor_id;
     bookingRequestId = req.id;
 
-    // Inject the booking section HTML into the DOM if it doesn't exist yet
+    // Inject booking UI into the upcoming sessions sidebar slot
     if(!document.getElementById("bookingSection")) {
-      const section = document.createElement("div");
-      section.className = "mh-card mh-card-body booking-section";
-      section.id = "bookingSection";
-      section.style.display = "none";
-      section.innerHTML = `
-        <div class="mh-section-head"><h3>Book a session</h3></div>
-        <p id="bookingMentorName"></p>
-        <div class="day-cards" id="dayCards"></div>
-        <p id="noSlotsMsg" class="no-slots-msg" style="display:none;">
-          Your mentor hasn't set availability yet. Check back soon.
-        </p>
-        <div id="timeSlotsWrap" style="display:none;">
-          <div style="font-size:13px;font-weight:700;margin-bottom:10px;">Pick a time</div>
-          <div class="time-slots-grid" id="timeSlotGrid"></div>
-        </div>
-        <button id="confirmBookingBtn" class="mh-btn mh-btn-primary booking-confirm-btn" style="display:none;">
-          Confirm booking
-        </button>`;
-      const mainEl = document.querySelector(".layout main");
-      if(mainEl) mainEl.appendChild(section);
+      const wrap = document.getElementById("upcomingSessionsWrap");
+      if(wrap) {
+        wrap.innerHTML = `
+          <div id="bookingSection">
+            <div style="font-weight:700;font-size:13px;margin-bottom:8px">Book a session</div>
+            <p id="bookingMentorName" style="font-size:12px;color:var(--muted);margin-bottom:12px;"></p>
+            <div class="day-cards" id="dayCards"></div>
+            <p id="noSlotsMsg" class="no-slots-msg" style="display:none;">
+              Your mentor hasn't set availability yet. Check back soon.
+            </p>
+            <div id="timeSlotsWrap" style="display:none;">
+              <div style="font-size:13px;font-weight:700;margin-bottom:10px;">Pick a time</div>
+              <div class="time-slots-grid" id="timeSlotGrid"></div>
+            </div>
+            <button id="confirmBookingBtn" class="mh-btn mh-btn-primary booking-confirm-btn" style="display:none;">
+              Confirm booking
+            </button>
+          </div>`;
+      }
     }
 
     // Get mentor name
@@ -893,7 +892,13 @@
 
     btn.textContent = "Booked!";
     setTimeout(() => {
-      document.getElementById("bookingSection").style.display = "none";
+      const wrap = document.getElementById("upcomingSessionsWrap");
+      if(wrap) wrap.innerHTML = `
+        <div style="font-weight:700;font-size:13px;margin-bottom:8px">Upcoming sessions</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Session booked! ✅</div>
+        <div class="mh-empty">
+          <a class="mh-btn mh-btn-primary" href="sessions.html" style="width:100%;justify-content:center">View sessions</a>
+        </div>`;
     }, 2000);
   });
 

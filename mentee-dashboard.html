@@ -848,8 +848,12 @@
     }
 
     // Get mentor availability
+    const today = new Date().toISOString().split("T")[0];
     const {data: avail, error: availErr} = await sb.from("mentor_availability")
-      .select("*").eq("mentor_id", req.mentor_id);
+      .select("*")
+      .eq("mentor_id", req.mentor_id)
+      .gte("specific_date", today)
+      .order("specific_date", {ascending: true});
 
     if(availErr) {
       console.error("[MentifyHub] mentor_availability fetch error:", availErr.message, availErr);

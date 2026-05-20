@@ -340,51 +340,15 @@
       <!-- Availability Manager -->
       <div class="avail-section" style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line)">
         <h3>Your availability</h3>
-        <p>Set the days and times mentees can book sessions with you.</p>
-
-        <div class="day-grid" id="dayGrid">
-          <button class="day-btn" data-day="Monday">Mon</button>
-          <button class="day-btn" data-day="Tuesday">Tue</button>
-          <button class="day-btn" data-day="Wednesday">Wed</button>
-          <button class="day-btn" data-day="Thursday">Thu</button>
-          <button class="day-btn" data-day="Friday">Fri</button>
-          <button class="day-btn" data-day="Saturday">Sat</button>
-          <button class="day-btn" data-day="Sunday">Sun</button>
+        <p>Set the specific dates and times mentees can book sessions with you.</p>
+        <div id="availSummary" style="margin-bottom:12px">
+          <div style="font-size:13px;color:var(--muted)">Loading your schedule...</div>
         </div>
-
-        <div class="time-slots-wrap">
-          <label>Available time slots</label>
-          <div class="time-chips" id="timeChips">
-            <button class="time-chip" data-time="08:00">8:00 AM</button>
-            <button class="time-chip" data-time="09:00">9:00 AM</button>
-            <button class="time-chip" data-time="10:00">10:00 AM</button>
-            <button class="time-chip" data-time="11:00">11:00 AM</button>
-            <button class="time-chip" data-time="12:00">12:00 PM</button>
-            <button class="time-chip" data-time="13:00">1:00 PM</button>
-            <button class="time-chip" data-time="14:00">2:00 PM</button>
-            <button class="time-chip" data-time="15:00">3:00 PM</button>
-            <button class="time-chip" data-time="16:00">4:00 PM</button>
-            <button class="time-chip" data-time="17:00">5:00 PM</button>
-            <button class="time-chip" data-time="18:00">6:00 PM</button>
-            <button class="time-chip" data-time="19:00">7:00 PM</button>
-            <button class="time-chip" data-time="20:00">8:00 PM</button>
-          </div>
-        </div>
-
-        <button class="mh-btn mh-btn-primary avail-save-btn" id="saveAvailBtn">Save availability</button>
-        <div class="avail-status" id="availStatus">Saved!</div>
-
-        <!-- Generated upcoming slots preview -->
-        <div class="slots-preview" id="slotsPreview">
-          <div class="slots-preview-head">
-            <span>📅 Your upcoming available slots</span>
-            <small id="slotsPreviewCount"></small>
-          </div>
-          <div id="slotsList"></div>
-          <p class="slots-preview-note">This is exactly what mentees will see when booking a session with you.</p>
-        </div>
+        <a href="availability.html" class="mh-btn mh-btn-primary mh-btn-full" style="margin-bottom:0">📅 Manage my calendar</a>
+        <div class="avail-status" id="availStatus" style="display:none">Saved!</div>
       </div>
-      <div style="margin-top:16px;display:flex;flex-direction:column;gap:8px">
+      <div style="height:1px"></div>
+      <div style="padding:0"><div style="margin-top:16px;display:flex;flex-direction:column;gap:8px">
         <a class="mh-btn mh-btn-primary mh-btn-full" href="mentor-onboarding.html">Edit profile</a>
         <a class="mh-btn mh-btn-full" href="sessions.html">View sessions</a>
         <a class="mh-btn mh-btn-full" href="messages.html">Messages</a>
@@ -986,6 +950,36 @@
       if(uid) loadAvailability(uid);
     } catch(e){}
   })();
+})();
+</script>
+
+<script>
+(async function showAvailSummary(){
+  try {
+    const {data:{session}} = await window.mhSb.auth.getSession();
+    if(!session) return;
+    const {data} = await window.mhSb.from("mentor_availability")
+      .select("specific_date, time_slots")
+      .eq("mentor_id", session.user.id)
+      .gte("specific_date", new Date().toISOString().split("T")[0])
+      .order("specific_date", {ascending: true})
+      .limit(5);
+
+    const box = document.getElementById("availSummary");
+    if(!box) return;
+    if(!data || !data.length){
+      box.innerHTML = '<div style="font-size:13px;color:var(--muted)">No availability set yet. Click below to add your schedule.</div>';
+      return;
+    }
+    box.innerHTML = data.map(row => {
+      const label = new Date(row.specific_date + "T12:00:00").toLocaleDateString("en-GB",{weekday:"short",day:"2-digit",month:"short"});
+      const slots = (row.time_slots||[]).length;
+      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px">
+        <span style="font-weight:700">${label}</span>
+        <span style="color:var(--accent);font-weight:600;font-size:12px">${slots} slot${slots!==1?"s":""}</span>
+      </div>`;
+    }).join("") + `<div style="font-size:12px;color:var(--muted);margin-top:8px">Showing next ${data.length} dates</div>`;
+  } catch(e){ console.error(e); }
 })();
 </script>
 

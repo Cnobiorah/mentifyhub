@@ -184,19 +184,6 @@
     .avail-save-btn { margin-top: 14px; }
     .avail-status { font-size: 12px; color: var(--green); font-weight: 600; margin-top: 8px; display: none; }
 
-
-    /* ── Availability manager ── */
-    .avail-section { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line); }
-    .avail-section h3 { font-size: 14px; font-weight: 800; margin-bottom: 4px; }
-    .avail-section p  { font-size: 13px; color: var(--muted); margin-bottom: 14px; }
-    .day-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 14px; }
-    .day-btn { padding: 8px 4px; border-radius: 10px; border: 1.5px solid var(--line); background: #fff; font: inherit; font-size: 11px; font-weight: 700; color: var(--muted); cursor: pointer; text-align: center; transition: all .15s; }
-    .day-btn.selected { border-color: var(--accent); background: #eff6ff; color: var(--accent); }
-    .time-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
-    .time-chip { padding: 5px 10px; border-radius: 999px; border: 1.5px solid var(--line); background: #fff; font: inherit; font-size: 11px; font-weight: 600; color: var(--muted); cursor: pointer; transition: all .15s; }
-    .time-chip.selected { border-color: var(--accent); background: #eff6ff; color: var(--accent); }
-    .avail-status { font-size: 12px; color: var(--green); font-weight: 600; margin-top: 6px; display: none; }
-
   </style>
 </head>
 <body>
@@ -341,40 +328,6 @@
         <button class="mh-btn mh-btn-primary avail-save-btn" id="saveAvailBtn">Save availability</button>
         <div class="avail-status" id="availStatus">Saved!</div>
       </div>
-
-      <!-- Availability Manager -->
-      <div class="avail-section">
-        <h3>Your availability</h3>
-        <p>Set the days and times mentees can book sessions.</p>
-        <div class="day-grid" id="dayGrid">
-          <button class="day-btn" data-day="Monday">Mon</button>
-          <button class="day-btn" data-day="Tuesday">Tue</button>
-          <button class="day-btn" data-day="Wednesday">Wed</button>
-          <button class="day-btn" data-day="Thursday">Thu</button>
-          <button class="day-btn" data-day="Friday">Fri</button>
-          <button class="day-btn" data-day="Saturday">Sat</button>
-          <button class="day-btn" data-day="Sunday">Sun</button>
-        </div>
-        <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px">Available time slots</div>
-        <div class="time-chips" id="timeChips">
-          <button class="time-chip" data-time="08:00">8 AM</button>
-          <button class="time-chip" data-time="09:00">9 AM</button>
-          <button class="time-chip" data-time="10:00">10 AM</button>
-          <button class="time-chip" data-time="11:00">11 AM</button>
-          <button class="time-chip" data-time="12:00">12 PM</button>
-          <button class="time-chip" data-time="13:00">1 PM</button>
-          <button class="time-chip" data-time="14:00">2 PM</button>
-          <button class="time-chip" data-time="15:00">3 PM</button>
-          <button class="time-chip" data-time="16:00">4 PM</button>
-          <button class="time-chip" data-time="17:00">5 PM</button>
-          <button class="time-chip" data-time="18:00">6 PM</button>
-          <button class="time-chip" data-time="19:00">7 PM</button>
-          <button class="time-chip" data-time="20:00">8 PM</button>
-        </div>
-        <button class="mh-btn mh-btn-primary mh-btn-full" id="saveAvailBtn">Save availability</button>
-        <div class="avail-status" id="availStatus">Saved successfully!</div>
-      </div>
-
       <div style="margin-top:16px;display:flex;flex-direction:column;gap:8px">
         <a class="mh-btn mh-btn-primary mh-btn-full" href="mentor-onboarding.html">Edit profile</a>
         <a class="mh-btn mh-btn-full" href="sessions.html">View sessions</a>
@@ -685,7 +638,6 @@
   (async function init(){
     const user = await requireAuth();
     if(!user) return;
-    loadAvailability(user.id);
     await ensureMentorProfile(user);
     await loadMentorDisplayName(user);
     await loadRequests(user);
@@ -713,62 +665,68 @@
 </script>
 
 <script>
-  (function(){
-    const _sb = window.mhSb;
-    let selDays = new Set(), selTimes = new Set();
+(function(){
+  var _sb = window.mhSb;
+  var selDays = new Set(), selTimes = new Set();
 
-    document.querySelectorAll(".day-btn").forEach(btn => {
-      btn.addEventListener("click", () => {
-        btn.classList.toggle("selected");
-        selDays.has(btn.dataset.day) ? selDays.delete(btn.dataset.day) : selDays.add(btn.dataset.day);
-      });
+  document.querySelectorAll(".day-btn").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      btn.classList.toggle("selected");
+      selDays.has(btn.dataset.day) ? selDays.delete(btn.dataset.day) : selDays.add(btn.dataset.day);
     });
-    document.querySelectorAll(".time-chip").forEach(chip => {
-      chip.addEventListener("click", () => {
-        chip.classList.toggle("selected");
-        selTimes.has(chip.dataset.time) ? selTimes.delete(chip.dataset.time) : selTimes.add(chip.dataset.time);
-      });
+  });
+
+  document.querySelectorAll(".time-chip").forEach(function(chip){
+    chip.addEventListener("click", function(){
+      chip.classList.toggle("selected");
+      selTimes.has(chip.dataset.time) ? selTimes.delete(chip.dataset.time) : selTimes.add(chip.dataset.time);
     });
+  });
 
-    async function loadAvailability(userId) {
-      try {
-        const {data} = await _sb.from("mentor_availability").select("*").eq("mentor_id", userId);
-        if(!data || !data.length) return;
-        data.forEach(row => {
-          selDays.add(row.day_of_week);
-          (row.time_slots || []).forEach(t => selTimes.add(t));
-        });
-        document.querySelectorAll(".day-btn").forEach(btn => { if(selDays.has(btn.dataset.day)) btn.classList.add("selected"); });
-        document.querySelectorAll(".time-chip").forEach(chip => { if(selTimes.has(chip.dataset.time)) chip.classList.add("selected"); });
-      } catch(e) { console.error(e); }
-    }
-
-    const saveBtn = document.getElementById("saveAvailBtn");
-    if(saveBtn) {
-      saveBtn.addEventListener("click", async () => {
-        saveBtn.textContent = "Saving..."; saveBtn.disabled = true;
-        try {
-          const {data:{session}} = await _sb.auth.getSession();
-          if(!session) return;
-          await _sb.from("mentor_availability").delete().eq("mentor_id", session.user.id);
-          const times = Array.from(selTimes);
-          const rows = Array.from(selDays).map(day => ({ mentor_id: session.user.id, day_of_week: day, time_slots: times }));
-          if(rows.length) await _sb.from("mentor_availability").insert(rows);
-          const status = document.getElementById("availStatus");
-          if(status) { status.style.display = "block"; setTimeout(() => status.style.display = "none", 2500); }
-        } catch(e) { console.error(e); }
-        saveBtn.textContent = "Save availability"; saveBtn.disabled = false;
+  async function loadAvailability(userId){
+    try {
+      var res = await _sb.from("mentor_availability").select("*").eq("mentor_id", userId);
+      if(!res.data || !res.data.length) return;
+      res.data.forEach(function(row){
+        selDays.add(row.day_of_week);
+        (row.time_slots||[]).forEach(function(t){ selTimes.add(t); });
       });
-    }
+      document.querySelectorAll(".day-btn").forEach(function(btn){
+        if(selDays.has(btn.dataset.day)) btn.classList.add("selected");
+      });
+      document.querySelectorAll(".time-chip").forEach(function(chip){
+        if(selTimes.has(chip.dataset.time)) chip.classList.add("selected");
+      });
+    } catch(e){ console.error(e); }
+  }
 
-    // Load on init
-    (async () => {
+  var saveBtn = document.getElementById("saveAvailBtn");
+  if(saveBtn){
+    saveBtn.addEventListener("click", async function(){
+      saveBtn.textContent = "Saving..."; saveBtn.disabled = true;
       try {
-        const {data:{session}} = await _sb.auth.getSession();
-        if(session) loadAvailability(session.user.id);
-      } catch(e) {}
-    })();
+        var s = await _sb.auth.getSession();
+        var uid = s.data && s.data.session && s.data.session.user.id;
+        if(!uid){ saveBtn.textContent = "Save availability"; saveBtn.disabled = false; return; }
+        await _sb.from("mentor_availability").delete().eq("mentor_id", uid);
+        var times = Array.from(selTimes);
+        var rows = Array.from(selDays).map(function(d){ return {mentor_id:uid, day_of_week:d, time_slots:times}; });
+        if(rows.length) await _sb.from("mentor_availability").insert(rows);
+        var st = document.getElementById("availStatus");
+        if(st){ st.style.display="block"; setTimeout(function(){st.style.display="none";},2500); }
+      } catch(e){ console.error(e); }
+      saveBtn.textContent = "Save availability"; saveBtn.disabled = false;
+    });
+  }
+
+  (async function(){
+    try {
+      var s = await _sb.auth.getSession();
+      var uid = s.data && s.data.session && s.data.session.user.id;
+      if(uid) loadAvailability(uid);
+    } catch(e){}
   })();
+})();
 </script>
 
 <!-- ── Mobile right-side drawer ── -->

@@ -782,11 +782,15 @@
       "Pick a time to meet " + (mentor?.full_name || "your mentor") + ".";
 
     // Get mentor availability
-    const {data: avail} = await sb.from("mentor_availability")
+    const {data: avail, error: availErr} = await sb.from("mentor_availability")
       .select("*").eq("mentor_id", req.mentor_id);
 
+    if(availErr) {
+      console.error("[MentifyHub] mentor_availability fetch error:", availErr.message, availErr);
+    }
+    console.log("[MentifyHub] mentor_availability rows:", avail);
+
     availabilityData = avail || [];
-    document.getElementById("bookingSection").style.display = "block";
     renderDayCards();
   }
 

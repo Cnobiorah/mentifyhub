@@ -576,7 +576,7 @@
   $("cancelRequestBtn").addEventListener("click",closeRequestModal);
   $("sendRequestBtn").addEventListener("click",sendRequest);
   $("requestBackdrop").addEventListener("click",e=>{ if(e.target===$("requestBackdrop")) closeRequestModal(); });
-  $("refreshBtn").addEventListener("click",async()=>{ await loadMentors(); renderMatches(); showToast("Matches refreshed"); });
+  if($("refreshBtn")) $("refreshBtn").addEventListener("click",async()=>{ await loadMentors(); renderMatches(); showToast("Matches refreshed"); });
   $("reloadReqBtn").addEventListener("click",async()=>{ await loadRequests(); renderMatches(); showToast("Updated"); });
   $("signOutBtn").addEventListener("click",async()=>{ try{ await sb.auth.signOut(); window.location.replace("auth.html?mode=signin"); }catch(err){ console.error(err); showToast("Could not sign out"); } });
 
@@ -843,9 +843,9 @@
     });
   }
 
-  document.getElementById("confirmBookingBtn")?.addEventListener("click", async () => {
+  document.addEventListener("click", async (e) => { if(e.target.id !== "confirmBookingBtn") return;
     if(!selectedDay || !selectedTime || !bookingRequestId) return;
-    const btn = document.getElementById("confirmBookingBtn");
+    const btn = e.target;
     btn.textContent = "Booking..."; btn.disabled = true;
 
     const scheduledFor = `${selectedDay}T${selectedTime}:00`;

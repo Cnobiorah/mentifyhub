@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>MentifyHub - Messages</title>
+  <title>MentifyHub — Messages</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
   <script src="auth-guard.js"></script>
@@ -134,7 +134,7 @@
       #messageBody { font-size: 16px; }
     }
 
-    /* Hamburger - hidden on desktop */
+    /* Hamburger — hidden on desktop */
     #hamburgerBtn { display: none !important; }
     @media (max-width: 768px) {
       #hamburgerBtn { display: flex !important; }
@@ -218,10 +218,11 @@
   }
 
   async function guardAuth(){
-    const {data:{session},error}=await sb.auth.getSession();
-    if(error||!session){ window.location.href="auth.html?returnTo=messages.html"; return false; }
-    USER=session.user;
-    $("envChip").textContent="Live";
+    const ok = await window.guardAuth("messages.html");
+    if(!ok) return false;
+    USER = window.mhCurrentUser;
+    $("envChip").textContent = "Live";
+    // Set dashboard link correctly for mentors vs mentees
     const {data:_mp} = await sb.from("mentors").select("user_id").eq("user_id",USER.id).maybeSingle();
     const _dash = _mp ? "mentor-dashboard.html" : "mentee-dashboard.html";
     if(document.getElementById("dashboardLink")) document.getElementById("dashboardLink").href=_dash;

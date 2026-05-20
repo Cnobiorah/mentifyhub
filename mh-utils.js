@@ -10,18 +10,14 @@ window.mentorCompleteness = function(m) {
     if (typeof v === "string") return v.split(",").map(s => s.trim()).filter(Boolean);
     return [];
   }
-  // Only check fields collected by the current onboarding
   const checks = [
-    !!m.headline,
-    !!m.bio,
-    !!m.field,
-    !!m.experience,
-    !!m.pricing_type,
-    !!m.communication,
-    !!m.availability,
-    !!m.country,
-    !!m.timezone,
-    safeArr(m.tags).length >= 1,
+    !!m.headline, !!m.current_title, !!m.experience, !!m.years_experience,
+    !!m.bio, !!m.field,
+    safeArr(m.best_for).length >= 1,
+    safeArr(m.tags).length >= 3,
+    !!m.preferred_level, !!m.mentorship_style, !!m.session_duration,
+    m.active_slots != null, !!m.pricing_type, !!m.communication,
+    !!m.country, !!m.timezone, !!m.availability
   ];
   return Math.round(checks.filter(Boolean).length / checks.length * 100);
 };
@@ -35,17 +31,13 @@ window.menteeCompleteness = function(m) {
     if (typeof v === "string") return v.split(",").map(s => s.trim()).filter(Boolean);
     return [];
   }
-  // Only check fields collected by the current onboarding
   const checks = [
-    !!m.goal,
-    !!m.level,
-    !!m.field,
-    !!m.bio,
-    !!m.communication,
-    !!m.availability,
-    !!m.country,
-    !!m.timezone,
-    safeArr(m.tags).length >= 1,
+    !!m.goal, !!m.level, !!m.current_role, !!m.field_experience_level,
+    !!m.preferred_language, !!m.field,
+    (Array.isArray(m.help_needed) ? m.help_needed.length >= 1 : !!m.help_needed),
+    !!m.timeline, !!m.preferred_session_type,
+    safeArr(m.tags).length >= 3,
+    !!m.country, !!m.timezone, !!m.availability, !!m.communication
   ];
   return Math.round(checks.filter(Boolean).length / checks.length * 100);
 };

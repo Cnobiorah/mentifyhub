@@ -3,456 +3,660 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>MentifyHub - Get Started</title>
+  <title>MentifyHub — Mentee Onboarding</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="auth-guard.js"></script>
   <link rel="stylesheet" href="mh-theme.css"/>
   <style>
-    *, *::before, *::after { box-sizing: border-box; }
-    body { background: #eef2ff; min-height: 100vh; margin: 0; font-family: inherit; }
+    .shell { display: grid; grid-template-columns: 1fr 280px; gap: 18px; margin-top: 18px; align-items: start; }
+    .side  { position: sticky; top: 92px; }
 
-    .shell { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 24px 16px 48px; }
+    .step    { }
+    .step.hidden { display: none !important; }
+    .step h3 { font-size: 16px; font-weight: 800; letter-spacing: -.2px; margin-bottom: 4px; }
+    .step > p { font-size: 13px; color: var(--muted); margin-bottom: 18px; line-height: 1.5; }
 
-    .top-bar { width: 100%; max-width: 520px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; }
-    .top-bar .brand { display: flex; align-items: center; gap: 8px; text-decoration: none; }
-    .top-bar .brand img { width: 32px; height: 32px; border-radius: 8px; }
-    .top-bar .brand span { font-size: 14px; font-weight: 700; color: var(--text); }
-    .step-counter { font-size: 13px; color: var(--muted); font-weight: 600; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .col-12 { grid-column: 1 / -1; }
+    .help { font-size: 12px; color: var(--subtle); margin-top: 4px; }
+    .req  { color: #b91c1c; }
 
-    .progress-strip { width: 100%; max-width: 520px; height: 4px; background: #d4d9f5; border-radius: 999px; margin-bottom: 32px; overflow: hidden; }
-    .progress-fill  { height: 100%; background: #1d4ed8; border-radius: 999px; transition: width .5s cubic-bezier(.4,0,.2,1); }
+    .tagbox {
+      display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+      padding: 8px; border-radius: var(--radius-sm); border: 1px solid var(--line);
+      background: #fff; min-height: 48px;
+    }
+    .tagbox .tag {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 4px 10px; border-radius: 999px;
+      background: rgba(29,78,216,.08); border: 1px solid rgba(29,78,216,.16);
+      color: var(--accent); font-size: 12px; font-weight: 600;
+    }
+    .tagbox .tag button { background: none; border: none; cursor: pointer; color: inherit; font-size: 14px; line-height: 1; padding: 0; margin-left: 2px; }
+    .tag-input { border: none; outline: none; font: inherit; font-size: 13px; flex: 1; min-width: 120px; background: transparent; }
+    .suggestions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .suggest-chip {
+      padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line);
+      background: #fff; font-size: 12px; color: var(--muted); cursor: pointer;
+      transition: background .1s ease, border-color .1s ease;
+    }
+    .suggest-chip:hover { background: rgba(29,78,216,.06); border-color: rgba(29,78,216,.20); color: var(--accent); }
 
-    .screen { display: none; width: 100%; max-width: 520px; animation: fadeUp .3s ease; }
-    .screen.active { display: block; }
-    @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+    .steps-nav { margin-top: 12px; display: flex; flex-direction: column; gap: 4px; }
+    .step-item {
+      padding: 10px 12px; border-radius: var(--radius-sm); cursor: pointer;
+      border: 1px solid transparent; transition: background .1s, border-color .1s;
+    }
+    .step-item:hover  { background: var(--soft2); border-color: var(--line); }
+    .step-item.active { background: rgba(29,78,216,.06); border-color: rgba(29,78,216,.18); }
+    .step-item b { display: block; font-size: 13px; font-weight: 700; color: var(--text); }
+    .step-item span { display: block; font-size: 12px; color: var(--muted); margin-top: 2px; }
 
-    .illus { text-align: center; margin-bottom: 24px; }
-    .illus-circle { width: 110px; height: 110px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 52px; margin-bottom: 16px; box-shadow: 0 4px 24px rgba(29,78,216,.15); }
-    .illus h2 { font-size: 22px; font-weight: 800; letter-spacing: -.3px; color: var(--text); margin: 0 0 8px; line-height: 1.25; }
-    .illus p  { font-size: 14px; color: var(--muted); line-height: 1.65; margin: 0 auto; max-width: 38ch; }
+    .form-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--line); }
+    .form-actions-right { display: flex; gap: 8px; }
+    .hint { font-size: 12px; color: var(--subtle); margin-top: 10px; }
 
-    .choices { display: grid; gap: 10px; margin-top: 20px; }
-    .choices.col2 { grid-template-columns: 1fr 1fr; }
-    .choices.col3 { grid-template-columns: 1fr 1fr 1fr; }
-
-    .choice { background: #fff; border: 2px solid #e2e8f0; border-radius: 16px; padding: 16px 12px; text-align: center; cursor: pointer; transition: all .18s ease; user-select: none; }
-    .choice .c-icon  { font-size: 30px; display: block; margin-bottom: 8px; }
-    .choice .c-label { font-size: 13px; font-weight: 700; color: var(--text); display: block; }
-    .choice .c-sub   { font-size: 11px; color: var(--muted); display: block; margin-top: 3px; line-height: 1.4; }
-    .choice:hover    { border-color: #6ee7b7; background: #eef2ff; transform: translateY(-2px); box-shadow: 0 4px 16px rgba(29,78,216,.10); }
-    .choice.selected { border-color: #1d4ed8; background: #eff6ff; box-shadow: 0 0 0 3px rgba(29,78,216,.12); }
-    .choice.selected .c-label { color: #1d4ed8; }
-
-    .ob-input-wrap { margin-top: 20px; }
-    .ob-input-wrap label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 8px; color: var(--text); }
-    .ob-textarea { width: 100%; padding: 14px; border-radius: 14px; border: 2px solid #e2e8f0; font: inherit; font-size: 14px; resize: vertical; min-height: 100px; outline: none; transition: border .2s; line-height: 1.6; background: #fff; }
-    .ob-textarea:focus { border-color: #1d4ed8; }
-    .ob-input { width: 100%; padding: 14px; border-radius: 14px; border: 2px solid #e2e8f0; font: inherit; font-size: 14px; outline: none; transition: border .2s; background: #fff; }
-    .ob-input:focus { border-color: #1d4ed8; }
-    .ob-select { width: 100%; padding: 14px; border-radius: 14px; border: 2px solid #e2e8f0; font: inherit; font-size: 14px; outline: none; transition: border .2s; background: #fff; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%236b7280' d='M1 1l5 5 5-5'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; }
-    .ob-select:focus { border-color: #1d4ed8; }
-
-    .tagbox { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 10px 12px; border-radius: 14px; border: 2px solid #e2e8f0; background: #fff; min-height: 54px; cursor: text; transition: border .2s; }
-    .tagbox:focus-within { border-color: #1d4ed8; }
-    .tag-pill { display: inline-flex; align-items: center; gap: 4px; padding: 5px 12px; border-radius: 999px; background: #eff6ff; border: 1px solid #bfdbfe; color: #1d4ed8; font-size: 12px; font-weight: 600; }
-    .tag-pill button { background: none; border: none; cursor: pointer; color: #1d4ed8; font-size: 15px; line-height: 1; padding: 0; }
-    .tag-input { border: none; outline: none; font: inherit; font-size: 14px; flex: 1; min-width: 120px; background: transparent; }
-    .tag-suggestions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
-    .tag-chip { padding: 5px 12px; border-radius: 999px; border: 1px solid #e2e8f0; background: #fff; font-size: 12px; color: var(--muted); cursor: pointer; transition: all .1s; }
-    .tag-chip:hover { background: #eff6ff; border-color: #bfdbfe; color: #1d4ed8; }
-
-    .actions { display: flex; gap: 10px; margin-top: 28px; }
-    .btn-next { flex: 1; padding: 15px; border-radius: 14px; border: none; background: #1d4ed8; color: #fff; font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; transition: background .15s, transform .1s; }
-    .btn-next:hover  { background: #1e40af; transform: translateY(-1px); }
-    .btn-next:active { transform: translateY(0); }
-    .btn-next:disabled { background: #93c5fd; cursor: not-allowed; transform: none; }
-    .btn-back { padding: 15px 20px; border-radius: 14px; border: 2px solid #e2e8f0; background: #fff; font: inherit; font-size: 14px; font-weight: 600; color: var(--muted); cursor: pointer; transition: all .15s; }
-    .btn-back:hover { border-color: #cbd5e1; color: var(--text); }
-
-    .toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(20px); background: #1e293b; color: #fff; padding: 12px 20px; border-radius: 12px; font-size: 14px; font-weight: 600; opacity: 0; transition: all .3s ease; pointer-events: none; white-space: nowrap; z-index: 100; }
-    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-    .ob-error { display: none; margin-top: 14px; padding: 12px 16px; border-radius: 12px; border: 1px solid #fca5a5; background: #fef2f2; color: #b91c1c; font-size: 13px; line-height: 1.6; }
-    .ob-error.show { display: block; }
-
-    .skip-link { display: block; text-align: center; margin-top: 14px; font-size: 13px; color: var(--muted); cursor: pointer; }
-    .skip-link:hover { color: var(--text); text-decoration: underline; }
-
-    @media (max-width: 480px) {
-      .choices.col3 { grid-template-columns: 1fr 1fr; }
-      .illus-circle { width: 88px; height: 88px; font-size: 40px; }
-      .illus h2 { font-size: 19px; }
+    .save-indicator { display:inline-flex; align-items:center; gap:6px; font-size:12px; color:var(--muted); margin-top:8px; }
+    .save-dot { width:7px; height:7px; border-radius:50%; background:var(--subtle); flex-shrink:0; }
+    .save-dot.saved { background:var(--green); }
+    .save-dot.saving { background:#f59e0b; animation:pulse .8s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+    .step-item .step-check { margin-left:auto; font-size:14px; display:none; }
+    .step-item.done .step-check { display:inline; }
+    .step-item.done b { color:var(--green); }
+    @media (max-width: 900px) {
+      .shell { grid-template-columns: 1fr; }
+      .side  { display: none; }
+      .form-grid { grid-template-columns: 1fr; }
+      .col-12 { grid-column: 1; }
+      .form-actions { flex-direction: column-reverse; gap: 8px; }
+      .form-actions .mh-btn { width: 100%; justify-content: center; }
+    }
+    @media (max-width: 600px) {
+      .mh-input, .mh-select, .mh-textarea { font-size: 16px !important; }
+      .step-content { padding: 20px 16px; }
+      .mh-topbar { margin: 8px; padding: 10px 14px; }
+      .step-title { font-size: 18px; }
+    }
+    @media (max-width: 400px) {
+      .step-content { padding: 16px 12px; }
     }
   </style>
 </head>
 <body>
-<div class="shell">
+<div class="mh-wrap">
 
-  <div class="top-bar">
-    <a href="index.html" class="brand">
-      <img src="logo.png" alt="MentifyHub"/>
-      <span>MentifyHub</span>
+  <header class="mh-topbar"><button class="mh-hamburger" id="hamburgerBtn" onclick="openDrawer()" aria-label="Menu"><span></span><span></span><span></span></button>
+    <a href="index.html" class="mh-brand">
+      <img src="logo.png" alt="MentifyHub" class="mh-brand-logo"/>
+      <div class="mh-brand-text">
+        <strong>MentifyHub</strong>
+        <span>Mentee onboarding</span>
+      </div>
     </a>
-    <span class="step-counter" id="stepCounter">1 of 5</span>
-  </div>
+    <nav class="mh-nav hide-mobile">
+      <span class="mh-chip" id="chip">Step 1 of 3</span>
+      <a class="mh-btn" href="index.html">Home</a>
+      <a class="mh-btn mh-btn-primary" id="goDashBtn" href="mentee-dashboard.html" style="display:none">Go to dashboard</a>
+      <button class="mh-btn mh-btn-primary" id="saveTop" type="button">Save</button>
+    </nav>
+  </header>
 
-  <div class="progress-strip">
-    <div class="progress-fill" id="progressFill" style="width:0%"></div>
-  </div>
+  <div class="shell">
+    <div class="mh-card mh-card-body">
+      <h2 style="font-size:20px;font-weight:800;letter-spacing:-.3px">Complete your mentee profile</h2>
+      <p style="color:var(--muted);font-size:13px;margin-top:6px;line-height:1.5">Create a clear profile so the right mentors can understand your goals and support needs.</p>
 
-  <!-- Screen 1: Welcome -->
-  <div class="screen active" id="s1">
-    <div class="illus">
-      <div class="illus-circle" style="background:linear-gradient(135deg,#dbeafe,#eff6ff)">🌱</div>
-      <h2>You are in the right place.</h2>
-      <p>Real people. Real conversations. Find someone who has been where you want to go.</p>
-    </div>
-    <div class="choices col2">
-      <div class="choice selected">
-        <span class="c-icon">🎓</span>
-        <span class="c-label">Yes, I am looking for a mentor</span>
-        <span class="c-sub">Let's find the right one for you</span>
+      <div style="margin-top:14px">
+        <div class="flex justify-between items-center" style="font-size:12px;color:var(--muted);font-weight:600;margin-bottom:6px">
+          <span>Profile completeness</span>
+          <span id="pct">0%</span>
+        </div>
+        <div class="mh-bar-wrap"><div class="mh-bar-fill" id="barFill" style="width:0%"></div></div>
+        <div class="save-indicator" id="saveIndicator">
+          <div class="save-dot" id="saveDot"></div>
+          <span id="saveText">Not saved yet</span>
+        </div>
       </div>
-      <div class="choice" onclick="window.location.href='auth.html?role=mentor'">
-        <span class="c-icon">🧑‍🏫</span>
-        <span class="c-label">Actually, I want to mentor others</span>
-        <span class="c-sub">Take me to the mentor sign up</span>
+
+      <!-- Step 1 -->
+      <section class="step" data-step="1" style="margin-top:22px">
+        <h3>Goal, background &amp; level</h3>
+        <p>Tell mentors where you are now and what you want to achieve.</p>
+        <div class="form-grid">
+          <div class="mh-field">
+            <label class="mh-label">Primary goal <span class="req">*</span></label>
+            <select class="mh-select" id="goal">
+              <option value="">Select a goal…</option>
+              <option>Certification exam preparation</option>
+              <option>Career transition into green skills</option>
+              <option>Portfolio / project guidance</option>
+              <option>Research direction &amp; publishing</option>
+              <option>Building performance / modelling skills</option>
+              <option>ESG / sustainability reporting skills</option>
+              <option>Net-zero / decarbonisation pathway</option>
+              <option>Other</option>
+            </select>
+            <p class="help">Used to match you with mentors who fit your main objective.</p>
+          </div>
+          <div class="mh-field">
+            <label class="mh-label">Current level <span class="req">*</span></label>
+            <select class="mh-select" id="level">
+              <option value="">Select level…</option>
+              <option>Beginner</option><option>Intermediate</option><option>Advanced</option>
+            </select>
+          </div>
+          <div class="mh-field">
+            <label class="mh-label">Current role / background <span class="req">*</span></label>
+            <select class="mh-select" id="currentRole">
+              <option value="">Select role…</option>
+              <option>Student</option><option>Graduate</option><option>Job seeker</option>
+              <option>Junior professional</option><option>Mid-level professional</option>
+              <option>Career switcher</option><option>Entrepreneur</option><option>Researcher</option>
+            </select>
+          </div>
+          <div class="mh-field">
+            <label class="mh-label">Experience in this field <span class="req">*</span></label>
+            <select class="mh-select" id="fieldExperienceLevel">
+              <option value="">Select experience…</option>
+              <option>None yet</option><option>Basic knowledge</option>
+              <option>Some project experience</option><option>Professional experience</option>
+              <option>Specialization level</option>
+            </select>
+          </div>
+          <div class="mh-field">
+            <label class="mh-label">Preferred language <span class="req">*</span></label>
+            <select class="mh-select" id="preferredLanguage">
+              <option value="">Select language…</option>
+              <option>English</option><option>French</option>
+              <option>Arabic</option><option>Spanish</option><option>Other</option>
+            </select>
+          </div>
+          <div class="mh-field">
+            <label class="mh-label">Profile photo</label>
+            <input class="mh-input" type="file" id="photo" accept="image/*"/>
+            <p class="help">Upload a clear photo so mentors can put a face to your name.</p>
+          </div>
+          <div class="mh-field">
+            <label class="mh-label">LinkedIn / portfolio / CV link</label>
+            <input class="mh-input" id="profileLink" placeholder="https://linkedin.com/in/yourname"/>
+          </div>
+          <div class="mh-field col-12">
+            <label class="mh-label">Goal details</label>
+            <textarea class="mh-textarea" id="goalText" placeholder="Example: I want to prepare for LEED GA in 8 weeks and build a small portfolio project."></textarea>
+            <p class="help">Add context so mentors understand your learning stage and target outcome.</p>
+          </div>
+          <div class="mh-field col-12">
+            <label class="mh-label">Short bio <span style="color:var(--red)">*</span></label>
+            <textarea class="mh-textarea" id="bio" placeholder="Tell mentors a bit about yourself — your background, what you're working on, and what kind of support you're looking for."></textarea>
+            <p class="help">Helps mentors understand who you are before accepting your request.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Step 2 -->
+      <section class="step hidden" data-step="2" style="margin-top:22px">
+        <h3>Focus, help needed &amp; tags</h3>
+        <p>Choose your field, support area and niche topics for better matching.</p>
+        <div class="form-grid">
+          <div class="mh-field">
+            <label class="mh-label">Primary field <span class="req">*</span></label>
+            <select class="mh-select" id="field">
+              <option value="">Select field…</option>
+              <option>Green Buildings</option><option>Energy &amp; Renewables</option>
+              <option>Sustainability / ESG</option><option>Built Environment (General)</option>
+              <option>BIM / Digital Twins</option><option>Policy &amp; Research</option>
+            </select>
+            <p class="help">Core discipline used in matching.</p>
+          </div>
+          <div class="mh-field">
+            <label class="mh-label">Subfield</label>
+            <select class="mh-select" id="subfield">
+              <option value="">Select subfield…</option>
+              <option>Life Cycle Assessment (LCA)</option><option>Energy Modelling (EnergyPlus/OpenStudio)</option>
+              <option>Passive Design</option><option>HVAC &amp; Building Services</option>
+              <option>Carbon Accounting</option><option>Materials &amp; Circularity</option>
+              <option>Net Zero Buildings</option><option>Green Certifications</option>
+              <option>ESG Reporting</option><option>Sustainable Architecture</option>
+            </select>
+          </div>
+          <div class="mh-field">
+            <label class="mh-label">What do you need help with? <span class="req">*</span></label>
+            <select class="mh-select" id="helpNeeded">
+              <option value="">Select support area…</option>
+              <option>Career guidance</option><option>Technical skills</option>
+              <option>Portfolio review</option><option>Certification preparation</option>
+              <option>Research support</option><option>Job search strategy</option>
+              <option>Interview preparation</option><option>Transition into sustainability</option>
+              <option>Project feedback</option><option>Accountability</option>
+            </select>
+            <p class="help">Choose the area where you want the most practical support.</p>
+          </div>
+          <div class="mh-field">
+            <label class="mh-label">Timeline / urgency <span class="req">*</span></label>
+            <select class="mh-select" id="timeline">
+              <option value="">Select timeline…</option>
+              <option>Just exploring</option><option>Within 3 months</option>
+              <option>Within 6 months</option><option>Immediately</option>
+              <option>Ongoing mentorship</option>
+            </select>
+          </div>
+          <div class="mh-field col-12">
+            <label class="mh-label">Preferred session type <span class="req">*</span></label>
+            <select class="mh-select" id="preferredSessionType">
+              <option value="">Select session type…</option>
+              <option>1-on-1 guidance</option><option>Structured learning plan</option>
+              <option>Q&amp;A sessions</option><option>Project-based mentoring</option>
+              <option>Career coaching</option><option>Accountability check-ins</option>
+            </select>
+          </div>
+          <div class="mh-field col-12">
+            <label class="mh-label">Expertise tags <span class="req">*</span></label>
+            <div class="tagbox" id="tagbox">
+              <input class="tag-input" id="tagInput" placeholder="Type a tag and press Enter (e.g., EDGE, LEED, EnergyPlus)"/>
+            </div>
+            <div class="suggestions">
+              <button type="button" class="suggest-chip">Net Zero Buildings</button>
+              <button type="button" class="suggest-chip">Energy Modelling</button>
+              <button type="button" class="suggest-chip">Building Performance</button>
+              <button type="button" class="suggest-chip">ESG Reporting</button>
+              <button type="button" class="suggest-chip">Carbon Accounting</button>
+              <button type="button" class="suggest-chip">Green Materials</button>
+              <button type="button" class="suggest-chip">Life Cycle Assessment</button>
+              <button type="button" class="suggest-chip">Climate Risk</button>
+              <button type="button" class="suggest-chip">Sustainable Architecture</button>
+              <button type="button" class="suggest-chip">Circular Economy</button>
+              <button type="button" class="suggest-chip">EDGE Exam Prep</button>
+              <button type="button" class="suggest-chip">LEED Exam Prep</button>
+              <button type="button" class="suggest-chip">BREEAM</button>
+            </div>
+            <p class="help">At least 3 tags improves matching quality.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Step 3 -->
+      <section class="step hidden" data-step="3" style="margin-top:22px">
+        <h3>Preferences</h3>
+        <p>Set your location, availability and preferred communication format.</p>
+        <div class="form-grid">
+          <div class="mh-field">
+            <label class="mh-label">Country <span class="req">*</span></label>
+            <input class="mh-input" id="country" placeholder="e.g., United Kingdom"/>
+          </div>
+          <div class="mh-field">
+            <label class="mh-label">Timezone <span class="req">*</span></label>
+            <select class="mh-select" id="timezone">
+              <option value="">Select timezone…</option>
+              <option>GMT</option><option>GMT+1</option><option>GMT+2</option>
+              <option>GMT-5</option><option>GMT-8</option>
+            </select>
+          </div>
+          <div class="mh-field">
+            <label class="mh-label">Preferred availability <span class="req">*</span></label>
+            <select class="mh-select" id="availability">
+              <option value="">Select…</option>
+              <option>Weekdays</option><option>Weeknights</option>
+              <option>Weekends</option><option>Flexible</option>
+            </select>
+          </div>
+          <div class="mh-field">
+            <label class="mh-label">Preferred communication <span class="req">*</span></label>
+            <select class="mh-select" id="communication">
+              <option value="">Select…</option>
+              <option>Zoom</option><option>Google Meet</option>
+              <option>Microsoft Teams</option><option>WhatsApp</option><option>Email</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <div class="form-actions">
+        <button class="mh-btn" id="backBtn" type="button" disabled>← Back</button>
+        <div class="form-actions-right">
+          <button class="mh-btn" id="saveBtn" type="button">Save draft</button>
+          <button class="mh-btn mh-btn-primary" id="nextBtn" type="button">Next →</button>
+        </div>
       </div>
-    </div>
-    <div class="actions" style="margin-top:24px">
-      <button class="btn-next" id="s1Next">Let's go →</button>
-    </div>
-  </div>
-
-  <!-- Screen 2: What do you want? -->
-  <div class="screen" id="s2">
-    <div class="illus">
-      <div class="illus-circle" style="background:linear-gradient(135deg,#fef3c7,#fffbeb)">🎯</div>
-      <h2>What are you hoping to get out of this?</h2>
-      <p>Pick the one that feels most like you right now.</p>
-    </div>
-    <div class="choices col2" id="goalChoices">
-      <div class="choice" data-val="Career transition"><span class="c-icon">🚀</span><span class="c-label">Change careers</span><span class="c-sub">I want to move into a new field</span></div>
-      <div class="choice" data-val="Get certified"><span class="c-icon">🏅</span><span class="c-label">Get a certification</span><span class="c-sub">LEED, EDGE, BREEAM and others</span></div>
-      <div class="choice" data-val="Build technical skills"><span class="c-icon">🔧</span><span class="c-label">Build my skills</span><span class="c-sub">Learn something specific and practical</span></div>
-      <div class="choice" data-val="Portfolio / project feedback"><span class="c-icon">📁</span><span class="c-label">Get feedback</span><span class="c-sub">On my work, portfolio or project</span></div>
-      <div class="choice" data-val="Job search strategy"><span class="c-icon">💼</span><span class="c-label">Find a job</span><span class="c-sub">CV, interviews and job hunting</span></div>
-      <div class="choice" data-val="Research support"><span class="c-icon">🔬</span><span class="c-label">Research support</span><span class="c-sub">Thesis, report or academic work</span></div>
-    </div>
-    <input type="hidden" id="goal"/>
-    <div class="ob-error" id="err2">Please pick what you are looking for.</div>
-    <div class="actions">
-      <button class="btn-back" id="s2Back">←</button>
-      <button class="btn-next" id="s2Next">Next →</button>
-    </div>
-  </div>
-
-  <!-- Screen 3: Where are you now? -->
-  <div class="screen" id="s3">
-    <div class="illus">
-      <div class="illus-circle" style="background:linear-gradient(135deg,#e0e7ff,#eef2ff)">📍</div>
-      <h2>Where are you in your journey right now?</h2>
-      <p>This helps us show you mentors who remember what it felt like to be where you are.</p>
-    </div>
-    <div class="choices col2" id="levelChoices">
-      <div class="choice" data-val="Student"><span class="c-icon">📚</span><span class="c-label">Still studying</span><span class="c-sub">University or college</span></div>
-      <div class="choice" data-val="Graduate"><span class="c-icon">🎓</span><span class="c-label">Recently graduated</span><span class="c-sub">Looking for my first role</span></div>
-      <div class="choice" data-val="Early professional"><span class="c-icon">🌱</span><span class="c-label">Early in my career</span><span class="c-sub">0 to 3 years working</span></div>
-      <div class="choice" data-val="Mid-level professional"><span class="c-icon">📈</span><span class="c-label">Mid-level</span><span class="c-sub">Growing and wanting more</span></div>
-      <div class="choice" data-val="Career switcher"><span class="c-icon">🔄</span><span class="c-label">Switching from something else</span><span class="c-sub">Coming from a different field</span></div>
-      <div class="choice" data-val="Researcher"><span class="c-icon">🔭</span><span class="c-label">In research or academia</span><span class="c-sub">PhD, masters or research role</span></div>
-    </div>
-    <input type="hidden" id="level"/>
-    <div class="ob-error" id="err3">Please tell us where you are right now.</div>
-    <div class="actions">
-      <button class="btn-back" id="s3Back">←</button>
-      <button class="btn-next" id="s3Next">Next →</button>
-    </div>
-  </div>
-
-  <!-- Screen 4: Your field -->
-  <div class="screen" id="s4">
-    <div class="illus">
-      <div class="illus-circle" style="background:linear-gradient(135deg,#cffafe,#f0fdfa)">🌍</div>
-      <h2>What area are you trying to grow in?</h2>
-      <p>Pick the one closest to what you are working on, even if you are just starting out.</p>
-    </div>
-    <div class="choices col2" id="fieldChoices">
-      <div class="choice" data-val="Green Buildings"><span class="c-icon">🏢</span><span class="c-label">Green Buildings</span><span class="c-sub">LEED, BREEAM, EDGE, design</span></div>
-      <div class="choice" data-val="Energy & Renewables"><span class="c-icon">⚡</span><span class="c-label">Energy & Renewables</span><span class="c-sub">Solar, wind, energy systems</span></div>
-      <div class="choice" data-val="Sustainability / ESG"><span class="c-icon">♻️</span><span class="c-label">Sustainability & ESG</span><span class="c-sub">Carbon, reporting, net zero</span></div>
-      <div class="choice" data-val="Built Environment (General)"><span class="c-icon">🏗️</span><span class="c-label">Built Environment</span><span class="c-sub">Architecture, engineering, planning</span></div>
-      <div class="choice" data-val="BIM / Digital Twins"><span class="c-icon">💻</span><span class="c-label">BIM & Digital</span><span class="c-sub">Revit, digital twins, data tools</span></div>
-      <div class="choice" data-val="Policy & Research"><span class="c-icon">📋</span><span class="c-label">Policy & Research</span><span class="c-sub">Standards, government, academia</span></div>
-    </div>
-    <input type="hidden" id="field"/>
-    <div class="ob-error" id="err4">Please pick your area.</div>
-    <div class="actions">
-      <button class="btn-back" id="s4Back">←</button>
-      <button class="btn-next" id="s4Next">Next →</button>
-    </div>
-  </div>
-
-  <!-- Screen 5: About you -->
-  <div class="screen" id="s5">
-    <div class="illus">
-      <div class="illus-circle" style="background:linear-gradient(135deg,#fce7f3,#fdf2f8)">👋</div>
-      <h2>Almost done. Let your mentor know who you are.</h2>
-      <p>Keep it short and real.</p>
+      <p class="hint">Save writes to Supabase and keeps a local draft backup.</p>
     </div>
 
-    <div class="ob-input-wrap" style="margin-top:0">
-      <label>A quick intro about yourself</label>
-      <textarea class="ob-textarea" id="bio" placeholder="e.g., I am a recent civil engineering grad trying to move into sustainable design. I am self-studying for LEED GA and looking for someone who can guide me through it."></textarea>
-      <span class="skip-link" id="bioSkip">Skip for now, I'll add this later →</span>
-    </div>
-
-    <div class="ob-input-wrap">
-      <label>Add a few keywords that describe what you are into</label>
-      <div class="tagbox" id="tagbox">
-        <input class="tag-input" id="tagInput" placeholder="e.g., LEED, Carbon, Passive Design - press Enter after each"/>
+    <aside class="mh-card mh-card-body side">
+      <div style="font-size:13px;font-weight:700">Onboarding steps</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px">Click a step to jump.</div>
+      <div class="steps-nav">
+        <div class="step-item active" data-nav="1"><b>1. Goal, background &amp; level</b><span>Where you are now and what you want to achieve.</span></div>
+        <div class="step-item" data-nav="2"><b>2. Focus, help needed &amp; tags</b><span>Field, support need and niche topics.</span></div>
+        <div class="step-item" data-nav="3"><b>3. Preferences</b><span>Timezone, availability and communication.</span></div>
       </div>
-      <div class="tag-suggestions">
-        <button type="button" class="tag-chip">LEED</button>
-        <button type="button" class="tag-chip">EDGE</button>
-        <button type="button" class="tag-chip">BREEAM</button>
-        <button type="button" class="tag-chip">Net Zero</button>
-        <button type="button" class="tag-chip">Carbon Accounting</button>
-        <button type="button" class="tag-chip">Energy Modelling</button>
-        <button type="button" class="tag-chip">ESG Reporting</button>
-        <button type="button" class="tag-chip">Passive Design</button>
-        <button type="button" class="tag-chip">BIM</button>
-      </div>
-    </div>
-
-    <div class="ob-input-wrap">
-      <label>How do you prefer to connect?</label>
-      <div class="choices col3" id="commChoices" style="margin-top:0">
-        <div class="choice" data-val="Zoom"><span class="c-icon">🎥</span><span class="c-label">Zoom</span></div>
-        <div class="choice" data-val="Google Meet"><span class="c-icon">📹</span><span class="c-label">Google Meet</span></div>
-        <div class="choice" data-val="Microsoft Teams"><span class="c-icon">💼</span><span class="c-label">Teams</span></div>
-        <div class="choice" data-val="WhatsApp"><span class="c-icon">💬</span><span class="c-label">WhatsApp</span></div>
-        <div class="choice" data-val="Email"><span class="c-icon">📧</span><span class="c-label">Email</span></div>
-      </div>
-      <input type="hidden" id="communication"/>
-    </div>
-
-    <div class="ob-input-wrap">
-      <label>When are you usually free for a call?</label>
-      <div class="choices col2" id="availChoices" style="margin-top:0">
-        <div class="choice" data-val="Weekdays"><span class="c-icon">☀️</span><span class="c-label">Weekdays</span></div>
-        <div class="choice" data-val="Weeknights"><span class="c-icon">🌙</span><span class="c-label">Evenings</span></div>
-        <div class="choice" data-val="Weekends"><span class="c-icon">🎉</span><span class="c-label">Weekends</span></div>
-        <div class="choice" data-val="Flexible"><span class="c-icon">🔄</span><span class="c-label">Flexible</span></div>
-      </div>
-      <input type="hidden" id="availability"/>
-    </div>
-
-    <div class="ob-input-wrap">
-      <label>Where are you based?</label>
-      <input class="ob-input" id="country" placeholder="e.g., Nigeria"/>
-    </div>
-
-    <div class="ob-input-wrap">
-      <label>Your timezone</label>
-      <select class="ob-select" id="timezone">
-        <option value="">Pick one...</option>
-        <option>GMT-8</option><option>GMT-5</option><option>GMT</option>
-        <option>GMT+1</option><option>GMT+2</option><option>GMT+3</option>
-        <option>GMT+5:30</option><option>GMT+8</option>
-      </select>
-    </div>
-
-    <div class="ob-error" id="err5">Please fill in where you are based and your timezone.</div>
-    <div class="actions">
-      <button class="btn-back" id="s5Back">←</button>
-      <button class="btn-next" id="s5Publish">Find my mentor 🎯</button>
-    </div>
+      <p class="hint" style="margin-top:14px">Matching uses: goals · role · field · help needed · tags · timezone · availability · level fit.</p>
+    </aside>
   </div>
-
 </div>
 
-<div class="toast" id="toast"></div>
-
 <script>
-  const SUPABASE_URL      = "https://mscgaaaobxiuzqsukvjc.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y";
-  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const TABLES = { mentees:"mentees", mentors:"mentors" };
+  const sb = window.mhSb;
 
   async function requireSession(){
-    const {data:{session}} = await sb.auth.getSession();
-    if(!session){ window.location.href="auth.html?mode=signin&returnTo=mentee-onboarding.html"; return null; }
+    if(!sb){ alert("Supabase not connected."); return null; }
+    const {data:{session},error}=await sb.auth.getSession();
+    if(error) console.error(error);
+    if(!session){ window.location.href=`auth.html?mode=signin&returnTo=${encodeURIComponent("mentee-onboarding.html")}&role=mentee`; return null; }
     return session.user;
   }
 
-  const TOTAL = 5;
-  let current = 1;
+  function safeArr(v){ if(Array.isArray(v)) return v; if(typeof v==="string") return v.split(",").map(s=>s.trim()).filter(Boolean); return []; }
+  function normalizeTag(v){ return String(v||"").trim().replace(/\s+/g," "); }
+  function uniqueNormalized(arr){ const out=[],seen=new Set(); arr.forEach(item=>{ const clean=normalizeTag(item),key=clean.toLowerCase(); if(clean&&!seen.has(key)){ seen.add(key); out.push(clean); } }); return out; }
 
-  function goTo(n){
-    document.getElementById("s"+current).classList.remove("active");
-    current = n;
-    document.getElementById("s"+current).classList.add("active");
-    document.getElementById("stepCounter").textContent = current + " of " + TOTAL;
-    document.getElementById("progressFill").style.width = ((current-1)/(TOTAL-1)*100) + "%";
-    window.scrollTo({top:0, behavior:"smooth"});
+  const tagbox=document.getElementById("tagbox"),tagInput=document.getElementById("tagInput");
+
+  function makeTag(text){
+    const clean=normalizeTag(text);
+    const existing=Array.from(document.querySelectorAll("#tagbox .tag")).map(t=>t.dataset.value?.toLowerCase());
+    if(existing.includes(clean.toLowerCase())) return null;
+    const span=document.createElement("span");
+    span.className="tag"; span.dataset.value=clean;
+    span.innerHTML=`${clean} <button type="button" aria-label="remove">×</button>`;
+    span.querySelector("button").onclick=()=>{ span.remove(); updateProfileCompleteness(); };
+    return span;
   }
 
-  let toastTimer;
-  function showToast(msg){
-    const t = document.getElementById("toast");
-    t.textContent = msg; t.classList.add("show");
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(()=>t.classList.remove("show"), 2500);
-  }
+  function addTag(text){ const tag=makeTag(text); if(tag) tagbox.insertBefore(tag,tagInput); }
 
-  function setupChoices(containerId, hiddenId){
-    const c = document.getElementById(containerId); if(!c) return;
-    c.querySelectorAll(".choice").forEach(opt=>{
-      opt.addEventListener("click",()=>{
-        c.querySelectorAll(".choice").forEach(o=>o.classList.remove("selected"));
-        opt.classList.add("selected");
-        const h = document.getElementById(hiddenId); if(h) h.value = opt.dataset.val||"";
-      });
-    });
-  }
-  setupChoices("goalChoices",  "goal");
-  setupChoices("levelChoices", "level");
-  setupChoices("fieldChoices", "field");
-  setupChoices("commChoices",  "communication");
-  setupChoices("availChoices", "availability");
+  tagInput.addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); const v=tagInput.value.trim(); if(!v) return; addTag(v); tagInput.value=""; updateProfileCompleteness(); } });
+  document.querySelectorAll(".suggest-chip").forEach(btn=>{ btn.addEventListener("click",()=>{ addTag(btn.textContent.trim()); updateProfileCompleteness(); }); });
 
-  const tagbox   = document.getElementById("tagbox");
-  const tagInput = document.getElementById("tagInput");
-  function addTag(text){
-    const val = text.trim(); if(!val) return;
-    const existing = Array.from(document.querySelectorAll("#tagbox .tag-pill")).map(t=>t.dataset.val.toLowerCase());
-    if(existing.includes(val.toLowerCase())) return;
-    const span = document.createElement("span");
-    span.className = "tag-pill"; span.dataset.val = val;
-    span.innerHTML = val + ' <button type="button" aria-label="remove">x</button>';
-    span.querySelector("button").onclick = ()=>span.remove();
-    tagbox.insertBefore(span, tagInput);
-  }
-  tagInput.addEventListener("keydown", e=>{
-    if(e.key==="Enter"){ e.preventDefault(); addTag(tagInput.value); tagInput.value=""; }
-  });
-  document.querySelectorAll(".tag-chip").forEach(btn=>btn.addEventListener("click",()=>addTag(btn.textContent.trim())));
-  tagbox.addEventListener("click", ()=>tagInput.focus());
-  function getTags(){ return Array.from(document.querySelectorAll("#tagbox .tag-pill")).map(t=>t.dataset.val); }
+  const steps=Array.from(document.querySelectorAll(".step"));
+  const navItems=Array.from(document.querySelectorAll(".step-item"));
+  const chip=document.getElementById("chip"),barFill=document.getElementById("barFill"),pct=document.getElementById("pct");
+  const backBtn=document.getElementById("backBtn"),nextBtn=document.getElementById("nextBtn");
+  const saveBtn=document.getElementById("saveBtn"),saveTop=document.getElementById("saveTop");
+  let current=1; const total=steps.length;
 
-  function showErr(id, msg){ const el=document.getElementById(id); if(!el) return; el.textContent=msg||"Please complete this step."; el.classList.add("show"); }
-  function clearErr(id){ const el=document.getElementById(id); if(el) el.classList.remove("show"); }
-
-  document.getElementById("s1Next").onclick = ()=>{ goTo(2); showToast("Great! Keep going 👏"); };
-  document.getElementById("s2Back").onclick = ()=>goTo(1);
-  document.getElementById("s2Next").onclick = ()=>{
-    if(!document.getElementById("goal").value){ showErr("err2"); return; }
-    clearErr("err2"); goTo(3); showToast("Good choice! 👍");
-  };
-  document.getElementById("s3Back").onclick = ()=>goTo(2);
-  document.getElementById("s3Next").onclick = ()=>{
-    if(!document.getElementById("level").value){ showErr("err3"); return; }
-    clearErr("err3"); goTo(4); showToast("Got it 🙌");
-  };
-  document.getElementById("s4Back").onclick = ()=>goTo(3);
-  document.getElementById("s4Next").onclick = ()=>{
-    if(!document.getElementById("field").value){ showErr("err4"); return; }
-    clearErr("err4"); goTo(5); showToast("Almost there! ✨");
-  };
-  document.getElementById("s5Back").onclick = ()=>goTo(4);
-
-  document.getElementById("bioSkip").onclick = ()=>{
-    document.getElementById("bio").value = "";
-    document.getElementById("bio").placeholder = "Skipped. You can add this from your dashboard later.";
-  };
-
-  document.getElementById("s5Publish").onclick = async ()=>{
-    const country  = document.getElementById("country").value.trim();
-    const timezone = document.getElementById("timezone").value;
-    const missing  = [];
-    if(!country)  missing.push("where you are based");
-    if(!timezone) missing.push("your timezone");
-    if(missing.length){ showErr("err5", "Just need: " + missing.join(" and ")); return; }
-    clearErr("err5");
-
-    const btn = document.getElementById("s5Publish");
-    btn.textContent = "Finding your mentor..."; btn.disabled = true;
-
-    const user = await requireSession();
-    if(!user){ btn.textContent = "Find my mentor 🎯"; btn.disabled = false; return; }
-
-    const payload = {
-      user_id:      user.id,
-      full_name:    user.user_metadata?.full_name || user.email || "",
-      email:        user.email || null,
-      goal:         document.getElementById("goal").value || null,
-      level:        document.getElementById("level").value || null,
-      field:        document.getElementById("field").value || null,
-      bio:          document.getElementById("bio").value.trim() || null,
-      tags:         getTags(),
-      communication: document.getElementById("communication").value || null,
-      availability: document.getElementById("availability").value || null,
-      country,
-      timezone,
-      current_role:           "Not specified",
-      preferred_language:     "English",
-      field_experience_level: "Beginner",
-      timeline:               "3-6 months",
-      preferred_session_type: "Career coaching",
-      help_needed:            document.getElementById("goal").value || null,
+  function currentFormState(){
+    return {
+      goal:document.getElementById("goal").value,level:document.getElementById("level").value,
+      goal_text:document.getElementById("goalText").value,current_role:document.getElementById("currentRole").value,
+      field_experience_level:document.getElementById("fieldExperienceLevel").value,
+      profile_link:document.getElementById("profileLink").value,
+      preferred_language:document.getElementById("preferredLanguage").value,
+      field:document.getElementById("field").value,subfield:document.getElementById("subfield").value,
+      help_needed:document.getElementById("helpNeeded").value,
+      timeline:document.getElementById("timeline").value,
+      preferred_session_type:document.getElementById("preferredSessionType").value,
+      tags:Array.from(document.querySelectorAll("#tagbox .tag")).map(t=>t.dataset.value||t.childNodes[0].textContent.trim()).filter(Boolean),
+      country:document.getElementById("country").value,timezone:document.getElementById("timezone").value,
+      availability:document.getElementById("availability").value,communication:document.getElementById("communication").value
     };
+  }
 
-    const {data: existing} = await sb.from("mentees").select("user_id").eq("user_id", user.id).maybeSingle();
-    let error;
-    if(existing){
-      ({error} = await sb.from("mentees").update(payload).eq("user_id", user.id));
-    } else {
-      ({error} = await sb.from("mentees").insert(payload));
-    }
+  function calcProfileCompleteness(data){
+    const checks=[!!data.goal,!!data.level,!!data.current_role,!!data.field_experience_level,!!data.preferred_language,!!data.field,!!data.help_needed,!!data.timeline,!!data.preferred_session_type,safeArr(data.tags).length>=3,!!data.country,!!data.timezone,!!data.availability,!!data.communication];
+    return Math.round(checks.filter(Boolean).length/checks.length*100);
+  }
 
-    if(error){
-      console.error("Full payload error:", error);
-      // Retry with core fields only
-      const core = {
-        user_id: user.id, full_name: payload.full_name, email: payload.email,
-        goal: payload.goal, level: payload.level, field: payload.field,
-        bio: payload.bio, tags: payload.tags, communication: payload.communication,
-        availability: payload.availability, country: payload.country, timezone: payload.timezone,
-      };
-      const {data: ex2} = await sb.from("mentees").select("user_id").eq("user_id", user.id).maybeSingle();
-      const retry = ex2
-        ? await sb.from("mentees").update(core).eq("user_id", user.id)
-        : await sb.from("mentees").insert(core);
-      if(retry.error){
-        console.error("Core payload error:", retry.error);
-        btn.textContent = "Find my mentor 🎯"; btn.disabled = false;
-        showErr("err5", "Could not save your profile. Please try again.");
-        return;
+  function updateProfileCompleteness(){ const p=calcProfileCompleteness(currentFormState()); barFill.style.width=p+"%"; pct.textContent=p+"%"; }
+
+  // Required fields per step
+  const REQUIRED = {
+    1: [
+      { id:"goal",                 label:"Primary goal" },
+      { id:"level",                label:"Current level" },
+      { id:"currentRole",          label:"Current role / background" },
+      { id:"fieldExperienceLevel", label:"Experience in this field" },
+      { id:"preferredLanguage",    label:"Preferred language" }
+    ],
+    2: [
+      { id:"field",                label:"Primary field" },
+      { id:"helpNeeded",           label:"What do you need help with" },
+      { id:"timeline",             label:"Timeline / urgency" },
+      { id:"preferredSessionType", label:"Preferred session type" }
+    ],
+    3: [
+      { id:"country",       label:"Country" },
+      { id:"timezone",      label:"Timezone" },
+      { id:"availability",  label:"Availability" },
+      { id:"communication", label:"Communication" }
+    ]
+  };
+
+  function validateStep(stepNum){
+    const required = REQUIRED[stepNum] || [];
+    const missing = [];
+
+    required.forEach(({id, label}) => {
+      const el = document.getElementById(id);
+      if(!el) return;
+      const val = el.value.trim();
+      if(!val){
+        missing.push(label);
+        el.style.borderColor = "#ef4444";
+        el.style.boxShadow   = "0 0 0 3px rgba(239,68,68,.14)";
+      } else {
+        el.style.borderColor = "";
+        el.style.boxShadow   = "";
+      }
+    });
+
+    // Step 2 extra: check tags
+    if(stepNum === 2){
+      const tags = Array.from(document.querySelectorAll("#tagbox .tag"));
+      if(tags.length < 3){
+        missing.push("At least 3 expertise tags");
+        document.getElementById("tagbox").style.borderColor = "#ef4444";
+      } else {
+        document.getElementById("tagbox").style.borderColor = "";
       }
     }
-    window.location.href = "mentee-dashboard.html";
-  };
+
+    if(missing.length){
+      showValidationError(missing);
+      return false;
+    }
+
+    clearValidationError();
+    return true;
+  }
+
+  function showValidationError(missing){
+    let banner = document.getElementById("validationBanner");
+    if(!banner){
+      banner = document.createElement("div");
+      banner.id = "validationBanner";
+      banner.style.cssText = "padding:12px 16px;border-radius:12px;border:1px solid var(--declined-line);background:var(--declined-bg);color:var(--declined-fg);font-size:13px;margin-top:14px;line-height:1.6;";
+      document.querySelector(".form-actions").after(banner);
+    }
+    banner.innerHTML = `<b>Please fill in the following required fields:</b><br/>• ${missing.join("<br/>• ")}`;
+    banner.scrollIntoView({behavior:"smooth", block:"nearest"});
+  }
+
+  function clearValidationError(){
+    const banner = document.getElementById("validationBanner");
+    if(banner) banner.remove();
+  }
+
+  function showStep(n){
+    current=Math.min(Math.max(n,1),total);
+    steps.forEach(s=>s.classList.toggle("hidden",Number(s.dataset.step)!==current));
+    navItems.forEach(i=>i.classList.toggle("active",Number(i.dataset.nav)===current));
+    chip.textContent=`Step ${current} of ${total}`;
+    backBtn.disabled=current===1;
+    nextBtn.textContent=current===total?"Finish":"Next →";
+    clearValidationError();
+    updateProfileCompleteness();
+  }
+
+  navItems.forEach(i=>i.addEventListener("click",()=>showStep(Number(i.dataset.nav))));
+  backBtn.addEventListener("click",()=>{ clearValidationError(); showStep(current-1); });
+  nextBtn.addEventListener("click",()=>{
+    if(!validateStep(current)) return;
+    markStepDone(current);
+    if(current<total) showStep(current+1);
+    else finishAndRedirect();
+  });
+  saveBtn.addEventListener("click",saveDraft);
+  saveTop.addEventListener("click",saveDraft);
+
+  // Auto-save to localStorage every 10 seconds as user types
+  setInterval(()=>{
+    try{
+      const data = collectData();
+      localStorage.setItem("mentee_onboarding_draft", JSON.stringify({...data, step:current}));
+    }catch(e){}
+  }, 10000);
+
+  // Also save on every input change (silent, localStorage only)
+  document.querySelectorAll("input,select,textarea").forEach(el=>{
+    el.addEventListener("change",()=>{
+      try{
+        const data = collectData();
+        localStorage.setItem("mentee_onboarding_draft", JSON.stringify({...data, step:current}));
+      }catch(e){}
+    });
+  });
+
+  // Save before user leaves the page
+  window.addEventListener("beforeunload",()=>{
+    try{
+      const data = collectData();
+      localStorage.setItem("mentee_onboarding_draft", JSON.stringify({...data, step:current}));
+    }catch(e){}
+  });
+
+  async function collectData(){ const data=currentFormState(); data.tags=uniqueNormalized(data.tags); data.help_needed=data.help_needed?[data.help_needed]:[]; return data; }
+
+  async function saveToSupabase(user,data){
+    let photo_url = null;
+    const file = document.getElementById("photo")?.files?.[0];
+    if(file){
+      const fileName = `${user.id}-${Date.now()}-${file.name}`;
+      const { error: uploadError } = await sb.storage.from("mentor-images").upload(fileName, file);
+      if(!uploadError){
+        const { data: urlData } = sb.storage.from("mentor-images").getPublicUrl(fileName);
+        photo_url = urlData.publicUrl;
+      }
+    }
+    const payload={ user_id:user.id,...(photo_url&&{profile_image:photo_url}),full_name:(user.user_metadata&&user.user_metadata.full_name)?user.user_metadata.full_name:(user.email||""),email:user.email||null,goal:data.goal||null,goal_text:data.goal_text||null,level:data.level||null,current_role:data.current_role||null,field_experience_level:data.field_experience_level||null,profile_link:data.profile_link||null,preferred_language:data.preferred_language||null,field:data.field||null,subfield:data.subfield||null,help_needed:safeArr(data.help_needed),timeline:data.timeline||null,preferred_session_type:data.preferred_session_type||null,tags:safeArr(data.tags),country:data.country||null,timezone:data.timezone||null,availability:data.availability||null,communication:data.communication||null };
+    const {error}=await sb.from(TABLES.mentees).upsert(payload,{onConflict:"user_id"});
+    if(error) throw error;
+  }
+
+  async function loadFromSupabase(user){
+    try{
+      const {data,error}=await sb.from(TABLES.mentees).select("*").eq("user_id",user.id).maybeSingle();
+      if(error) throw error; if(!data) return false;
+      if(data.profile_image){
+        const photoInput = document.getElementById("photo");
+        if(photoInput){
+          const preview = document.createElement("div");
+          preview.style.cssText = "margin-top:8px;display:flex;align-items:center;gap:10px;";
+          preview.innerHTML = `<img src="${data.profile_image}" style="width:48px;height:48px;border-radius:50%;object-fit:cover;border:1px solid var(--line)"/><span style="font-size:12px;color:var(--muted)">Current photo — upload a new one to replace it</span>`;
+          photoInput.parentElement.appendChild(preview);
+        }
+      }
+      document.getElementById("goal").value=data.goal||""; document.getElementById("level").value=data.level||"";
+      document.getElementById("goalText").value=data.goal_text||""; document.getElementById("currentRole").value=data.current_role||"";
+      document.getElementById("fieldExperienceLevel").value=data.field_experience_level||"";
+      document.getElementById("profileLink").value=data.profile_link||"";
+      document.getElementById("preferredLanguage").value=data.preferred_language||"";
+      if(document.getElementById("bio")) document.getElementById("bio").value=data.bio||"";
+      document.getElementById("field").value=data.field||""; document.getElementById("subfield").value=data.subfield||"";
+      document.getElementById("helpNeeded").value=(data.help_needed&&data.help_needed[0])||"";
+      document.getElementById("timeline").value=data.timeline||"";
+      document.getElementById("preferredSessionType").value=data.preferred_session_type||"";
+      document.getElementById("country").value=data.country||""; document.getElementById("timezone").value=data.timezone||"";
+      document.getElementById("availability").value=data.availability||""; document.getElementById("communication").value=data.communication||"";
+      document.querySelectorAll("#tagbox .tag").forEach(t=>t.remove()); (data.tags||[]).forEach(t=>addTag(t));
+      updateProfileCompleteness(); return true;
+    }catch(e){ console.error(e); return false; }
+  }
+
+  async function saveDraft(){
+    setSaveStatus("saving","Saving…");
+    const data={...(await collectData()),step:current};
+    localStorage.setItem("mentee_onboarding_draft",JSON.stringify(data));
+    const user=await requireSession(); if(!user) return;
+    try{ await saveToSupabase(user,data); alert("Saved."); try{ document.getElementById("goDashBtn").style.display="inline-flex"; }catch(_){} }
+    catch(e){ console.error(e); alert("Saved locally, but could not save to Supabase."); }
+  }
+
+  async function finishAndRedirect(){
+    const user=await requireSession(); if(!user) return;
+    const data=await collectData();
+    try{ await saveToSupabase(user,data); localStorage.removeItem("mentee_onboarding_draft"); window.location.href="mentee-dashboard.html"; }
+    catch(e){ console.error(e); alert("Could not finish: check Supabase table/RLS. Draft saved locally."); }
+  }
+
+  document.querySelectorAll("input,select,textarea").forEach(el=>{ el.addEventListener("input",updateProfileCompleteness); el.addEventListener("change",updateProfileCompleteness); });
+
+  function setSaveStatus(status, text){
+    const dot=document.getElementById("saveDot"); const label=document.getElementById("saveText");
+    if(!dot||!label) return;
+    dot.className="save-dot "+(status||""); label.textContent=text||"";
+  }
+  function markStepDone(stepNum){
+    const nav=document.querySelector(`.step-item[data-nav="${stepNum}"]`);
+    if(nav) nav.classList.add("done");
+  }
 
   (async function boot(){
-    const user = await requireSession(); if(!user) return;
-    try{
-      const {data} = await sb.from("mentees").select("*").eq("user_id", user.id).maybeSingle();
-      if(!data) return;
-      if(data.bio)      document.getElementById("bio").value     = data.bio;
-      if(data.country)  document.getElementById("country").value = data.country;
-      if(data.timezone) document.getElementById("timezone").value = data.timezone;
-      function restoreChoice(cid, hid, val){
-        if(!val) return;
-        document.getElementById(hid).value = val;
-        document.querySelectorAll(`#${cid} .choice`).forEach(o=>{ if(o.dataset.val===val) o.classList.add("selected"); });
-      }
-      restoreChoice("goalChoices",  "goal",          data.goal);
-      restoreChoice("levelChoices", "level",         data.level);
-      restoreChoice("fieldChoices", "field",         data.field);
-      restoreChoice("commChoices",  "communication", data.communication);
-      restoreChoice("availChoices", "availability",  data.availability);
-      (data.tags||[]).forEach(t=>addTag(t));
-    }catch(e){ console.error(e); }
+    const user=await requireSession(); if(!user) return;
+    const loaded=await loadFromSupabase(user);
+    if(loaded){
+      // Switch to edit mode
+      const title = document.getElementById("pageTitle");
+      const sub   = document.getElementById("pageSub");
+      if(title) title.textContent = "Edit your mentee profile";
+      if(sub)   sub.textContent   = "Update your profile details — your existing data has been loaded.";
+      showStep(1);
+      setSaveStatus("saved", "Profile loaded — edit and save your changes");
+      return;
+    }
+    const raw=localStorage.getItem("mentee_onboarding_draft");
+    if(raw){
+      try{
+        const d=JSON.parse(raw);
+        // Restore the step the user was on
+        if(d.step && Number(d.step) > 1){
+          setTimeout(()=>showStep(Number(d.step)), 200);
+        }
+        document.getElementById("goal").value=d.goal||""; document.getElementById("level").value=d.level||"";
+        document.getElementById("goalText").value=d.goalText||d.goal_text||""; document.getElementById("currentRole").value=d.current_role||"";
+        document.getElementById("fieldExperienceLevel").value=d.field_experience_level||"";
+        document.getElementById("profileLink").value=d.profile_link||"";
+        document.getElementById("preferredLanguage").value=d.preferred_language||"";
+        document.getElementById("field").value=d.field||""; document.getElementById("subfield").value=d.subfield||"";
+        document.getElementById("helpNeeded").value=Array.isArray(d.help_needed)?(d.help_needed[0]||""):(d.help_needed||"");
+        document.getElementById("timeline").value=d.timeline||"";
+        document.getElementById("preferredSessionType").value=d.preferred_session_type||"";
+        document.getElementById("country").value=d.country||""; document.getElementById("timezone").value=d.timezone||"";
+        document.getElementById("availability").value=d.availability||""; document.getElementById("communication").value=d.communication||"";
+        document.querySelectorAll("#tagbox .tag").forEach(t=>t.remove()); (d.tags||[]).forEach(t=>addTag(t));
+        showStep(d.step||1);
+      }catch(e){ showStep(1); }
+    }else{ showStep(1); }
   })();
+</script>
+
+<div class="mobile-nav-overlay" id="navOverlay" onclick="closeDrawer()"></div>
+<div class="mh-mobile-drawer" id="mobileDrawer">
+  <div class="drawer-brand">
+    <img src="logo.png" alt="MentifyHub"/>
+    <span>MentifyHub</span>
+  </div>
+  <a href="mentee-dashboard.html" class="mh-drawer-link"><span class="icon">🏠</span>Dashboard</a>
+<a href="mentor-directory.html" class="mh-drawer-link"><span class="icon">🔍</span>Find a mentor</a>
+<a href="messages.html" class="mh-drawer-link"><span class="icon">💬</span>Messages</a>
+  <div class="drawer-signout">
+    <a href="#" class="mh-drawer-link" onclick="signOut()"><span class="icon">🚪</span>Sign out</a>
+  </div>
+</div>
+<script>
+  function openDrawer(){document.getElementById('mobileDrawer').classList.add('open');document.getElementById('navOverlay').classList.add('open');document.body.style.overflow='hidden';}
+  function closeDrawer(){document.getElementById('mobileDrawer').classList.remove('open');document.getElementById('navOverlay').classList.remove('open');document.body.style.overflow='';}
 </script>
 </body>
 </html>

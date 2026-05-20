@@ -361,11 +361,16 @@
   }
 
 
-  // guardAuth is provided by auth-guard.js; wrap it to set local currentUser
+  // Auth check using Supabase directly - avoids infinite recursion
   async function guardAuth(){
-    const ok = await window.guardAuth("mentee-dashboard.html");
-    if(ok){ currentUser = window.mhCurrentUser; $("envChip").textContent = "Live"; }
-    return ok;
+    const {data:{session}, error} = await window.mhSb.auth.getSession();
+    if(error || !session){ window.location.href = "auth.html?mode=signin&returnTo=mentee-dashboard.html"; return false; }
+    currentUser = session.user;
+    $("envChip").textContent = "Live";
+    const {data:mp} = await window.mhSb.from("mentors").select("user_id").eq("user_id", session.user.id).maybeSingle();
+    const dash = mp ? "mentor-dashboard.html" : "mentee-dashboard.html";
+    if(document.getElementById("dashboardLink")) document.getElementById("dashboardLink").href = dash;
+    return true;
   }
 
   async function loadMenteeProfile(){

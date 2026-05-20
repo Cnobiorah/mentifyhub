@@ -185,39 +185,8 @@
     .avail-status { font-size: 12px; color: var(--green); font-weight: 600; margin-top: 8px; display: none; }
 
     /* ── Generated slots preview ── */
-    .slots-preview {
-      margin-top: 16px;
-      border-top: 1px solid var(--line);
-      padding-top: 14px;
-      display: none;
-    }
-    .slots-preview-head {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 10px;
-    }
-    .slots-preview-head span { font-size: 13px; font-weight: 700; color: var(--text); }
-    .slots-preview-head small { font-size: 11px; color: var(--muted); }
 
     /* Mini date-card row (matches mentee booking style) */
-    .preview-day-row {
-      display: flex; gap: 7px;
-      overflow-x: auto; padding-bottom: 6px;
-      scrollbar-width: none;
-    }
-    .preview-day-row::-webkit-scrollbar { display: none; }
-    .preview-day-card {
-      flex-shrink: 0; width: 66px;
-      border: 1.5px solid var(--line); border-radius: 10px;
-      background: #fff; padding: 8px 4px; text-align: center;
-    }
-    .preview-day-card .pdc-dow  { font-size: 9px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 3px; }
-    .preview-day-card .pdc-num  { font-size: 18px; font-weight: 900; color: var(--text); line-height: 1; margin-bottom: 1px; }
-    .preview-day-card .pdc-mon  { font-size: 10px; font-weight: 600; color: var(--muted); margin-bottom: 5px; }
-    .preview-day-card .pdc-time { font-size: 10px; font-weight: 700; color: #16a34a; }
-    .slots-preview-note {
-      font-size: 11px; color: var(--muted); text-align: center;
-      margin-top: 8px; line-height: 1.5;
-    }
 
   </style>
 </head>
@@ -341,7 +310,6 @@
       <div class="avail-section" style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line)">
         <h3>Your availability</h3>
         <p>Set the days and times mentees can book sessions with you.</p>
-
         <div class="day-grid" id="dayGrid">
           <button class="day-btn" data-day="Monday">Mon</button>
           <button class="day-btn" data-day="Tuesday">Tue</button>
@@ -351,7 +319,6 @@
           <button class="day-btn" data-day="Saturday">Sat</button>
           <button class="day-btn" data-day="Sunday">Sun</button>
         </div>
-
         <div class="time-slots-wrap">
           <label>Available time slots</label>
           <div class="time-chips" id="timeChips">
@@ -370,22 +337,11 @@
             <button class="time-chip" data-time="20:00">8:00 PM</button>
           </div>
         </div>
-
         <button class="mh-btn mh-btn-primary avail-save-btn" id="saveAvailBtn">Save availability</button>
         <div class="avail-status" id="availStatus">Saved!</div>
-
-        <!-- Generated upcoming slots preview -->
-        <div class="slots-preview" id="slotsPreview">
-          <div class="slots-preview-head">
-            <span>📅 Your upcoming available slots</span>
-            <small id="slotsPreviewCount"></small>
-          </div>
-          <div id="slotsList"></div>
-          <p class="slots-preview-note">This is exactly what mentees will see when booking a session with you.</p>
-        </div>
+        <a href="availability.html" class="mh-btn mh-btn-full" style="margin-top:10px;display:block;text-align:center">📅 Manage my calendar</a>
       </div>
-      <div style="margin-top:16px;display:flex;flex-direction:column;gap:8px">
-        <a href="availability.html" class="mh-btn mh-btn-primary mh-btn-full" style="text-align:center">📅 Manage my calendar</a>
+            <div style="margin-top:16px;display:flex;flex-direction:column;gap:8px">
         <a class="mh-btn mh-btn-primary mh-btn-full" href="mentor-onboarding.html">Edit profile</a>
         <a class="mh-btn mh-btn-full" href="sessions.html">View sessions</a>
         <a class="mh-btn mh-btn-full" href="messages.html">Messages</a>

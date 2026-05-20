@@ -159,6 +159,31 @@
       #navOverlay { display: none !important; }
       .mh-nav { display: flex !important; }
     }
+
+    /* ── Availability manager ── */
+    .avail-section { margin-top: 18px; }
+    .avail-section h3 { font-size: 15px; font-weight: 800; margin-bottom: 4px; }
+    .avail-section p  { font-size: 13px; color: var(--muted); margin-bottom: 14px; }
+    .day-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-bottom: 16px; }
+    .day-btn {
+      padding: 10px 6px; border-radius: 10px; border: 1.5px solid var(--line);
+      background: #fff; font: inherit; font-size: 12px; font-weight: 700;
+      color: var(--muted); cursor: pointer; text-align: center; transition: all .15s;
+    }
+    .day-btn.selected { border-color: var(--accent); background: #eff6ff; color: var(--accent); }
+    .day-btn:hover { border-color: var(--accent); }
+    .time-slots-wrap { margin-top: 12px; }
+    .time-slots-wrap label { font-size: 13px; font-weight: 700; display: block; margin-bottom: 8px; }
+    .time-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+    .time-chip {
+      padding: 6px 14px; border-radius: 999px; border: 1.5px solid var(--line);
+      background: #fff; font: inherit; font-size: 12px; font-weight: 600;
+      color: var(--muted); cursor: pointer; transition: all .15s;
+    }
+    .time-chip.selected { border-color: var(--accent); background: #eff6ff; color: var(--accent); }
+    .avail-save-btn { margin-top: 14px; }
+    .avail-status { font-size: 12px; color: var(--green); font-weight: 600; margin-top: 8px; display: none; }
+
   </style>
 </head>
 <body>
@@ -264,6 +289,45 @@
         </div>
       </div>
 
+
+
+      <!-- Availability Manager -->
+      <div class="avail-section" style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line)">
+        <h3>Your availability</h3>
+        <p>Set the days and times mentees can book sessions with you.</p>
+
+        <div class="day-grid" id="dayGrid">
+          <button class="day-btn" data-day="Monday">Mon</button>
+          <button class="day-btn" data-day="Tuesday">Tue</button>
+          <button class="day-btn" data-day="Wednesday">Wed</button>
+          <button class="day-btn" data-day="Thursday">Thu</button>
+          <button class="day-btn" data-day="Friday">Fri</button>
+          <button class="day-btn" data-day="Saturday">Sat</button>
+          <button class="day-btn" data-day="Sunday">Sun</button>
+        </div>
+
+        <div class="time-slots-wrap">
+          <label>Available time slots</label>
+          <div class="time-chips" id="timeChips">
+            <button class="time-chip" data-time="08:00">8:00 AM</button>
+            <button class="time-chip" data-time="09:00">9:00 AM</button>
+            <button class="time-chip" data-time="10:00">10:00 AM</button>
+            <button class="time-chip" data-time="11:00">11:00 AM</button>
+            <button class="time-chip" data-time="12:00">12:00 PM</button>
+            <button class="time-chip" data-time="13:00">1:00 PM</button>
+            <button class="time-chip" data-time="14:00">2:00 PM</button>
+            <button class="time-chip" data-time="15:00">3:00 PM</button>
+            <button class="time-chip" data-time="16:00">4:00 PM</button>
+            <button class="time-chip" data-time="17:00">5:00 PM</button>
+            <button class="time-chip" data-time="18:00">6:00 PM</button>
+            <button class="time-chip" data-time="19:00">7:00 PM</button>
+            <button class="time-chip" data-time="20:00">8:00 PM</button>
+          </div>
+        </div>
+
+        <button class="mh-btn mh-btn-primary avail-save-btn" id="saveAvailBtn">Save availability</button>
+        <div class="avail-status" id="availStatus">Saved!</div>
+      </div>
       <div style="margin-top:16px;display:flex;flex-direction:column;gap:8px">
         <a class="mh-btn mh-btn-primary mh-btn-full" href="mentor-onboarding.html">Edit profile</a>
         <a class="mh-btn mh-btn-full" href="sessions.html">View sessions</a>
@@ -574,6 +638,7 @@
   (async function init(){
     const user = await requireAuth();
     if(!user) return;
+    loadAvailability(user.id);
     await ensureMentorProfile(user);
     await loadMentorDisplayName(user);
     await loadRequests(user);

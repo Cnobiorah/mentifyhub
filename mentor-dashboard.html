@@ -160,64 +160,62 @@
       .mh-nav { display: flex !important; }
     }
 
-    /* ── Availability manager ── */
+    /* ── Availability calendar ── */
     .avail-section { margin-top: 18px; }
     .avail-section h3 { font-size: 15px; font-weight: 800; margin-bottom: 4px; }
     .avail-section p  { font-size: 13px; color: var(--muted); margin-bottom: 14px; }
-    .day-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-bottom: 16px; }
-    .day-btn {
-      padding: 10px 6px; border-radius: 10px; border: 1.5px solid var(--line);
-      background: #fff; font: inherit; font-size: 12px; font-weight: 700;
-      color: var(--muted); cursor: pointer; text-align: center; transition: all .15s;
+
+    .avail-cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      margin-bottom: 4px;
     }
-    .day-btn.selected { border-color: var(--accent); background: #eff6ff; color: var(--accent); }
-    .day-btn:hover { border-color: var(--accent); }
-    .time-slots-wrap { margin-top: 12px; }
-    .time-slots-wrap label { font-size: 13px; font-weight: 700; display: block; margin-bottom: 8px; }
-    .time-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
-    .time-chip {
-      padding: 6px 14px; border-radius: 999px; border: 1.5px solid var(--line);
-      background: #fff; font: inherit; font-size: 12px; font-weight: 600;
-      color: var(--muted); cursor: pointer; transition: all .15s;
+    .avail-cal-headers span {
+      font-size: 10px; font-weight: 700; color: var(--muted);
+      text-align: center; padding: 4px 0;
+      text-transform: uppercase; letter-spacing: .4px;
     }
-    .time-chip.selected { border-color: var(--accent); background: #eff6ff; color: var(--accent); }
+    .cal-day {
+      aspect-ratio: 1;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 8px;
+      font-size: 12px; font-weight: 600;
+      cursor: pointer;
+      border: 1.5px solid transparent;
+      background: transparent;
+      color: var(--text);
+      transition: all .12s;
+      position: relative;
+    }
+    .cal-day:hover:not(.cal-past):not(.cal-empty) { border-color: #93c5fd; background: #f0f7ff; }
+    .cal-day.cal-past   { color: #d1d5db; cursor: default; }
+    .cal-day.cal-empty  { cursor: default; }
+    .cal-day.cal-avail  { background: #eff6ff; border-color: var(--accent); color: var(--accent); font-weight: 800; }
+    .cal-day.cal-avail::after {
+      content: '';
+      position: absolute; bottom: 3px; left: 50%; transform: translateX(-50%);
+      width: 4px; height: 4px; border-radius: 50%; background: var(--accent);
+    }
+    .cal-day.cal-selected { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .cal-day.cal-selected::after { background: #fff; }
+    .cal-day.cal-today { box-shadow: 0 0 0 1.5px #93c5fd inset; }
+
+    /* time pills inside day editor */
+    .time-pill {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 4px 10px; border-radius: 999px;
+      background: #eff6ff; border: 1px solid #bfdbfe;
+      color: var(--accent); font-size: 12px; font-weight: 600;
+    }
+    .time-pill button {
+      background: none; border: none; cursor: pointer;
+      color: #93c5fd; font-size: 14px; line-height: 1; padding: 0;
+    }
+    .time-pill button:hover { color: #1d4ed8; }
+
     .avail-save-btn { margin-top: 14px; }
-    .avail-status { font-size: 12px; color: var(--green); font-weight: 600; margin-top: 8px; display: none; }
-
-    /* ── Generated slots preview ── */
-    .slots-preview {
-      margin-top: 16px;
-      border-top: 1px solid var(--line);
-      padding-top: 14px;
-      display: none;
-    }
-    .slots-preview-head {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 10px;
-    }
-    .slots-preview-head span { font-size: 13px; font-weight: 700; color: var(--text); }
-    .slots-preview-head small { font-size: 11px; color: var(--muted); }
-
-    /* Mini date-card row (matches mentee booking style) */
-    .preview-day-row {
-      display: flex; gap: 7px;
-      overflow-x: auto; padding-bottom: 6px;
-      scrollbar-width: none;
-    }
-    .preview-day-row::-webkit-scrollbar { display: none; }
-    .preview-day-card {
-      flex-shrink: 0; width: 66px;
-      border: 1.5px solid var(--line); border-radius: 10px;
-      background: #fff; padding: 8px 4px; text-align: center;
-    }
-    .preview-day-card .pdc-dow  { font-size: 9px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 3px; }
-    .preview-day-card .pdc-num  { font-size: 18px; font-weight: 900; color: var(--text); line-height: 1; margin-bottom: 1px; }
-    .preview-day-card .pdc-mon  { font-size: 10px; font-weight: 600; color: var(--muted); margin-bottom: 5px; }
-    .preview-day-card .pdc-time { font-size: 10px; font-weight: 700; color: #16a34a; }
-    .slots-preview-note {
-      font-size: 11px; color: var(--muted); text-align: center;
-      margin-top: 8px; line-height: 1.5;
-    }
+    .avail-status { font-size: 12px; font-weight: 600; margin-top: 8px; display: none; }
 
   </style>
 </head>
@@ -340,49 +338,34 @@
       <!-- Availability Manager -->
       <div class="avail-section" style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line)">
         <h3>Your availability</h3>
-        <p>Set the days and times mentees can book sessions with you.</p>
+        <p>Click a date to mark it available, then set the time(s) for that day.</p>
 
-        <div class="day-grid" id="dayGrid">
-          <button class="day-btn" data-day="Monday">Mon</button>
-          <button class="day-btn" data-day="Tuesday">Tue</button>
-          <button class="day-btn" data-day="Wednesday">Wed</button>
-          <button class="day-btn" data-day="Thursday">Thu</button>
-          <button class="day-btn" data-day="Friday">Fri</button>
-          <button class="day-btn" data-day="Saturday">Sat</button>
-          <button class="day-btn" data-day="Sunday">Sun</button>
+        <!-- Calendar header -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <button class="mh-btn mh-btn-sm" id="calPrev" type="button">&#8249;</button>
+          <span id="calMonthLabel" style="font-size:13px;font-weight:700;color:var(--text)"></span>
+          <button class="mh-btn mh-btn-sm" id="calNext" type="button">&#8250;</button>
         </div>
 
-        <div class="time-slots-wrap">
-          <label>Available time slots</label>
-          <div class="time-chips" id="timeChips">
-            <button class="time-chip" data-time="08:00">8:00 AM</button>
-            <button class="time-chip" data-time="09:00">9:00 AM</button>
-            <button class="time-chip" data-time="10:00">10:00 AM</button>
-            <button class="time-chip" data-time="11:00">11:00 AM</button>
-            <button class="time-chip" data-time="12:00">12:00 PM</button>
-            <button class="time-chip" data-time="13:00">1:00 PM</button>
-            <button class="time-chip" data-time="14:00">2:00 PM</button>
-            <button class="time-chip" data-time="15:00">3:00 PM</button>
-            <button class="time-chip" data-time="16:00">4:00 PM</button>
-            <button class="time-chip" data-time="17:00">5:00 PM</button>
-            <button class="time-chip" data-time="18:00">6:00 PM</button>
-            <button class="time-chip" data-time="19:00">7:00 PM</button>
-            <button class="time-chip" data-time="20:00">8:00 PM</button>
+        <!-- Day-of-week headers -->
+        <div class="avail-cal-grid avail-cal-headers">
+          <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+        </div>
+        <!-- Calendar days -->
+        <div class="avail-cal-grid" id="calDays"></div>
+
+        <!-- Time editor for selected day -->
+        <div id="dayTimeEditor" style="display:none;margin-top:12px;padding:12px;border-radius:10px;border:1px solid var(--line);background:#f8faff">
+          <div style="font-size:12px;font-weight:700;margin-bottom:8px;color:var(--text)" id="dayTimeLabel"></div>
+          <div id="dayTimePills" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px"></div>
+          <div style="display:flex;gap:6px;align-items:center">
+            <input type="time" id="newTimeInput" class="mh-input" style="width:110px;font-size:13px;padding:6px 10px"/>
+            <button class="mh-btn mh-btn-sm mh-btn-primary" id="addTimeBtn" type="button">+ Add time</button>
           </div>
         </div>
 
-        <button class="mh-btn mh-btn-primary avail-save-btn" id="saveAvailBtn">Save availability</button>
-        <div class="avail-status" id="availStatus">Saved!</div>
-
-        <!-- Generated upcoming slots preview -->
-        <div class="slots-preview" id="slotsPreview">
-          <div class="slots-preview-head">
-            <span>📅 Your upcoming available slots</span>
-            <small id="slotsPreviewCount"></small>
-          </div>
-          <div id="slotsList"></div>
-          <p class="slots-preview-note">This is exactly what mentees will see when booking a session with you.</p>
-        </div>
+        <button class="mh-btn mh-btn-primary avail-save-btn" id="saveAvailBtn" style="margin-top:14px">Save availability</button>
+        <div class="avail-status" id="availStatus"></div>
       </div>
       <div style="margin-top:16px;display:flex;flex-direction:column;gap:8px">
         <a class="mh-btn mh-btn-primary mh-btn-full" href="mentor-onboarding.html">Edit profile</a>
@@ -774,218 +757,218 @@
 <script>
 (function(){
   var _sb = window.mhSb;
-  var selDays = new Set(), selTimes = new Set();
 
-  document.querySelectorAll(".day-btn").forEach(function(btn){
-    btn.addEventListener("click", function(){
-      btn.classList.toggle("selected");
-      selDays.has(btn.dataset.day) ? selDays.delete(btn.dataset.day) : selDays.add(btn.dataset.day);
-      renderSlotsPreview(); // live-update preview as mentor picks days/times
-    });
-  });
+  // availData: { "2025-05-26": ["08:30","14:00"], ... }
+  var availData = {};
+  var selectedDate = null;
+  var calYear, calMonth;
 
-  document.querySelectorAll(".time-chip").forEach(function(chip){
-    chip.addEventListener("click", function(){
-      chip.classList.toggle("selected");
-      selTimes.has(chip.dataset.time) ? selTimes.delete(chip.dataset.time) : selTimes.add(chip.dataset.time);
-      renderSlotsPreview(); // live-update preview as mentor picks days/times
-    });
-  });
+  var today = new Date();
+  calYear  = today.getFullYear();
+  calMonth = today.getMonth();
 
-  // ── Core utility: convert day-name + time strings → real upcoming dates ──
-  function generateUpcomingSlots(days, times, weeksAhead) {
-    weeksAhead = weeksAhead || 4;
-    var DAY_INDEX = {Sunday:0,Monday:1,Tuesday:2,Wednesday:3,Thursday:4,Friday:5,Saturday:6};
-    var slots = [];
-    var today = new Date();
-    today.setHours(0,0,0,0);
-    var limit = weeksAhead * 7;
+  // ── Render calendar ──
+  function renderCal() {
+    var label = document.getElementById("calMonthLabel");
+    var grid  = document.getElementById("calDays");
+    if(!label || !grid) return;
 
-    for(var i = 0; i <= limit; i++) {
-      var d = new Date(today);
-      d.setDate(today.getDate() + i);
-      var dayName = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][d.getDay()];
-      if(days.indexOf(dayName) === -1) continue;
+    var monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+    label.textContent = monthNames[calMonth] + " " + calYear;
 
-      var sortedTimes = times.slice().sort();
-      sortedTimes.forEach(function(t){
-        var parts = t.split(":").map(Number);
-        var dt = new Date(d);
-        dt.setHours(parts[0], parts[1] || 0, 0, 0);
-        if(dt > new Date()) { // must be in the future
-          slots.push(dt);
-        }
+    var firstDay = new Date(calYear, calMonth, 1).getDay();
+    var daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+    var todayStr = today.toISOString().split("T")[0];
+
+    var html = "";
+    // Empty cells before first day
+    for(var i = 0; i < firstDay; i++) {
+      html += '<div class="cal-day cal-empty"></div>';
+    }
+    for(var d = 1; d <= daysInMonth; d++) {
+      var mm   = String(calMonth + 1).padStart(2,"0");
+      var dd   = String(d).padStart(2,"0");
+      var dateStr = calYear + "-" + mm + "-" + dd;
+      var isPast    = dateStr < todayStr;
+      var isToday   = dateStr === todayStr;
+      var isAvail   = !!availData[dateStr] && availData[dateStr].length > 0;
+      var isSel     = dateStr === selectedDate;
+      var cls = "cal-day";
+      if(isPast)   cls += " cal-past";
+      if(isToday)  cls += " cal-today";
+      if(isAvail && !isSel)  cls += " cal-avail";
+      if(isSel)    cls += " cal-selected";
+      html += '<div class="' + cls + '" data-date="' + dateStr + '">' + d + '</div>';
+    }
+    grid.innerHTML = html;
+
+    // Attach click handlers
+    grid.querySelectorAll(".cal-day[data-date]").forEach(function(el) {
+      if(el.classList.contains("cal-past")) return;
+      el.addEventListener("click", function() {
+        selectedDate = el.dataset.date;
+        if(!availData[selectedDate]) availData[selectedDate] = [];
+        renderCal();
+        renderDayEditor();
       });
-    }
-    return slots;
+    });
   }
 
-  // ── Format a Date for display: "Mon, May 26 • 7:00 PM" ──
-  function fmtSlot(dt) {
-    var dayStr  = dt.toLocaleDateString("en-GB", {weekday:"short", day:"numeric", month:"short"});
-    var h = dt.getHours(), m = dt.getMinutes();
-    var ampm = h >= 12 ? "PM" : "AM";
-    var hour = h % 12 || 12;
-    var min  = String(m).padStart(2,"0");
-    return { date: dayStr, time: hour + ":" + min + " " + ampm };
-  }
+  // ── Render the time editor for selected day ──
+  function renderDayEditor() {
+    var editor = document.getElementById("dayTimeEditor");
+    var lbl    = document.getElementById("dayTimeLabel");
+    var pills  = document.getElementById("dayTimePills");
+    if(!editor || !lbl || !pills) return;
 
-  // ── Render the preview panel ──
-  function renderSlotsPreview() {
-    var preview = document.getElementById("slotsPreview");
-    var list    = document.getElementById("slotsList");
-    var count   = document.getElementById("slotsPreviewCount");
-    if(!preview || !list) return;
+    if(!selectedDate) { editor.style.display = "none"; return; }
 
-    var days  = Array.from(selDays);
-    var times = Array.from(selTimes);
+    editor.style.display = "block";
+    var d = new Date(selectedDate + "T00:00:00");
+    lbl.textContent = d.toLocaleDateString("en-GB", {weekday:"long", day:"numeric", month:"long", year:"numeric"});
 
-    if(!days.length || !times.length) {
-      preview.style.display = "none";
-      return;
-    }
-
-    var slots = generateUpcomingSlots(days, times, 4);
-    preview.style.display = "block";
-
-    if(!slots.length) {
-      list.innerHTML = '<div class="slots-preview-note">No upcoming slots in the next 4 weeks.</div>';
-      count.textContent = "";
-      return;
-    }
-
-    var totalCount = slots.length;
-    var show = slots.slice(0, 12); // show up to 12 mini cards
-    count.textContent = totalCount + " slot" + (totalCount !== 1 ? "s" : "") + " · next 4 weeks";
-
-    // Group by date so each card shows all times for that day
-    var byDate = {};
-    show.forEach(function(dt) {
-      var key = dt.toISOString().split("T")[0];
-      if(!byDate[key]) byDate[key] = { dt: dt, times: [] };
-      var h = dt.getHours(), m = dt.getMinutes();
+    var times = availData[selectedDate] || [];
+    pills.innerHTML = times.map(function(t) {
+      var parts = t.split(":").map(Number);
+      var h = parts[0], m = parts[1] || 0;
       var ampm = h >= 12 ? "PM" : "AM";
       var hour = h % 12 || 12;
-      byDate[key].times.push(hour + ":" + String(m).padStart(2,"0") + " " + ampm);
+      var display = hour + ":" + String(m).padStart(2,"0") + " " + ampm;
+      return '<span class="time-pill">' + display +
+        ' <button type="button" data-time="' + t + '" aria-label="Remove">×</button></span>';
+    }).join("");
+
+    // Remove time
+    pills.querySelectorAll(".time-pill button").forEach(function(btn) {
+      btn.addEventListener("click", function() {
+        var t = btn.dataset.time;
+        availData[selectedDate] = (availData[selectedDate] || []).filter(function(x){ return x !== t; });
+        if(availData[selectedDate].length === 0) delete availData[selectedDate];
+        renderCal();
+        renderDayEditor();
+      });
     });
+  }
 
-    var dateKeys = Object.keys(byDate).slice(0, 8);
-    var dayNames = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
-    var monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-
-    var html = '<div class="preview-day-row">';
-    dateKeys.forEach(function(key) {
-      var entry = byDate[key];
-      var d = entry.dt;
-      var dow   = dayNames[d.getDay()];
-      var num   = d.getDate();
-      var mon   = monthNames[d.getMonth()];
-      var tStr  = entry.times[0] + (entry.times.length > 1 ? " +" + (entry.times.length - 1) : "");
-      html += '<div class="preview-day-card">'
-        + '<div class="pdc-dow">' + dow + '</div>'
-        + '<div class="pdc-num">' + num + '</div>'
-        + '<div class="pdc-mon">' + mon + '</div>'
-        + '<div class="pdc-time">' + tStr + '</div>'
-        + '</div>';
-    });
-    html += '</div>';
-
-    if(totalCount > 8) {
-      html += '<p class="slots-preview-note">+ more across the next 4 weeks</p>';
+  // Add time button
+  document.getElementById("addTimeBtn").addEventListener("click", function() {
+    if(!selectedDate) return;
+    var val = document.getElementById("newTimeInput").value;
+    if(!val) return;
+    if(!availData[selectedDate]) availData[selectedDate] = [];
+    if(!availData[selectedDate].includes(val)) {
+      availData[selectedDate].push(val);
+      availData[selectedDate].sort();
     }
-    html += '<p class="slots-preview-note" style="margin-top:6px">This is exactly what mentees will see when booking.</p>';
+    document.getElementById("newTimeInput").value = "";
+    renderCal();
+    renderDayEditor();
+  });
 
-    list.innerHTML = html;
-  }
+  // Allow pressing Enter in time input
+  document.getElementById("newTimeInput").addEventListener("keydown", function(e) {
+    if(e.key === "Enter") { e.preventDefault(); document.getElementById("addTimeBtn").click(); }
+  });
 
-  async function loadAvailability(userId){
-    try {
-      var res = await _sb.from("mentor_availability").select("*").eq("mentor_id", userId);
-      if(!res.data || !res.data.length) return;
-      res.data.forEach(function(row){
-        selDays.add(row.day_of_week);
-        (row.time_slots||[]).forEach(function(t){ selTimes.add(t); });
-      });
-      document.querySelectorAll(".day-btn").forEach(function(btn){
-        if(selDays.has(btn.dataset.day)) btn.classList.add("selected");
-      });
-      document.querySelectorAll(".time-chip").forEach(function(chip){
-        if(selTimes.has(chip.dataset.time)) chip.classList.add("selected");
-      });
-      renderSlotsPreview(); // show preview on page load if availability exists
-    } catch(e){ console.error(e); }
-  }
+  // Calendar nav
+  document.getElementById("calPrev").addEventListener("click", function() {
+    calMonth--;
+    if(calMonth < 0) { calMonth = 11; calYear--; }
+    renderCal();
+  });
+  document.getElementById("calNext").addEventListener("click", function() {
+    calMonth++;
+    if(calMonth > 11) { calMonth = 0; calYear++; }
+    renderCal();
+  });
 
-  var saveBtn = document.getElementById("saveAvailBtn");
+  // ── Save ──
+  var saveBtn     = document.getElementById("saveAvailBtn");
   var availStatus = document.getElementById("availStatus");
 
   function showAvailMsg(msg, isError) {
     if(!availStatus) return;
     availStatus.textContent = msg;
-    availStatus.style.color = isError ? "#dc2626" : "";
+    availStatus.style.color = isError ? "#dc2626" : "#16a34a";
     availStatus.style.display = "block";
-    setTimeout(function(){ availStatus.style.display = "none"; availStatus.textContent = ""; availStatus.style.color = ""; }, 3500);
+    setTimeout(function(){ availStatus.style.display = "none"; }, 3500);
   }
 
-  if(saveBtn){
-    saveBtn.addEventListener("click", async function(){
-      saveBtn.textContent = "Saving..."; saveBtn.disabled = true;
+  if(saveBtn) {
+    saveBtn.addEventListener("click", async function() {
+      saveBtn.textContent = "Saving…"; saveBtn.disabled = true;
       try {
         var s = await _sb.auth.getSession();
         var uid = s.data && s.data.session && s.data.session.user.id;
-        if(!uid){
-          showAvailMsg("Not logged in. Please refresh and try again.", true);
-          saveBtn.textContent = "Save availability"; saveBtn.disabled = false;
-          return;
-        }
+        if(!uid) { showAvailMsg("Not logged in.", true); saveBtn.textContent = "Save availability"; saveBtn.disabled = false; return; }
 
-        // Delete existing rows
-        var delRes = await _sb.from("mentor_availability").delete().eq("mentor_id", uid);
-        if(delRes.error) {
-          console.error("[MentifyHub] availability delete error:", delRes.error);
-          showAvailMsg("Error clearing old availability: " + delRes.error.message, true);
-          saveBtn.textContent = "Save availability"; saveBtn.disabled = false;
-          return;
-        }
+        // Build rows: one per (day_of_week → unique day names with their times)
+        // We store per-date in availData but the DB schema is day_of_week + time_slots.
+        // Convert: group dates by day-of-week, merge times (union), store per day-of-week.
+        var DAY_NAMES = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+        var byDow = {}; // { "Monday": Set of times }
+        Object.keys(availData).forEach(function(dateStr) {
+          var d = new Date(dateStr + "T00:00:00");
+          var dow = DAY_NAMES[d.getDay()];
+          if(!byDow[dow]) byDow[dow] = new Set();
+          (availData[dateStr] || []).forEach(function(t){ byDow[dow].add(t); });
+        });
 
-        var times = Array.from(selTimes);
-        var days  = Array.from(selDays);
+        var rows = Object.keys(byDow).map(function(dow) {
+          return { mentor_id: uid, day_of_week: dow, time_slots: Array.from(byDow[dow]).sort() };
+        });
 
-        if(!days.length || !times.length) {
-          showAvailMsg("Please select at least one day and one time slot.", true);
-          saveBtn.textContent = "Save availability"; saveBtn.disabled = false;
-          return;
-        }
+        if(!rows.length) { showAvailMsg("Please mark at least one date with a time.", true); saveBtn.textContent = "Save availability"; saveBtn.disabled = false; return; }
 
-        var rows = days.map(function(d){ return {mentor_id: uid, day_of_week: d, time_slots: times}; });
-        console.log("[MentifyHub] saving availability rows:", rows);
+        var del = await _sb.from("mentor_availability").delete().eq("mentor_id", uid);
+        if(del.error) { showAvailMsg("Error: " + del.error.message, true); saveBtn.textContent = "Save availability"; saveBtn.disabled = false; return; }
 
-        var insRes = await _sb.from("mentor_availability").insert(rows);
-        if(insRes.error) {
-          console.error("[MentifyHub] availability insert error:", insRes.error);
-          showAvailMsg("Error saving: " + insRes.error.message, true);
-          saveBtn.textContent = "Save availability"; saveBtn.disabled = false;
-          return;
-        }
+        var ins = await _sb.from("mentor_availability").insert(rows);
+        if(ins.error) { showAvailMsg("Error: " + ins.error.message, true); saveBtn.textContent = "Save availability"; saveBtn.disabled = false; return; }
 
-        console.log("[MentifyHub] availability saved successfully");
-        showAvailMsg("✅ Availability saved! See your upcoming slots below.", false);
-        renderSlotsPreview(); // refresh preview after save
-      } catch(e){
-        console.error("[MentifyHub] availability save exception:", e);
+        showAvailMsg("✅ Availability saved!", false);
+      } catch(e) {
         showAvailMsg("Unexpected error: " + e.message, true);
       }
       saveBtn.textContent = "Save availability"; saveBtn.disabled = false;
     });
   }
 
-  (async function(){
+  // ── Load existing availability on boot ──
+  (async function() {
     try {
       var s = await _sb.auth.getSession();
       var uid = s.data && s.data.session && s.data.session.user.id;
-      if(uid) loadAvailability(uid);
-    } catch(e){}
+      if(!uid) { renderCal(); return; }
+
+      var res = await _sb.from("mentor_availability").select("*").eq("mentor_id", uid);
+      if(!res.data || !res.data.length) { renderCal(); return; }
+
+      // Reconstruct availData from day_of_week rows:
+      // Show the next occurrence of each day-of-week for the current month onwards
+      var DAY_NAMES = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+      var todayDate = new Date(); todayDate.setHours(0,0,0,0);
+
+      res.data.forEach(function(row) {
+        var targetDow = DAY_NAMES.indexOf(row.day_of_week);
+        if(targetDow === -1) return;
+        // Fill all matching days in a 5-week window
+        for(var i = 0; i < 35; i++) {
+          var d = new Date(todayDate);
+          d.setDate(todayDate.getDate() + i);
+          if(d.getDay() === targetDow) {
+            var mm = String(d.getMonth()+1).padStart(2,"0");
+            var dd = String(d.getDate()).padStart(2,"0");
+            var key = d.getFullYear() + "-" + mm + "-" + dd;
+            availData[key] = (row.time_slots || []).slice();
+          }
+        }
+      });
+
+      renderCal();
+    } catch(e) { console.error(e); renderCal(); }
   })();
+
 })();
 </script>
 

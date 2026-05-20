@@ -140,90 +140,69 @@
     }
 
     /* ── Session booking ── */
-    .booking-section { margin-top: 18px; }
-    .booking-section h3 { font-size: 15px; font-weight: 800; margin-bottom: 4px; }
-    .booking-section p  { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
-
-    /* Available sessions card */
     .avail-sessions-card {
       border: 1.5px solid var(--line);
-      border-radius: 16px;
+      border-radius: 14px;
       background: #fff;
-      padding: 18px 16px 16px;
-      margin-bottom: 0;
+      padding: 16px;
     }
-    .avail-sessions-card h3 {
-      font-size: 15px; font-weight: 800; color: var(--text); margin: 0 0 3px;
-    }
-    .avail-sessions-card p {
-      font-size: 12px; color: var(--muted); margin: 0 0 16px; line-height: 1.5;
-    }
+    .avail-sessions-card h3 { font-size: 14px; font-weight: 800; color: var(--text); margin: 0 0 3px; }
+    .avail-sessions-card p  { font-size: 12px; color: var(--muted); margin: 0 0 14px; line-height: 1.5; }
 
-    /* Day scroll row */
-    .day-cards-wrap { position: relative; margin-bottom: 0; }
-    .day-cards {
-      display: flex; gap: 8px;
-      overflow-x: auto; padding-bottom: 4px;
-      scroll-behavior: smooth;
-      scrollbar-width: none;
+    /* Mentee booking calendar (same grid as mentor) */
+    .book-cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 3px;
+      margin-bottom: 3px;
     }
-    .day-cards::-webkit-scrollbar { display: none; }
-    .day-card {
-      flex-shrink: 0; width: 80px;
-      border: 1.5px solid var(--line); border-radius: 12px;
-      background: #fff; padding: 10px 6px 10px; text-align: center;
-      cursor: pointer; transition: border-color .15s, background .15s;
+    .book-cal-headers span {
+      font-size: 9px; font-weight: 700; color: var(--muted);
+      text-align: center; padding: 3px 0;
+      text-transform: uppercase; letter-spacing: .4px;
     }
-    .day-card:hover { border-color: #93c5fd; background: #f8fbff; }
-    .day-card.selected {
-      border: 2px solid var(--text);
+    .book-cal-day {
+      aspect-ratio: 1;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 7px;
+      font-size: 11px; font-weight: 600;
+      cursor: default;
+      color: #d1d5db; /* greyed by default */
+      position: relative;
+    }
+    .book-cal-day.bcd-avail {
+      color: var(--text); cursor: pointer;
+      border: 1.5px solid var(--line);
       background: #fff;
-      box-shadow: 0 2px 8px rgba(15,23,42,.10);
+      transition: all .12s;
     }
-    .day-card .dc-dow   { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 4px; }
-    .day-card .dc-num   { font-size: 22px; font-weight: 900; color: var(--text); line-height: 1; margin-bottom: 2px; }
-    .day-card .dc-mon   { font-size: 11px; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
-    .day-card .dc-slots { font-size: 11px; font-weight: 700; color: #16a34a; }
-    .day-card.selected .dc-dow   { color: var(--text); }
-    .day-card.selected .dc-num   { color: var(--text); }
-    .day-card.selected .dc-slots { color: #16a34a; }
+    .book-cal-day.bcd-avail:hover { border-color: var(--accent); background: #eff6ff; color: var(--accent); }
+    .book-cal-day.bcd-avail::after {
+      content: '';
+      position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%);
+      width: 4px; height: 4px; border-radius: 50%; background: #16a34a;
+    }
+    .book-cal-day.bcd-selected { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .book-cal-day.bcd-selected::after { background: #fff; }
+    .book-cal-day.bcd-today { box-shadow: 0 0 0 1.5px #93c5fd inset; }
 
-    /* Time slots section */
-    .time-slots-section {
-      margin-top: 16px;
-      padding-top: 14px;
-      border-top: 1px solid var(--line);
-    }
-    .time-slots-header {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 12px;
-    }
-    .time-slots-header span { font-size: 13px; font-weight: 700; color: var(--text); }
-    .time-nav-btns { display: flex; gap: 4px; }
-    .time-nav-btn {
-      width: 28px; height: 28px; border-radius: 8px;
-      border: 1.5px solid var(--line); background: #fff;
-      font-size: 14px; cursor: pointer; display: flex;
-      align-items: center; justify-content: center;
-      color: var(--muted); transition: all .15s;
-    }
-    .time-nav-btn:hover { border-color: var(--accent); color: var(--accent); }
-    .time-nav-btn:disabled { opacity: .35; cursor: default; }
-
-    .time-slots-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
+    /* Time slot grid */
+    .time-slots-section { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); }
+    .time-slots-section label { font-size: 12px; font-weight: 700; display: block; margin-bottom: 8px; color: var(--text); }
+    .time-slots-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; margin-bottom: 12px; }
     .time-slot-btn {
-      padding: 11px 6px; border-radius: 10px;
+      padding: 10px 4px; border-radius: 9px;
       border: 1.5px solid var(--line); background: #fff;
       font: inherit; font-size: 12px; font-weight: 700;
       color: var(--text); cursor: pointer; transition: all .15s;
       text-align: center; white-space: nowrap;
     }
-    .time-slot-btn:hover  { border-color: var(--accent); background: #eff6ff; color: var(--accent); }
+    .time-slot-btn:hover   { border-color: var(--accent); background: #eff6ff; color: var(--accent); }
     .time-slot-btn.selected { border-color: var(--accent); background: var(--accent); color: #fff; }
     .time-slot-btn.booked   { background: #f8fafc; color: #cbd5e1; border-color: #e2e8f0; cursor: not-allowed; font-size: 11px; }
 
     .booking-confirm-btn { width: 100%; margin-top: 4px; }
-    .no-slots-msg { font-size: 13px; color: var(--muted); text-align: center; padding: 24px 0; }
+    .no-slots-msg { font-size: 12px; color: var(--muted); text-align: center; padding: 20px 0; }
 
   </style>
 </head>

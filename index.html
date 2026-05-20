@@ -22,11 +22,11 @@
 
     /* ── Left panel ── */
     .left-panel {
-      padding: 0 60px 60px;
+      padding: 40px 60px 60px;
       display: flex;
       flex-direction: column;
       justify-content: center;
-      min-height: calc(100vh - 80px);
+      min-height: 100vh;
       position: relative;
     }
 
@@ -378,81 +378,6 @@
   </style>
 </head>
 <body>
-<div style="position:sticky;top:0;z-index:100;background:rgba(240,242,248,.92);backdrop-filter:blur(12px);border-bottom:1px solid #e2e8f0;">
-  <div class="mh-wrap" style="padding-top:0;padding-bottom:0;">
-    <header class="mh-topbar" style="margin:0">
-      <a href="index.html" class="mh-brand">
-        <img src="logo.png" alt="MentifyHub" class="mh-brand-logo"/>
-        <div class="mh-brand-text">
-          <strong>MentifyHub</strong>
-          <span>Mentorship platform</span>
-        </div>
-      </a>
-      <nav class="mh-nav">
-        <span class="mh-chip hide-mobile"><span class="mh-chip-dot"></span> Real mentors. Real conversations.</span>
-        <a class="mh-btn" href="auth.html?mode=signup&returnTo=mentor-directory.html">Browse mentors</a>
-        <a class="mh-btn mh-btn-primary" href="auth.html?mode=signin">Sign in</a>
-      </nav>
-    </header>
-  </div>
-</div>
-
-<div class="page">
-  <!-- Left: big hero text -->
-  <div class="left-panel">
-    <div class="wave-bg"></div>
-
-    <div style="display:flex;justify-content:center;margin-bottom:20px;position:relative;z-index:2">
-      <img src="logo.png" alt="MentifyHub" style="width:64px;height:64px;border-radius:20px;box-shadow:0 8px 24px rgba(37,99,235,.2);border:2px solid #fff"/>
-    </div>
-    <h1 class="hero-headline">
-      Connect with<br/>
-      <span class="inline-search" onclick="if(!document.getElementById('heroSearch').matches(':focus')) window.location.href='auth.html?mode=signup&returnTo=mentor-directory.html'" style="cursor:pointer">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        <input id="heroSearch" placeholder="Search mentors..." autocomplete="off" style="border:none;outline:none;background:transparent;font:inherit;font-size:clamp(14px,1.8vw,20px);color:#0f172a;width:160px"/>
-      </span>
-      <br/>
-      who has <span class="blue">been there.</span>
-    </h1>
-
-    <p class="hero-sub">Learn from experienced professionals in sustainability, energy and green buildings.</p>
-
-    <div class="cat-row">
-      <span class="cat-pill active">Green Buildings</span>
-      <span class="cat-pill">Energy</span>
-      <span class="cat-pill">Sustainability</span>
-      <span class="cat-pill">Built Environment</span>
-    </div>
-
-    <div class="cta-row">
-      <div class="stat-pill"><span class="dot"></span> Free to get started</div>
-      <a class="btn-secondary" href="auth.html?role=mentee">Get started →</a>
-      <a class="btn-discover" href="auth.html?role=mentor">
-        Become a mentor
-        <span class="arrow">→</span>
-      </a>
-    </div>
-
-    <!-- Mentor slider -->
-    <div class="mentor-slider-wrap">
-      <div class="mentor-slider" id="mentorSlider">
-        <!-- Filled by JS -->
-      </div>
-    </div>
-
-    <div class="social-proof">
-      <div class="avatar-stack" id="avatarStack">
-        <div class="av">M</div>
-        <div class="av">S</div>
-        <div class="av">A</div>
-        <div class="av">+</div>
-      </div>
-      <span class="social-text">Work with <span id="mentorCount">real</span> mentors on the platform</span>
-    </div>
-  </div>
-
-
-</div>
 
 <!-- Sections below -->
 <div class="sections">
@@ -534,8 +459,8 @@ async function fetchMentors() {
     const { data } = await sb
       .from("mentors")
       .select("full_name, headline, field, tags, profile_image")
-      .limit(50);
-    return data || [];
+      .limit(4);
+    return (data || []).slice(0, 4);
   } catch(e) {
     console.warn("Could not load mentors:", e);
     return [];
@@ -599,8 +524,9 @@ function renderSlider(mentors) {
   if(!slider || !mentors.length) return;
   slider.innerHTML = "";
 
-  // Duplicate list for seamless infinite scroll
-  const all = [...mentors, ...mentors];
+  // Show max 4, duplicate for seamless loop
+  const limited = mentors.slice(0, 4);
+  const all = [...limited, ...limited];
   all.forEach((m, i) => {
     slider.appendChild(buildSlideCard(m, i));
   });

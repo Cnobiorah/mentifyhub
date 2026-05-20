@@ -923,6 +923,7 @@
     await loadMenteeProfile();
     await new Promise(r => setTimeout(r, 120));
     await loadMentors();
+    renderMatches();
     await loadRequests();
     await loadBookingSection();
     await loadMentorshipProgress();

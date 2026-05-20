@@ -848,11 +848,11 @@
     }
 
     // Get mentor availability
-    const today = new Date().toISOString().split("T")[0];
+    const todayStr = new Date().toISOString().split("T")[0];
     const {data: avail, error: availErr} = await sb.from("mentor_availability")
       .select("*")
       .eq("mentor_id", req.mentor_id)
-      .gte("specific_date", today)
+      .gte("specific_date", todayStr)
       .order("specific_date", {ascending: true});
 
     if(availErr) {
@@ -867,278 +867,41 @@
   function renderDayCards() {
     const container = document.getElementById("dayCards");
     const noSlots   = document.getElementById("noSlotsMsg");
+    if(!container) return;
     container.innerHTML = "";
 
-    if(!availabilityData.length) {
-      noSlots.style.display = "block";
+    if(!availabilityData || !availabilityData.length){
+      if(noSlots) noSlots.style.display = "block";
       return;
     }
+    if(noSlots) noSlots.style.display = "none";
 
-    // Generate next 28 days that match available days
-    const dayNames = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-    const cards = [];
-    const today = new Date();
-    today.setHours(0,0,0,0);
-
-    for(let i = 0; i < 28; i++) {
-      const d    = new Date(today);
-      d.setDate(today.getDate() + i);
-      const name = dayNames[d.getDay()];
-      const avail = availabilityData.find(a => a.day_of_week === name);
-      if(!avail) continue;
+    availabilityData.forEach(row => {
+      if(!row.specific_date) return;
+      const d       = new Date(row.specific_date + "T12:00:00");
+      const dayAbbr = d.toLocaleDateString("en-GB",{weekday:"short"}).toUpperCase();
+      const dayNum  = d.getDate();
+      const month   = d.toLocaleDateString("en-GB",{month:"short"});
+      const slots   = (row.time_slots || []).length;
 
       const card = document.createElement("div");
       card.className = "day-card";
-      card.dataset.date = d.toISOString().split("T")[0];
-      card.dataset.day  = name;
+      card.dataset.date = row.specific_date;
+      card.innerHTML = `
+        <div class="dc-day">${dayAbbr}</div>
+        <div class="dc-num">${dayNum}</div>
+        <div class="dc-month">${month}</div>
+        <div class="dc-slots">${slots} slot${slots!==1?"s":""}</div>`;
 
-      const dow   = name.slice(0,3).toUpperCase();
-      const dayNum = d.getDate();
-      const month  = d.toLocaleDateString("en-GB", {month:"short"});
-      const slots  = (avail.time_slots || []).length;
-
-      card.innerHTML =
-        `<div class="dc-dow">${dow}</div>` +
-        `<div class="dc-num">${dayNum}</div>` +
-        `<div class="dc-mon">${month}</div>` +
-        `<div class="dc-slots">${slots} slot${slots !== 1 ? "s" : ""}</div>`;
-
-      card.addEventListener("click", async () => {
+      card.addEventListener("click", () => {
         document.querySelectorAll(".day-card").forEach(c => c.classList.remove("selected"));
         card.classList.add("selected");
-        selectedDay  = card.dataset.date;
+        selectedDate = row.specific_date;
         selectedTime = null;
-        await renderTimeSlots(avail.time_slots || []);
+        renderTimeSlots(row.time_slots || []);
       });
-
       container.appendChild(card);
-      cards.push(card);
-    }
-
-    if(!cards.length) noSlots.style.display = "block";
-  }
-
-  let _allTimesForDay = [];
-  let _timePage = 0;
-  const TIME_PAGE_SIZE = 6;
-
-  function renderTimePage() {
-    const grid = document.getElementById("timeSlotGrid");
-    const prevBtn = document.getElementById("timeNavPrev");
-    const nextBtn = document.getElementById("timeNavNext");
-    if(!grid) return;
-
-    const start = _timePage * TIME_PAGE_SIZE;
-    const page  = _allTimesForDay.slice(start, start + TIME_PAGE_SIZE);
-
-    if(prevBtn) prevBtn.disabled = _timePage === 0;
-    if(nextBtn) nextBtn.disabled = start + TIME_PAGE_SIZE >= _allTimesForDay.length;
-
-    grid.innerHTML = "";
-    page.forEach(({ t, isBooked }) => {
-      const btn  = document.createElement("button");
-      const [h, m] = t.split(":").map(Number);
-      const ampm = h >= 12 ? "PM" : "AM";
-      const hour = h % 12 || 12;
-      const min  = String(m).padStart(2,"0");
-      btn.className  = "time-slot-btn" + (isBooked ? " booked" : "");
-      btn.disabled   = isBooked;
-      btn.textContent = isBooked
-        ? `${hour}:${min} ${ampm} · Booked`
-        : `${hour}:${min} ${ampm}`;
-      if(!isBooked) {
-        btn.addEventListener("click", () => {
-          document.querySelectorAll(".time-slot-btn").forEach(b => b.classList.remove("selected"));
-          btn.classList.add("selected");
-          selectedTime = t;
-          document.getElementById("confirmBookingBtn").style.display = "block";
-        });
-      }
-      grid.appendChild(btn);
     });
   }
 
-  async function renderTimeSlots(times) {
-    const wrap = document.getElementById("timeSlotsWrap");
-    const grid = document.getElementById("timeSlotGrid");
-    if(!wrap || !grid) return;
-    grid.innerHTML = "<div style='font-size:12px;color:var(--muted);padding:8px 0'>Checking availability…</div>";
-    wrap.style.display = "block";
-    document.getElementById("confirmBookingBtn").style.display = "none";
 
-    // Fetch already-booked times for this mentor on the selected day
-    const dayStart = selectedDay + "T00:00:00";
-    const dayEnd   = selectedDay + "T23:59:59";
-    const {data: bookedSessions} = await sb.from("sessions")
-      .select("scheduled_for")
-      .eq("mentor_id", bookingMentorId)
-      .gte("scheduled_for", dayStart)
-      .lte("scheduled_for", dayEnd)
-      .neq("status", "cancelled");
-
-    const bookedTimes = new Set(
-      (bookedSessions || []).map(s => {
-        const t = s.scheduled_for.split("T")[1] || "";
-        return t.slice(0, 5);
-      })
-    );
-
-    _allTimesForDay = [...times].sort().map(t => ({ t, isBooked: bookedTimes.has(t) }));
-    _timePage = 0;
-    renderTimePage();
-
-    // Wire nav buttons (replace listeners by cloning to avoid duplicates)
-    ["timeNavPrev","timeNavNext"].forEach(id => {
-      const el = document.getElementById(id);
-      if(!el) return;
-      const clone = el.cloneNode(true);
-      el.parentNode.replaceChild(clone, el);
-    });
-    const prevBtn = document.getElementById("timeNavPrev");
-    const nextBtn = document.getElementById("timeNavNext");
-    if(prevBtn) prevBtn.addEventListener("click", () => { if(_timePage > 0){ _timePage--; renderTimePage(); } });
-    if(nextBtn) nextBtn.addEventListener("click", () => { if((_timePage+1)*TIME_PAGE_SIZE < _allTimesForDay.length){ _timePage++; renderTimePage(); } });
-  }
-
-  document.addEventListener("click", async (e) => { if(e.target.id !== "confirmBookingBtn") return;
-    if(!selectedDay || !selectedTime || !bookingRequestId) return;
-    const btn = e.target;
-    btn.textContent = "Booking..."; btn.disabled = true;
-
-    const scheduledFor = `${selectedDay}T${selectedTime}:00`;
-
-    const {error} = await sb.from("sessions").insert({
-      request_id:       bookingRequestId,
-      mentor_id:        bookingMentorId,
-      mentee_id:        currentUser.id,
-      proposed_by:      currentUser.id,
-      scheduled_for:    scheduledFor,
-      duration_minutes: 60,
-      status:           "scheduled",
-    });
-
-    if(error) {
-      console.error(error);
-      btn.textContent = "Confirm booking"; btn.disabled = false;
-      // Check if it's a duplicate booking (race condition - someone else just took this slot)
-      if(error.code === "23505" || (error.message && error.message.includes("unique"))) {
-        alert("Sorry, this time slot was just booked by someone else. Please pick a different time.");
-        await renderTimeSlots(availabilityData.find(a => {
-          const dayName = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][new Date(selectedDay).getDay()];
-          return a.day_of_week === dayName;
-        })?.time_slots || []);
-      } else {
-        alert("Could not book. Please try again.");
-      }
-      return;
-    }
-
-    // Notify the mentor about the booking
-    try {
-      const {data: menteeProf} = await sb.from("mentees").select("full_name").eq("user_id", currentUser.id).maybeSingle();
-      const menteeName  = menteeProf?.full_name || "A mentee";
-      const sessionDate = new Date(scheduledFor).toLocaleString("en-GB", {
-        weekday:"long", day:"numeric", month:"long", year:"numeric",
-        hour:"2-digit", minute:"2-digit"
-      });
-      await sb.from("notifications").insert({
-        user_id:  bookingMentorId,
-        title:    "New session booked! 📅",
-        message:  `${menteeName} has booked a session with you on ${sessionDate}.`,
-        type:     "session_booked",
-        is_read:  false
-      });
-    } catch(notifErr) { console.warn("Could not notify mentor:", notifErr); }
-
-    btn.textContent = "Booked!";
-    setTimeout(() => {
-      const wrap = document.getElementById("upcomingSessionsWrap");
-      if(wrap) wrap.innerHTML = `
-        <div style="font-weight:700;font-size:13px;margin-bottom:8px">Upcoming sessions</div>
-        <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Session booked! ✅</div>
-        <div class="mh-empty">
-          <a class="mh-btn mh-btn-primary" href="sessions.html" style="width:100%;justify-content:center">View sessions</a>
-        </div>`;
-    }, 2000);
-  });
-
-  window.addEventListener("load", async () => {
-    const ok = await guardAuth();
-    if(!ok) return;
-    menteeProfile = await ensureMenteeProfile();
-    await loadMenteeProfile();
-    await new Promise(r=>setTimeout(r,120));
-    await loadMentors();
-    await loadRequests();
-    await loadBookingSection();
-    await loadMentorshipProgress();
-    await loadSessions();
-    await loadNotifications();
-    await loadMenteeProgressDetails();
-    subscribeNotifications();
-    renderMatches();
-
-    // Show onboarding prompt if profile incomplete
-    const pct = menteeProfile ? window.menteeCompleteness(menteeProfile) : 0;
-    showOnboardingPrompt(pct);
-  });
-</script>
-
-<!-- ── Mobile right-side drawer ── -->
-<div id="navOverlay" onclick="closeDrawer()" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);backdrop-filter:blur(3px);z-index:90;"></div>
-<div class="mh-mobile-drawer" id="mobileDrawer">
-  <div class="drawer-head">
-    <div class="drawer-head-brand">
-      <img src="logo.png" alt="MentifyHub"/>
-      <strong>MentifyHub</strong>
-    </div>
-    <button class="mh-drawer-close" onclick="closeDrawer()" aria-label="Close menu">✕</button>
-  </div>
-  <div class="mh-drawer-user" id="drawerUserInfo">Loading…</div>
-  <div class="mh-drawer-links">
-    <a href="mentee-dashboard.html" class="mh-drawer-link active"><span class="icon">🏠</span> Dashboard</a>
-    <a href="mentor-directory.html"  class="mh-drawer-link"><span class="icon">🔍</span> Browse mentors</a>
-    <a href="messages.html"          class="mh-drawer-link"><span class="icon">💬</span> Messages</a>
-    <a href="sessions.html"          class="mh-drawer-link"><span class="icon">📅</span> Sessions</a>
-    <a href="reviews.html"           class="mh-drawer-link"><span class="icon">⭐</span> Reviews</a>
-  </div>
-  <div class="mh-drawer-footer">
-    <button class="mh-drawer-signout" onclick="drawerSignOut()">🚪 &nbsp;Sign out</button>
-  </div>
-</div>
-
-<script>
-  document.body.classList.add("has-side-nav");
-
-  function openDrawer(){
-    if(window.innerWidth > 768) return;
-    const d = document.getElementById('mobileDrawer');
-    const o = document.getElementById('navOverlay');
-    if(!d||!o) return;
-    d.classList.add('open');
-    o.style.display = 'block';
-    document.body.style.overflow = 'hidden';
-    const chip = document.getElementById('whoChip')||document.getElementById('envChip');
-    const info = document.getElementById('drawerUserInfo');
-    if(chip&&info) info.textContent = chip.textContent;
-  }
-
-  function closeDrawer(){
-    const d = document.getElementById('mobileDrawer');
-    const o = document.getElementById('navOverlay');
-    if(!d||!o) return;
-    d.classList.remove('open');
-    o.style.display = 'none';
-    document.body.style.overflow = '';
-  }
-
-  async function drawerSignOut(){
-    try{
-      const sb2 = window.supabase || window.sb || window._sb;
-      if(sb2) await sb2.auth.signOut();
-    }catch(e){}
-    window.location.href = 'auth.html?mode=signin';
-  }
-</script>
-</body>
-</html>

@@ -143,33 +143,87 @@
     .booking-section { margin-top: 18px; }
     .booking-section h3 { font-size: 15px; font-weight: 800; margin-bottom: 4px; }
     .booking-section p  { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
-    .day-cards { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 16px; }
-    .day-card {
-      flex-shrink: 0; min-width: 90px;
-      border: 1.5px solid var(--line); border-radius: 14px;
-      background: #fff; padding: 12px 10px; text-align: center;
-      cursor: pointer; transition: all .15s;
+
+    /* Available sessions card */
+    .avail-sessions-card {
+      border: 1.5px solid var(--line);
+      border-radius: 16px;
+      background: #fff;
+      padding: 18px 16px 16px;
+      margin-bottom: 0;
     }
-    .day-card:hover { border-color: var(--accent); }
-    .day-card.selected { border-color: var(--accent); background: #eff6ff; }
-    .day-card .dc-day  { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
-    .day-card .dc-date { font-size: 18px; font-weight: 900; color: var(--text); margin: 4px 0; }
-    .day-card .dc-slots{ font-size: 11px; font-weight: 700; color: var(--green); }
-    .day-card.selected .dc-day  { color: var(--accent); }
-    .day-card.selected .dc-date { color: var(--accent); }
+    .avail-sessions-card h3 {
+      font-size: 15px; font-weight: 800; color: var(--text); margin: 0 0 3px;
+    }
+    .avail-sessions-card p {
+      font-size: 12px; color: var(--muted); margin: 0 0 16px; line-height: 1.5;
+    }
+
+    /* Day scroll row */
+    .day-cards-wrap { position: relative; margin-bottom: 0; }
+    .day-cards {
+      display: flex; gap: 8px;
+      overflow-x: auto; padding-bottom: 4px;
+      scroll-behavior: smooth;
+      scrollbar-width: none;
+    }
+    .day-cards::-webkit-scrollbar { display: none; }
+    .day-card {
+      flex-shrink: 0; width: 80px;
+      border: 1.5px solid var(--line); border-radius: 12px;
+      background: #fff; padding: 10px 6px 10px; text-align: center;
+      cursor: pointer; transition: border-color .15s, background .15s;
+    }
+    .day-card:hover { border-color: #93c5fd; background: #f8fbff; }
+    .day-card.selected {
+      border: 2px solid var(--text);
+      background: #fff;
+      box-shadow: 0 2px 8px rgba(15,23,42,.10);
+    }
+    .day-card .dc-dow   { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 4px; }
+    .day-card .dc-num   { font-size: 22px; font-weight: 900; color: var(--text); line-height: 1; margin-bottom: 2px; }
+    .day-card .dc-mon   { font-size: 11px; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
+    .day-card .dc-slots { font-size: 11px; font-weight: 700; color: #16a34a; }
+    .day-card.selected .dc-dow   { color: var(--text); }
+    .day-card.selected .dc-num   { color: var(--text); }
+    .day-card.selected .dc-slots { color: #16a34a; }
+
+    /* Time slots section */
+    .time-slots-section {
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+    }
+    .time-slots-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .time-slots-header span { font-size: 13px; font-weight: 700; color: var(--text); }
+    .time-nav-btns { display: flex; gap: 4px; }
+    .time-nav-btn {
+      width: 28px; height: 28px; border-radius: 8px;
+      border: 1.5px solid var(--line); background: #fff;
+      font-size: 14px; cursor: pointer; display: flex;
+      align-items: center; justify-content: center;
+      color: var(--muted); transition: all .15s;
+    }
+    .time-nav-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .time-nav-btn:disabled { opacity: .35; cursor: default; }
+
     .time-slots-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
     .time-slot-btn {
-      padding: 12px 8px; border-radius: 12px;
+      padding: 11px 6px; border-radius: 10px;
       border: 1.5px solid var(--line); background: #fff;
-      font: inherit; font-size: 13px; font-weight: 700;
+      font: inherit; font-size: 12px; font-weight: 700;
       color: var(--text); cursor: pointer; transition: all .15s;
-      text-align: center;
+      text-align: center; white-space: nowrap;
     }
     .time-slot-btn:hover  { border-color: var(--accent); background: #eff6ff; color: var(--accent); }
     .time-slot-btn.selected { border-color: var(--accent); background: var(--accent); color: #fff; }
-    .time-slot-btn.booked { background: #f1f5f9; color: #94a3b8; border-color: #e2e8f0; cursor: not-allowed; font-size: 11px; }
-    .booking-confirm-btn { width: 100%; }
-    .no-slots-msg { font-size: 13px; color: var(--muted); text-align: center; padding: 20px; }
+    .time-slot-btn.booked   { background: #f8fafc; color: #cbd5e1; border-color: #e2e8f0; cursor: not-allowed; font-size: 11px; }
+
+    .booking-confirm-btn { width: 100%; margin-top: 4px; }
+    .no-slots-msg { font-size: 13px; color: var(--muted); text-align: center; padding: 24px 0; }
 
   </style>
 </head>
@@ -760,15 +814,23 @@
       const wrap = document.getElementById("upcomingSessionsWrap");
       if(wrap) {
         wrap.innerHTML = `
-          <div id="bookingSection">
-            <div style="font-weight:700;font-size:13px;margin-bottom:8px">Book a session</div>
-            <p id="bookingMentorName" style="font-size:12px;color:var(--muted);margin-bottom:12px;"></p>
-            <div class="day-cards" id="dayCards"></div>
+          <div id="bookingSection" class="avail-sessions-card">
+            <h3>Available sessions</h3>
+            <p id="bookingMentorName">Book 1:1 sessions from the options based on your needs</p>
+            <div class="day-cards-wrap">
+              <div class="day-cards" id="dayCards"></div>
+            </div>
             <p id="noSlotsMsg" class="no-slots-msg" style="display:none;">
               Your mentor hasn't set availability yet. Check back soon.
             </p>
-            <div id="timeSlotsWrap" style="display:none;">
-              <div style="font-size:13px;font-weight:700;margin-bottom:10px;">Pick a time</div>
+            <div id="timeSlotsWrap" class="time-slots-section" style="display:none;">
+              <div class="time-slots-header">
+                <span>Available time slots</span>
+                <div class="time-nav-btns">
+                  <button class="time-nav-btn" id="timeNavPrev" title="Previous">&#8249;</button>
+                  <button class="time-nav-btn" id="timeNavNext" title="Next">&#8250;</button>
+                </div>
+              </div>
               <div class="time-slots-grid" id="timeSlotGrid"></div>
             </div>
             <button id="confirmBookingBtn" class="mh-btn mh-btn-primary booking-confirm-btn" style="display:none;">
@@ -780,8 +842,10 @@
 
     // Get mentor name
     const {data: mentor} = await sb.from("mentors").select("full_name").eq("user_id", req.mentor_id).maybeSingle();
-    document.getElementById("bookingMentorName").textContent =
-      "Pick a time to meet " + (mentor?.full_name || "your mentor") + ".";
+    if(mentor?.full_name) {
+      const nameEl = document.getElementById("bookingMentorName");
+      if(nameEl) nameEl.textContent = "Book a session with " + mentor.full_name + ".";
+    }
 
     // Get mentor availability
     const {data: avail, error: availErr} = await sb.from("mentor_availability")
@@ -806,12 +870,13 @@
       return;
     }
 
-    // Generate next 14 days that match available days
+    // Generate next 28 days that match available days
     const dayNames = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
     const cards = [];
     const today = new Date();
+    today.setHours(0,0,0,0);
 
-    for(let i = 0; i < 14; i++) {
+    for(let i = 0; i < 28; i++) {
       const d    = new Date(today);
       d.setDate(today.getDate() + i);
       const name = dayNames[d.getDay()];
@@ -823,14 +888,16 @@
       card.dataset.date = d.toISOString().split("T")[0];
       card.dataset.day  = name;
 
-      const dayAbbr = name.slice(0, 3).toUpperCase();
-      const dateStr = d.toLocaleDateString("en-GB", {day:"2-digit", month:"short"});
-      const slots   = (avail.time_slots || []).length;
+      const dow   = name.slice(0,3).toUpperCase();
+      const dayNum = d.getDate();
+      const month  = d.toLocaleDateString("en-GB", {month:"short"});
+      const slots  = (avail.time_slots || []).length;
 
-      card.innerHTML = `
-        <div class="dc-day">${dayAbbr}</div>
-        <div class="dc-date">${dateStr}</div>
-        <div class="dc-slots">${slots} slot${slots !== 1 ? "s" : ""}</div>`;
+      card.innerHTML =
+        `<div class="dc-dow">${dow}</div>` +
+        `<div class="dc-num">${dayNum}</div>` +
+        `<div class="dc-mon">${month}</div>` +
+        `<div class="dc-slots">${slots} slot${slots !== 1 ? "s" : ""}</div>`;
 
       card.addEventListener("click", async () => {
         document.querySelectorAll(".day-card").forEach(c => c.classList.remove("selected"));
@@ -847,9 +914,50 @@
     if(!cards.length) noSlots.style.display = "block";
   }
 
+  let _allTimesForDay = [];
+  let _timePage = 0;
+  const TIME_PAGE_SIZE = 6;
+
+  function renderTimePage() {
+    const grid = document.getElementById("timeSlotGrid");
+    const prevBtn = document.getElementById("timeNavPrev");
+    const nextBtn = document.getElementById("timeNavNext");
+    if(!grid) return;
+
+    const start = _timePage * TIME_PAGE_SIZE;
+    const page  = _allTimesForDay.slice(start, start + TIME_PAGE_SIZE);
+
+    if(prevBtn) prevBtn.disabled = _timePage === 0;
+    if(nextBtn) nextBtn.disabled = start + TIME_PAGE_SIZE >= _allTimesForDay.length;
+
+    grid.innerHTML = "";
+    page.forEach(({ t, isBooked }) => {
+      const btn  = document.createElement("button");
+      const [h, m] = t.split(":").map(Number);
+      const ampm = h >= 12 ? "PM" : "AM";
+      const hour = h % 12 || 12;
+      const min  = String(m).padStart(2,"0");
+      btn.className  = "time-slot-btn" + (isBooked ? " booked" : "");
+      btn.disabled   = isBooked;
+      btn.textContent = isBooked
+        ? `${hour}:${min} ${ampm} · Booked`
+        : `${hour}:${min} ${ampm}`;
+      if(!isBooked) {
+        btn.addEventListener("click", () => {
+          document.querySelectorAll(".time-slot-btn").forEach(b => b.classList.remove("selected"));
+          btn.classList.add("selected");
+          selectedTime = t;
+          document.getElementById("confirmBookingBtn").style.display = "block";
+        });
+      }
+      grid.appendChild(btn);
+    });
+  }
+
   async function renderTimeSlots(times) {
     const wrap = document.getElementById("timeSlotsWrap");
     const grid = document.getElementById("timeSlotGrid");
+    if(!wrap || !grid) return;
     grid.innerHTML = "<div style='font-size:12px;color:var(--muted);padding:8px 0'>Checking availability…</div>";
     wrap.style.display = "block";
     document.getElementById("confirmBookingBtn").style.display = "none";
@@ -871,28 +979,21 @@
       })
     );
 
-    grid.innerHTML = "";
-    times.sort().forEach(t => {
-      const btn      = document.createElement("button");
-      const isBooked = bookedTimes.has(t);
-      btn.className  = "time-slot-btn" + (isBooked ? " booked" : "");
-      btn.disabled   = isBooked;
-      const [h, m]   = t.split(":").map(Number);
-      const ampm     = h >= 12 ? "PM" : "AM";
-      const hour     = h % 12 || 12;
-      btn.textContent = isBooked
-        ? `${hour}:${String(m).padStart(2,"0")} ${ampm} · Booked`
-        : `${hour}:${String(m).padStart(2,"0")} ${ampm}`;
-      if(!isBooked) {
-        btn.addEventListener("click", () => {
-          document.querySelectorAll(".time-slot-btn").forEach(b => b.classList.remove("selected"));
-          btn.classList.add("selected");
-          selectedTime = t;
-          document.getElementById("confirmBookingBtn").style.display = "block";
-        });
-      }
-      grid.appendChild(btn);
+    _allTimesForDay = [...times].sort().map(t => ({ t, isBooked: bookedTimes.has(t) }));
+    _timePage = 0;
+    renderTimePage();
+
+    // Wire nav buttons (replace listeners by cloning to avoid duplicates)
+    ["timeNavPrev","timeNavNext"].forEach(id => {
+      const el = document.getElementById(id);
+      if(!el) return;
+      const clone = el.cloneNode(true);
+      el.parentNode.replaceChild(clone, el);
     });
+    const prevBtn = document.getElementById("timeNavPrev");
+    const nextBtn = document.getElementById("timeNavNext");
+    if(prevBtn) prevBtn.addEventListener("click", () => { if(_timePage > 0){ _timePage--; renderTimePage(); } });
+    if(nextBtn) nextBtn.addEventListener("click", () => { if((_timePage+1)*TIME_PAGE_SIZE < _allTimesForDay.length){ _timePage++; renderTimePage(); } });
   }
 
   document.addEventListener("click", async (e) => { if(e.target.id !== "confirmBookingBtn") return;

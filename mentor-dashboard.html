@@ -184,6 +184,41 @@
     .avail-save-btn { margin-top: 14px; }
     .avail-status { font-size: 12px; color: var(--green); font-weight: 600; margin-top: 8px; display: none; }
 
+    /* ── Generated slots preview ── */
+    .slots-preview {
+      margin-top: 16px;
+      border-top: 1px solid var(--line);
+      padding-top: 14px;
+      display: none;
+    }
+    .slots-preview-head {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .slots-preview-head span { font-size: 13px; font-weight: 700; color: var(--text); }
+    .slots-preview-head small { font-size: 11px; color: var(--muted); }
+
+    /* Mini date-card row (matches mentee booking style) */
+    .preview-day-row {
+      display: flex; gap: 7px;
+      overflow-x: auto; padding-bottom: 6px;
+      scrollbar-width: none;
+    }
+    .preview-day-row::-webkit-scrollbar { display: none; }
+    .preview-day-card {
+      flex-shrink: 0; width: 66px;
+      border: 1.5px solid var(--line); border-radius: 10px;
+      background: #fff; padding: 8px 4px; text-align: center;
+    }
+    .preview-day-card .pdc-dow  { font-size: 9px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 3px; }
+    .preview-day-card .pdc-num  { font-size: 18px; font-weight: 900; color: var(--text); line-height: 1; margin-bottom: 1px; }
+    .preview-day-card .pdc-mon  { font-size: 10px; font-weight: 600; color: var(--muted); margin-bottom: 5px; }
+    .preview-day-card .pdc-time { font-size: 10px; font-weight: 700; color: #16a34a; }
+    .slots-preview-note {
+      font-size: 11px; color: var(--muted); text-align: center;
+      margin-top: 8px; line-height: 1.5;
+    }
+
   </style>
 </head>
 <body>
@@ -338,6 +373,16 @@
 
         <button class="mh-btn mh-btn-primary avail-save-btn" id="saveAvailBtn">Save availability</button>
         <div class="avail-status" id="availStatus">Saved!</div>
+
+        <!-- Generated upcoming slots preview -->
+        <div class="slots-preview" id="slotsPreview">
+          <div class="slots-preview-head">
+            <span>📅 Your upcoming available slots</span>
+            <small id="slotsPreviewCount"></small>
+          </div>
+          <div id="slotsList"></div>
+          <p class="slots-preview-note">This is exactly what mentees will see when booking a session with you.</p>
+        </div>
       </div>
       <div style="margin-top:16px;display:flex;flex-direction:column;gap:8px">
         <a class="mh-btn mh-btn-primary mh-btn-full" href="mentor-onboarding.html">Edit profile</a>
@@ -735,6 +780,7 @@
     btn.addEventListener("click", function(){
       btn.classList.toggle("selected");
       selDays.has(btn.dataset.day) ? selDays.delete(btn.dataset.day) : selDays.add(btn.dataset.day);
+      renderSlotsPreview(); // live-update preview as mentor picks days/times
     });
   });
 
@@ -742,8 +788,115 @@
     chip.addEventListener("click", function(){
       chip.classList.toggle("selected");
       selTimes.has(chip.dataset.time) ? selTimes.delete(chip.dataset.time) : selTimes.add(chip.dataset.time);
+      renderSlotsPreview(); // live-update preview as mentor picks days/times
     });
   });
+
+  // ── Core utility: convert day-name + time strings → real upcoming dates ──
+  function generateUpcomingSlots(days, times, weeksAhead) {
+    weeksAhead = weeksAhead || 4;
+    var DAY_INDEX = {Sunday:0,Monday:1,Tuesday:2,Wednesday:3,Thursday:4,Friday:5,Saturday:6};
+    var slots = [];
+    var today = new Date();
+    today.setHours(0,0,0,0);
+    var limit = weeksAhead * 7;
+
+    for(var i = 0; i <= limit; i++) {
+      var d = new Date(today);
+      d.setDate(today.getDate() + i);
+      var dayName = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][d.getDay()];
+      if(days.indexOf(dayName) === -1) continue;
+
+      var sortedTimes = times.slice().sort();
+      sortedTimes.forEach(function(t){
+        var parts = t.split(":").map(Number);
+        var dt = new Date(d);
+        dt.setHours(parts[0], parts[1] || 0, 0, 0);
+        if(dt > new Date()) { // must be in the future
+          slots.push(dt);
+        }
+      });
+    }
+    return slots;
+  }
+
+  // ── Format a Date for display: "Mon, May 26 • 7:00 PM" ──
+  function fmtSlot(dt) {
+    var dayStr  = dt.toLocaleDateString("en-GB", {weekday:"short", day:"numeric", month:"short"});
+    var h = dt.getHours(), m = dt.getMinutes();
+    var ampm = h >= 12 ? "PM" : "AM";
+    var hour = h % 12 || 12;
+    var min  = String(m).padStart(2,"0");
+    return { date: dayStr, time: hour + ":" + min + " " + ampm };
+  }
+
+  // ── Render the preview panel ──
+  function renderSlotsPreview() {
+    var preview = document.getElementById("slotsPreview");
+    var list    = document.getElementById("slotsList");
+    var count   = document.getElementById("slotsPreviewCount");
+    if(!preview || !list) return;
+
+    var days  = Array.from(selDays);
+    var times = Array.from(selTimes);
+
+    if(!days.length || !times.length) {
+      preview.style.display = "none";
+      return;
+    }
+
+    var slots = generateUpcomingSlots(days, times, 4);
+    preview.style.display = "block";
+
+    if(!slots.length) {
+      list.innerHTML = '<div class="slots-preview-note">No upcoming slots in the next 4 weeks.</div>';
+      count.textContent = "";
+      return;
+    }
+
+    var totalCount = slots.length;
+    var show = slots.slice(0, 12); // show up to 12 mini cards
+    count.textContent = totalCount + " slot" + (totalCount !== 1 ? "s" : "") + " · next 4 weeks";
+
+    // Group by date so each card shows all times for that day
+    var byDate = {};
+    show.forEach(function(dt) {
+      var key = dt.toISOString().split("T")[0];
+      if(!byDate[key]) byDate[key] = { dt: dt, times: [] };
+      var h = dt.getHours(), m = dt.getMinutes();
+      var ampm = h >= 12 ? "PM" : "AM";
+      var hour = h % 12 || 12;
+      byDate[key].times.push(hour + ":" + String(m).padStart(2,"0") + " " + ampm);
+    });
+
+    var dateKeys = Object.keys(byDate).slice(0, 8);
+    var dayNames = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+    var monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+    var html = '<div class="preview-day-row">';
+    dateKeys.forEach(function(key) {
+      var entry = byDate[key];
+      var d = entry.dt;
+      var dow   = dayNames[d.getDay()];
+      var num   = d.getDate();
+      var mon   = monthNames[d.getMonth()];
+      var tStr  = entry.times[0] + (entry.times.length > 1 ? " +" + (entry.times.length - 1) : "");
+      html += '<div class="preview-day-card">'
+        + '<div class="pdc-dow">' + dow + '</div>'
+        + '<div class="pdc-num">' + num + '</div>'
+        + '<div class="pdc-mon">' + mon + '</div>'
+        + '<div class="pdc-time">' + tStr + '</div>'
+        + '</div>';
+    });
+    html += '</div>';
+
+    if(totalCount > 8) {
+      html += '<p class="slots-preview-note">+ more across the next 4 weeks</p>';
+    }
+    html += '<p class="slots-preview-note" style="margin-top:6px">This is exactly what mentees will see when booking.</p>';
+
+    list.innerHTML = html;
+  }
 
   async function loadAvailability(userId){
     try {
@@ -759,6 +912,7 @@
       document.querySelectorAll(".time-chip").forEach(function(chip){
         if(selTimes.has(chip.dataset.time)) chip.classList.add("selected");
       });
+      renderSlotsPreview(); // show preview on page load if availability exists
     } catch(e){ console.error(e); }
   }
 
@@ -815,7 +969,8 @@
         }
 
         console.log("[MentifyHub] availability saved successfully");
-        showAvailMsg("✅ Availability saved!", false);
+        showAvailMsg("✅ Availability saved! See your upcoming slots below.", false);
+        renderSlotsPreview(); // refresh preview after save
       } catch(e){
         console.error("[MentifyHub] availability save exception:", e);
         showAvailMsg("Unexpected error: " + e.message, true);

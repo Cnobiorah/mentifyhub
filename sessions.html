@@ -54,6 +54,35 @@
 
     .divider { height: 1px; background: var(--line); margin: 20px 0; }
 
+    /* ── Upcoming available slots banner ── */
+    .avail-slots-banner {
+      margin-bottom: 20px;
+      padding: 14px 16px 16px;
+      border-radius: var(--radius-sm);
+      background: #f0f7ff;
+      border: 1px solid #bfdbfe;
+    }
+    .avail-slots-banner h4 {
+      font-size: 13px; font-weight: 700; color: #1d4ed8; margin: 0 0 12px;
+    }
+    .avail-slots-day-row {
+      display: flex; gap: 8px;
+      overflow-x: auto; padding-bottom: 4px;
+      scrollbar-width: none;
+    }
+    .avail-slots-day-row::-webkit-scrollbar { display: none; }
+    .avail-slot-card {
+      flex-shrink: 0; width: 72px;
+      border: 1.5px solid #bfdbfe; border-radius: 10px;
+      background: #fff; padding: 8px 4px; text-align: center;
+    }
+    .avail-slot-card .asc-dow  { font-size: 9px; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 2px; }
+    .avail-slot-card .asc-num  { font-size: 18px; font-weight: 900; color: var(--text); line-height: 1; margin-bottom: 1px; }
+    .avail-slot-card .asc-mon  { font-size: 10px; font-weight: 600; color: #6b7280; margin-bottom: 5px; }
+    .avail-slot-card .asc-time { font-size: 10px; font-weight: 700; color: #1d4ed8; }
+    .avail-slots-note { font-size: 11px; color: #6b7280; margin-top: 8px; line-height: 1.5; }
+    .avail-slots-empty { font-size: 12px; color: var(--muted); }
+
     @media (max-width: 900px) {
       .layout { grid-template-columns: 1fr; }
       .req-list { max-height: 300px; }
@@ -119,6 +148,13 @@
       </div>
 
       <div id="sessionPane" style="display:none">
+        <!-- Upcoming available slots (mentor's own availability as real dates) -->
+        <div class="avail-slots-banner" id="availSlotsBanner" style="display:none">
+          <h4>📅 Your upcoming available slots for this mentee</h4>
+          <div class="avail-slots-day-row" id="availSlotsGrid"></div>
+          <p class="avail-slots-note" id="availSlotsNote"></p>
+        </div>
+
         <h3 style="font-size:16px;font-weight:700;margin-bottom:4px">Schedule a session</h3>
         <p style="color:var(--muted);font-size:13px">Propose a date, duration, and meeting link for this mentorship pairing.</p>
 
@@ -215,6 +251,88 @@
       : `<div class="mh-empty" style="text-align:center;font-size:12px">No accepted requests yet.</div>`;
   }
 
+  // ── Shared slot generation utility ──
+  function generateUpcomingSlots(days, times, weeksAhead) {
+    weeksAhead = weeksAhead || 4;
+    const DAY_NAMES = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+    const slots = [];
+    const today = new Date(); today.setHours(0,0,0,0);
+    const now = new Date();
+    for(let i = 0; i <= weeksAhead * 7; i++) {
+      const d = new Date(today);
+      d.setDate(today.getDate() + i);
+      const dayName = DAY_NAMES[d.getDay()];
+      if(!days.includes(dayName)) continue;
+      [...times].sort().forEach(t => {
+        const [h, m] = t.split(":").map(Number);
+        const dt = new Date(d);
+        dt.setHours(h, m || 0, 0, 0);
+        if(dt > now) slots.push(dt);
+      });
+    }
+    return slots;
+  }
+
+
+  async function loadAvailableSlots() {
+    const banner = $("availSlotsBanner");
+    const grid   = $("availSlotsGrid");
+    const note   = $("availSlotsNote");
+    if(!banner || !grid) return;
+
+    const mentorId = CURRENT.mentor_id;
+    const {data: avail} = await sb.from("mentor_availability").select("*").eq("mentor_id", mentorId);
+
+    if(!avail || !avail.length) {
+      banner.style.display = "block";
+      grid.innerHTML = '<span class="avail-slots-empty">No availability set yet. Use the Availability Manager on your dashboard to add days and times.</span>';
+      note.textContent = "";
+      return;
+    }
+
+    const days  = avail.map(r => r.day_of_week);
+    const times = [...new Set(avail.flatMap(r => r.time_slots || []))];
+    const slots = generateUpcomingSlots(days, times, 4);
+
+    banner.style.display = "block";
+
+    if(!slots.length) {
+      grid.innerHTML = '<span class="avail-slots-empty">No upcoming slots in the next 4 weeks.</span>';
+      note.textContent = "";
+      return;
+    }
+
+    // Group slots by date
+    const byDate = {};
+    slots.forEach(dt => {
+      const key = dt.toISOString().split("T")[0];
+      if(!byDate[key]) byDate[key] = { dt, times: [] };
+      const h = dt.getHours(), m = dt.getMinutes();
+      const ampm = h >= 12 ? "PM" : "AM";
+      const hour = h % 12 || 12;
+      byDate[key].times.push(`${hour}:${String(m).padStart(2,"0")} ${ampm}`);
+    });
+
+    const dateKeys = Object.keys(byDate).slice(0, 10);
+    const dayAbbrs  = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+    const monthAbbrs = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+    grid.innerHTML = dateKeys.map(key => {
+      const entry = byDate[key];
+      const d = entry.dt;
+      const tStr = entry.times[0] + (entry.times.length > 1 ? ` +${entry.times.length - 1}` : "");
+      return `<div class="avail-slot-card">
+        <div class="asc-dow">${dayAbbrs[d.getDay()]}</div>
+        <div class="asc-num">${d.getDate()}</div>
+        <div class="asc-mon">${monthAbbrs[d.getMonth()]}</div>
+        <div class="asc-time">${tStr}</div>
+      </div>`;
+    }).join("");
+
+    const total = slots.length;
+    note.textContent = total + " available slot" + (total !== 1 ? "s" : "") + " across the next 4 weeks — these are the real dates your mentee will see.";
+  }
+
   function openRequest(id){
     CURRENT=REQUESTS.find(r=>r.id===id);
     document.querySelectorAll(".req-item").forEach(el=>{
@@ -222,6 +340,7 @@
     });
     $("sessionEmpty").style.display="none";
     $("sessionPane").style.display="block";
+    loadAvailableSlots();
     loadSessions();
   }
 

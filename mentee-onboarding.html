@@ -410,10 +410,24 @@
     }
 
     if(error){
-      console.error(error);
-      btn.textContent = "Find my mentor 🎯"; btn.disabled = false;
-      showErr("err5", "Something went wrong. Please try again.");
-      return;
+      console.error("Full payload error:", error);
+      // Retry with core fields only
+      const core = {
+        user_id: user.id, full_name: payload.full_name, email: payload.email,
+        goal: payload.goal, level: payload.level, field: payload.field,
+        bio: payload.bio, tags: payload.tags, communication: payload.communication,
+        availability: payload.availability, country: payload.country, timezone: payload.timezone,
+      };
+      const {data: ex2} = await sb.from("mentees").select("user_id").eq("user_id", user.id).maybeSingle();
+      const retry = ex2
+        ? await sb.from("mentees").update(core).eq("user_id", user.id)
+        : await sb.from("mentees").insert(core);
+      if(retry.error){
+        console.error("Core payload error:", retry.error);
+        btn.textContent = "Find my mentor 🎯"; btn.disabled = false;
+        showErr("err5", "Could not save your profile. Please try again.");
+        return;
+      }
     }
     window.location.href = "mentee-dashboard.html";
   };

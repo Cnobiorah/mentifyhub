@@ -581,10 +581,25 @@
       ({error} = await sb.from("mentors").insert(payload));
     }
     if(error){
-      console.error(error);
-      btn.textContent = "Publish my profile 🚀"; btn.disabled = false;
-      showErr("err5", "Something went wrong. Please try again.");
-      return;
+      console.error("Full payload error:", error);
+      // Retry with core fields only
+      const core = {
+        user_id: user.id, full_name: payload.full_name, email: payload.email,
+        headline: payload.headline, bio: payload.bio, field: payload.field,
+        experience: payload.experience, communication: payload.communication,
+        pricing_type: payload.pricing_type, availability: payload.availability,
+        country: payload.country, timezone: payload.timezone, tags: payload.tags,
+      };
+      const {data: ex2} = await sb.from("mentors").select("user_id").eq("user_id", user.id).maybeSingle();
+      const retry = ex2
+        ? await sb.from("mentors").update(core).eq("user_id", user.id)
+        : await sb.from("mentors").insert(core);
+      if(retry.error){
+        console.error("Core payload error:", retry.error);
+        btn.textContent = "Publish my profile 🚀"; btn.disabled = false;
+        showErr("err5", "Could not save your profile. Please try again.");
+        return;
+      }
     }
     window.location.href = "mentor-dashboard.html";
   };

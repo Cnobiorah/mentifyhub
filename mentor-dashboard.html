@@ -291,14 +291,6 @@
             <div class="mh-stat-val" id="statProfile">—</div>
             <div class="mh-stat-lbl">Profile complete</div>
           </div>
-          <div class="mh-stat">
-            <div class="mh-stat-val" id="statBookings">—</div>
-            <div class="mh-stat-lbl">Sessions booked</div>
-          </div>
-          <div class="mh-stat">
-            <div class="mh-stat-val" id="statUpcoming">—</div>
-            <div class="mh-stat-lbl">Upcoming</div>
-          </div>
         </div>
       </div>
 
@@ -381,7 +373,6 @@
 
         <button class="mh-btn mh-btn-primary avail-save-btn" id="saveAvailBtn">Save availability</button>
         <div class="avail-status" id="availStatus">Saved!</div>
-        <a href="availability.html" class="mh-btn mh-btn-full" style="margin-top:10px;text-align:center;display:block">📅 Manage my calendar</a>
 
         <!-- Generated upcoming slots preview -->
         <div class="slots-preview" id="slotsPreview">
@@ -394,6 +385,7 @@
         </div>
       </div>
       <div style="margin-top:16px;display:flex;flex-direction:column;gap:8px">
+        <a href="availability.html" class="mh-btn mh-btn-primary mh-btn-full" style="text-align:center">📅 Manage my calendar</a>
         <a class="mh-btn mh-btn-primary mh-btn-full" href="mentor-onboarding.html">Edit profile</a>
         <a class="mh-btn mh-btn-full" href="sessions.html">View sessions</a>
         <a class="mh-btn mh-btn-full" href="messages.html">Messages</a>
@@ -414,9 +406,7 @@
     statAll:     document.getElementById("statAll"),
     statPending: document.getElementById("statPending"),
     statAccepted:document.getElementById("statAccepted"),
-    statProfile:  document.getElementById("statProfile"),
-    statBookings: document.getElementById("statBookings"),
-    statUpcoming: document.getElementById("statUpcoming"),
+    statProfile: document.getElementById("statProfile"),
     statProgress:document.getElementById("statProgress"),
     signOutBtn:  document.getElementById("signOutBtn")
   };
@@ -750,46 +740,13 @@
       .subscribe();
   }
 
-
-  async function loadSessionStats(user){
-    try {
-      const now = new Date().toISOString();
-      const {count: total} = await sb.from("sessions")
-        .select("*", {count:"exact", head:true})
-        .eq("mentor_id", user.id);
-      const {count: upcoming} = await sb.from("sessions")
-        .select("*", {count:"exact", head:true})
-        .eq("mentor_id", user.id)
-        .eq("status", "scheduled")
-        .gte("scheduled_for", now);
-      const elB = document.getElementById("statBookings");
-      const elU = document.getElementById("statUpcoming");
-      if(elB) elB.textContent = total || 0;
-      if(elU) elU.textContent = upcoming || 0;
-    } catch(e){ console.error(e); }
-  }
-
   (async function init(){
     const user = await requireAuth();
     if(!user) return;
     await ensureMentorProfile(user);
     await loadMentorDisplayName(user);
     await loadRequests(user);
-    await loadSessionStats(user);
     await loadProgress(user);
-    // Realtime: refresh stats when a session is booked
-    sb.channel("sessions-stats-" + user.id)
-      .on("postgres_changes", {
-        event: "INSERT",
-        schema: "public",
-        table: "sessions",
-        filter: `mentor_id=eq.${user.id}`
-      }, () => {
-        loadSessionStats(user);
-        loadNotifications(user);
-      })
-      .subscribe();
-
     await loadNotifications(user);
     await loadMentorSessions(user);
     subscribeNotifications(user);

@@ -915,7 +915,16 @@
     if(error) {
       console.error(error);
       btn.textContent = "Confirm booking"; btn.disabled = false;
-      alert("Could not book. Please try again.");
+      // Check if it's a duplicate booking (race condition - someone else just took this slot)
+      if(error.code === "23505" || (error.message && error.message.includes("unique"))) {
+        alert("Sorry, this time slot was just booked by someone else. Please pick a different time.");
+        await renderTimeSlots(availabilityData.find(a => {
+          const dayName = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][new Date(selectedDay).getDay()];
+          return a.day_of_week === dayName;
+        })?.time_slots || []);
+      } else {
+        alert("Could not book. Please try again.");
+      }
       return;
     }
 

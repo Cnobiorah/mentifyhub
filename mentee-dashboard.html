@@ -844,7 +844,7 @@
               </div>
               <div class="time-slots-grid" id="timeSlotGrid"></div>
             </div>
-            <button id="confirmBookingBtn" class="mh-btn mh-btn-primary booking-confirm-btn" style="display:none;">
+            <button id="confirmBookingBtn" class="mh-btn mh-btn-primary booking-confirm-btn" style="display:none;" onclick="confirmBooking()">
               Confirm booking
             </button>
           </div>`;
@@ -908,11 +908,85 @@
         document.querySelectorAll(".day-card").forEach(c => c.classList.remove("selected"));
         card.classList.add("selected");
         selectedDate = row.specific_date;
+        selectedDay  = row.specific_date;
         selectedTime = null;
         renderTimeSlots(row.time_slots || []);
       });
       container.appendChild(card);
     });
+  }
+
+
+  function renderTimeSlots(slots){
+    const wrap = document.getElementById("timeSlotsWrap");
+    const grid = document.getElementById("timeSlotGrid");
+    const confirmBtn = document.getElementById("confirmBookingBtn");
+    if(!wrap || !grid) return;
+
+    wrap.style.display = "block";
+    grid.innerHTML = "";
+    if(confirmBtn) confirmBtn.style.display = "none";
+    selectedTime = null;
+
+    if(!slots || !slots.length){
+      grid.innerHTML = '<p style="font-size:13px;color:var(--muted);text-align:center">No time slots available for this date.</p>';
+      return;
+    }
+
+    slots.sort().forEach(t => {
+      const [h, m] = t.split(":").map(Number);
+      const ampm   = h >= 12 ? "PM" : "AM";
+      const hr     = h % 12 || 12;
+      const label  = `${hr}:${String(m).padStart(2,"0")} ${ampm}`;
+      const btn    = document.createElement("button");
+      btn.className = "time-slot-btn";
+      btn.textContent = label;
+      btn.dataset.time = t;
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".time-slot-btn").forEach(b => b.classList.remove("selected"));
+        btn.classList.add("selected");
+        selectedTime = t;
+        if(confirmBtn) confirmBtn.style.display = "block";
+      });
+      grid.appendChild(btn);
+    });
+  }
+
+  async function confirmBooking(){
+    if(!selectedDay || !selectedTime || !bookingRequestId) return;
+    const btn = document.getElementById("confirmBookingBtn");
+    if(btn){ btn.textContent = "Booking..."; btn.disabled = true; }
+    try {
+      const scheduledFor = `${selectedDay}T${selectedTime}:00`;
+      const {error} = await sb.from("sessions").insert({
+        request_id:       bookingRequestId,
+        mentor_id:        bookingMentorId,
+        mentee_id:        currentUser.id,
+        proposed_by:      currentUser.id,
+        scheduled_for:    scheduledFor,
+        duration_minutes: 60,
+        status:           "scheduled",
+      });
+      if(error) throw error;
+
+      // Notify mentor
+      await sb.from("notifications").insert({
+        user_id:  bookingMentorId,
+        type:     "session_booked",
+        message:  `${currentUser.user_metadata?.full_name || "A mentee"} booked a session with you on ${new Date(scheduledFor).toLocaleDateString("en-GB",{weekday:"long",day:"2-digit",month:"long"})} at ${selectedTime}.`,
+        is_read:  false,
+      });
+
+      showToast("Session booked!");
+      const wrap = document.getElementById("upcomingSessionsWrap");
+      if(wrap) wrap.innerHTML = `<div style="padding:16px;background:#f0fdf4;border-radius:12px;border:1px solid #bbf7d0;font-size:13px;color:#16a34a;font-weight:600">
+        ✅ Session booked for ${new Date(scheduledFor).toLocaleDateString("en-GB",{weekday:"long",day:"2-digit",month:"long"})} at ${selectedTime.replace(/^0/,"")}.
+      </div>`;
+    } catch(e){
+      console.error(e);
+      showToast("Could not book. Please try again.");
+      if(btn){ btn.textContent = "Confirm booking"; btn.disabled = false; }
+    }
   }
 
   // ── Main init ─────────────────────────────────────────────────

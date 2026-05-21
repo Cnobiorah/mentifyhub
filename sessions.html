@@ -9,455 +9,379 @@
   <script src="auth-guard.js"></script>
   <link rel="stylesheet" href="mh-theme.css"/>
   <style>
-    .layout {
-      display: grid;
-      grid-template-columns: 280px 1fr;
-      gap: 16px;
-      margin-top: 18px;
+    body { background: #f4f6fa; }
+
+    .page-wrap { max-width: 900px; margin: 0 auto; padding: 24px 20px 60px; }
+
+    /* Header */
+    .page-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; }
+    .page-header h1 { font-size:22px; font-weight:900; letter-spacing:-.3px; }
+    .page-header p  { font-size:13px; color:var(--muted); margin-top:3px; }
+
+    /* Tabs */
+    .tab-bar { display:flex; gap:0; border-bottom:2px solid var(--line); margin-bottom:24px; }
+    .tab-btn { padding:10px 20px; font-size:14px; font-weight:700; color:var(--muted); border:none; background:none; cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-2px; transition:all .15s; }
+    .tab-btn.active { color:var(--accent); border-bottom-color:var(--accent); }
+    .tab-btn:hover  { color:var(--text); }
+    .tab-badge { background:var(--accent); color:#fff; border-radius:999px; font-size:11px; font-weight:700; padding:1px 7px; margin-left:6px; }
+
+    /* Session cards */
+    .sessions-list { display:flex; flex-direction:column; gap:14px; }
+    .session-card {
+      background:#fff; border:1px solid var(--line); border-radius:18px;
+      padding:20px; box-shadow:0 1px 4px rgba(15,23,42,.05);
+      transition:transform .2s, box-shadow .2s;
+    }
+    .session-card:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(15,23,42,.09); }
+
+    .sc-header { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:12px; }
+    .sc-date { font-size:16px; font-weight:900; color:var(--text); }
+    .sc-time { font-size:13px; color:var(--muted); margin-top:2px; }
+
+    .sc-badge {
+      padding:4px 12px; border-radius:999px; font-size:12px; font-weight:700;
+    }
+    .badge-scheduled  { background:#eff6ff; color:#2563eb; border:1px solid #bfdbfe; }
+    .badge-completed  { background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; }
+    .badge-cancelled  { background:#fef2f2; color:#ef4444; border:1px solid #fca5a5; }
+    .badge-proposed   { background:#fefce8; color:#ca8a04; border:1px solid #fde68a; }
+
+    .sc-person { display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+    .sc-avatar {
+      width:38px; height:38px; border-radius:50%;
+      background:linear-gradient(135deg,#2563eb,#7c3aed);
+      display:flex; align-items:center; justify-content:center;
+      font-size:14px; font-weight:700; color:#fff; flex-shrink:0;
+    }
+    .sc-person-name { font-size:14px; font-weight:700; color:var(--text); }
+    .sc-person-role { font-size:12px; color:var(--muted); }
+
+    .sc-info { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:14px; }
+    .sc-info-item { font-size:13px; color:var(--muted); display:flex; align-items:center; gap:5px; }
+    .sc-info-item strong { color:var(--text); font-weight:700; }
+
+    /* Meeting link input */
+    .meeting-link-row { display:flex; gap:8px; margin-bottom:12px; }
+    .meeting-link-row input {
+      flex:1; padding:9px 14px; border-radius:10px; border:1.5px solid var(--line);
+      font:inherit; font-size:13px; outline:none; transition:border-color .2s;
+    }
+    .meeting-link-row input:focus { border-color:var(--accent); }
+    .meeting-link-row button {
+      padding:9px 16px; border-radius:10px; border:none; background:var(--accent);
+      color:#fff; font:inherit; font-size:13px; font-weight:700; cursor:pointer;
     }
 
-    /* Thread/request list */
-    .req-item {
-      padding: 12px;
-      border-radius: var(--radius-sm);
-      border: 1px solid var(--line);
-      background: #fff;
-      cursor: pointer;
-      margin-top: 8px;
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--text);
-      transition: background .1s ease, border-color .1s ease;
+    /* Progress notes */
+    .progress-section { margin-top:12px; border-top:1px solid var(--line); padding-top:12px; }
+    .progress-section label { font-size:12px; font-weight:700; color:var(--muted); display:block; margin-bottom:6px; text-transform:uppercase; letter-spacing:.5px; }
+    .progress-section textarea {
+      width:100%; padding:10px 14px; border-radius:10px; border:1.5px solid var(--line);
+      font:inherit; font-size:13px; resize:vertical; min-height:70px; outline:none;
+      transition:border-color .2s;
     }
-    .req-item:hover  { background: var(--soft); border-color: #c8d6e8; }
-    .req-item.active { background: rgba(29,78,216,.06); border-color: rgba(29,78,216,.22); color: var(--accent); }
+    .progress-section textarea:focus { border-color:var(--accent); }
 
-    /* Form grid */
-    .form-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-top: 14px;
-    }
-    .form-grid .span-2 { grid-column: 1 / -1; }
+    /* Actions */
+    .sc-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
+    .btn-join { background:#2563eb; color:#fff; padding:9px 18px; border-radius:10px; font:inherit; font-size:13px; font-weight:700; border:none; cursor:pointer; text-decoration:none; transition:background .15s; }
+    .btn-join:hover { background:#1d4ed8; }
+    .btn-complete { background:#16a34a; color:#fff; padding:9px 18px; border-radius:10px; font:inherit; font-size:13px; font-weight:700; border:none; cursor:pointer; transition:background .15s; }
+    .btn-complete:hover { background:#15803d; }
+    .btn-cancel { background:#fff; color:#ef4444; padding:9px 18px; border-radius:10px; font:inherit; font-size:13px; font-weight:700; border:1.5px solid #fca5a5; cursor:pointer; transition:all .15s; }
+    .btn-cancel:hover { background:#fef2f2; }
+    .btn-review { background:#f59e0b; color:#fff; padding:9px 18px; border-radius:10px; font:inherit; font-size:13px; font-weight:700; border:none; cursor:pointer; transition:background .15s; text-decoration:none; }
+    .btn-review:hover { background:#d97706; }
+    .btn-save-link { background:#eff6ff; color:#2563eb; padding:9px 18px; border-radius:10px; font:inherit; font-size:13px; font-weight:700; border:1.5px solid #bfdbfe; cursor:pointer; }
 
-    /* Session entries */
-    .session-entry {
-      padding: 12px;
-      border: 1px solid var(--line);
-      border-radius: var(--radius-sm);
-      background: #fff;
-      margin-top: 10px;
-    }
-    .session-entry b { display: block; font-size: 13px; font-weight: 700; }
-    .session-entry span { font-size: 12px; color: var(--muted); }
+    /* Empty state */
+    .empty-state { text-align:center; padding:60px 20px; color:var(--muted); }
+    .empty-state .es-icon { font-size:48px; margin-bottom:12px; }
+    .empty-state h3 { font-size:16px; font-weight:800; color:var(--text); margin-bottom:8px; }
+    .empty-state p  { font-size:14px; }
 
-    .divider { height: 1px; background: var(--line); margin: 20px 0; }
-
-    /* ── Upcoming available slots banner ── */
-    .avail-slots-banner {
-      margin-bottom: 20px;
-      padding: 14px 16px 16px;
-      border-radius: var(--radius-sm);
-      background: #f0f7ff;
-      border: 1px solid #bfdbfe;
-    }
-    .avail-slots-banner h4 {
-      font-size: 13px; font-weight: 700; color: #1d4ed8; margin: 0 0 12px;
-    }
-    .avail-slots-day-row {
-      display: flex; gap: 8px;
-      overflow-x: auto; padding-bottom: 4px;
-      scrollbar-width: none;
-    }
-    .avail-slots-day-row::-webkit-scrollbar { display: none; }
-    .avail-slot-card {
-      flex-shrink: 0; width: 72px;
-      border: 1.5px solid #bfdbfe; border-radius: 10px;
-      background: #fff; padding: 8px 4px; text-align: center;
-    }
-    .avail-slot-card .asc-dow  { font-size: 9px; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 2px; }
-    .avail-slot-card .asc-num  { font-size: 18px; font-weight: 900; color: var(--text); line-height: 1; margin-bottom: 1px; }
-    .avail-slot-card .asc-mon  { font-size: 10px; font-weight: 600; color: #6b7280; margin-bottom: 5px; }
-    .avail-slot-card .asc-time { font-size: 10px; font-weight: 700; color: #1d4ed8; }
-    .avail-slots-note { font-size: 11px; color: #6b7280; margin-top: 8px; line-height: 1.5; }
-    .avail-slots-empty { font-size: 12px; color: var(--muted); }
-
-    @media (max-width: 900px) {
-      .layout { grid-template-columns: 1fr; }
-      .req-list { max-height: 300px; }
-    }
-    @media (max-width: 600px) {
-      .session-detail { padding: 16px; }
-      .mh-btn { width: 100%; justify-content: center; margin-bottom: 6px; }
-    }
-
-    /* Hamburger - hidden on desktop */
-    #hamburgerBtn { display: none !important; }
-    @media (max-width: 768px) {
-      #hamburgerBtn { display: flex !important; }
-      .mh-nav { display: none !important; }
-    }
-    @media (min-width: 769px) {
-      .mh-mobile-drawer,
-      #mobileDrawer,
-      #navOverlay { display: none !important; }
-      .mh-nav { display: flex !important; }
-    }
+    /* Loading */
+    .loading { text-align:center; padding:40px; color:var(--muted); font-size:14px; }
   </style>
 </head>
 <body>
 <div class="mh-wrap">
-
-  <!-- Topbar -->
   <header class="mh-topbar">
     <a href="index.html" class="mh-brand">
       <img src="logo.png" alt="MentifyHub" class="mh-brand-logo"/>
-      <div class="mh-brand-text">
-        <strong>MentifyHub</strong>
-        <span>Sessions</span>
-      </div>
+      <div class="mh-brand-text"><strong>MentifyHub</strong><span>Sessions</span></div>
     </a>
     <nav class="mh-nav hide-mobile">
-      <span class="mh-chip" id="whoChip">Checking session…</span>
-      <a class="mh-btn" href="#" id="dashboardLink">⬅ Dashboard</a>
+      <span class="mh-chip" id="whoChip">Checking...</span>
+      <a class="mh-btn" href="#" id="dashboardLink">← Dashboard</a>
       <a class="mh-btn" href="mentor-directory.html">Browse mentors</a>
       <a class="mh-btn" href="messages.html">Messages</a>
       <a class="mh-btn mh-btn-primary" href="sessions.html">Sessions</a>
       <a class="mh-btn" href="reviews.html">⭐ Reviews</a>
-      <button class="mh-btn mh-btn-danger hide-mobile" id="signOutBtn">Sign out</button>
+      <button class="mh-btn mh-btn-danger" id="signOutBtn">Sign out</button>
     </nav>
-      <button class="mh-menu-btn" id="menuBtn" onclick="openDrawer()" aria-label="Open menu">
-      <span></span><span></span><span></span>
-    </button>
+    <button class="mh-menu-btn" onclick="openDrawer()"><span></span><span></span><span></span></button>
   </header>
 
-  <div class="layout">
-
-    <!-- Request list -->
-    <aside class="mh-card mh-card-body" style="position:sticky;top:92px;align-self:start">
-      <div style="font-size:13px;font-weight:700;margin-bottom:10px">Accepted requests</div>
-      <div id="requestList"></div>
-    </aside>
-
-    <!-- Session panel -->
-    <main class="mh-card mh-card-body">
-      <div id="sessionEmpty" class="mh-empty">
-        <strong>No request selected</strong>
-        Choose an accepted request from the list to schedule a session.
+  <div class="page-wrap">
+    <div class="page-header">
+      <div>
+        <h1>Sessions</h1>
+        <p id="pageSubtitle">Your mentorship sessions</p>
       </div>
+    </div>
 
-      <div id="sessionPane" style="display:none">
-        <!-- Upcoming available slots (mentor's own availability as real dates) -->
-        <div class="avail-slots-banner" id="availSlotsBanner" style="display:none">
-          <h4>📅 Your upcoming available slots for this mentee</h4>
-          <div class="avail-slots-day-row" id="availSlotsGrid"></div>
-          <p class="avail-slots-note" id="availSlotsNote"></p>
-        </div>
+    <!-- Tabs -->
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchTab('upcoming', this)">
+        Upcoming <span class="tab-badge" id="upcomingCount">0</span>
+      </button>
+      <button class="tab-btn" onclick="switchTab('completed', this)">
+        Completed <span class="tab-badge" id="completedCount">0</span>
+      </button>
+      <button class="tab-btn" onclick="switchTab('cancelled', this)">
+        Cancelled <span class="tab-badge" id="cancelledCount">0</span>
+      </button>
+    </div>
 
-        <h3 style="font-size:16px;font-weight:700;margin-bottom:4px">Schedule a session</h3>
-        <p style="color:var(--muted);font-size:13px">Propose a date, duration, and meeting link for this mentorship pairing.</p>
-
-        <div class="form-grid">
-          <div class="mh-field">
-            <label class="mh-label">Date & time</label>
-            <input class="mh-input" id="scheduledFor" type="datetime-local"/>
-          </div>
-          <div class="mh-field">
-            <label class="mh-label">Duration</label>
-            <select class="mh-select" id="duration">
-              <option value="30">30 minutes</option>
-              <option value="45" selected>45 minutes</option>
-              <option value="60">60 minutes</option>
-            </select>
-          </div>
-          <div class="mh-field">
-            <label class="mh-label">Meeting link</label>
-            <input class="mh-input" id="meetingLink" placeholder="https://meet.google.com/…"/>
-          </div>
-          <div class="mh-field">
-            <label class="mh-label">Status</label>
-            <input class="mh-input" id="status" value="proposed" readonly/>
-          </div>
-          <div class="mh-field span-2">
-            <label class="mh-label">Agenda / notes</label>
-            <textarea class="mh-textarea" id="sessionNotes" placeholder="Add agenda items or notes for this session…"></textarea>
-          </div>
-        </div>
-
-        <button class="mh-btn mh-btn-primary" id="saveBtn">Save session</button>
-
-        <div class="divider"></div>
-
-        <h3 style="font-size:15px;font-weight:700;margin-bottom:4px">Update progress</h3>
-        <p style="color:var(--muted);font-size:13px;margin-bottom:14px">Log mentorship progress for this pairing.</p>
-
-        <div class="form-grid">
-          <div class="mh-field">
-            <label class="mh-label">Progress %</label>
-            <input class="mh-input" id="progressPercent" type="number" min="0" max="100" placeholder="0–100"/>
-          </div>
-          <div class="mh-field span-2">
-            <label class="mh-label">Progress notes</label>
-            <textarea class="mh-textarea" id="progressNotes" placeholder="What was accomplished in the last session?"></textarea>
-          </div>
-        </div>
-
-        <button class="mh-btn mh-btn-primary" id="saveProgressBtn">Save progress</button>
-
-        <div class="divider"></div>
-
-        <h3 style="font-size:14px;font-weight:700;margin-bottom:10px">Session history</h3>
-        <div id="sessions"></div>
-      </div>
-    </main>
+    <!-- Session lists -->
+    <div id="tab-upcoming"><div class="loading">Loading sessions...</div></div>
+    <div id="tab-completed" style="display:none"><div class="loading">Loading...</div></div>
+    <div id="tab-cancelled" style="display:none"><div class="loading">Loading...</div></div>
   </div>
 </div>
 
 <script>
-  const sb = window.mhSb;
+  const SUPABASE_URL      = "https://mscgaaaobxiuzqsukvjc.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y";
+  const sb  = window.mhSb || window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   const $   = id => document.getElementById(id);
 
-  let USER=null, REQUESTS=[], CURRENT=null;
+  let USER = null, IS_MENTOR = false;
+  let allSessions = [];
 
-  async function requireAuth(){
-    const {data:{session}}=await sb.auth.getSession();
-    if(!session){ location.href="auth.html"; return; }
-    USER=session.user;
-    const {data:mentorProfile}=await sb.from("mentors").select("user_id").eq("user_id",USER.id).maybeSingle();
-    const _dash=mentorProfile?"mentor-dashboard.html":"mentee-dashboard.html";
-    $("dashboardLink").href=_dash;
-    if(document.getElementById("drawerDashLink")) document.getElementById("drawerDashLink").href=_dash;
-    $("whoChip").textContent=mentorProfile?USER.email+" - Mentor":USER.email+" - Mentee";
-    return USER;
-  }
-
-  async function loadRequests(){
-    const {data}=await sb.from("mentorship_requests").select("*").eq("status","accepted").or(`mentee_id.eq.${USER.id},mentor_id.eq.${USER.id}`);
-    REQUESTS=data||[];
-    renderRequests();
-  }
-
-  function renderRequests(){
-    $("requestList").innerHTML=REQUESTS.length
-      ? REQUESTS.map(r=>{
-          const name = r.mentees?.full_name || r.mentors?.full_name || r.mentee_id?.substring(0,8) || 'Request';
-          const date = r.created_at ? new Date(r.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short'}) : '';
-          return `<div class="req-item" onclick="openRequest('${r.id}')">
-            <div style="font-weight:600;font-size:13px;color:var(--text)">${name}</div>
-            ${date?`<div style="font-size:11px;color:var(--muted);margin-top:2px">${date}</div>`:''}
-          </div>`;
-        }).join("")
-      : `<div class="mh-empty" style="text-align:center;font-size:12px">No accepted requests yet.</div>`;
-  }
-
-  // ── Shared slot generation utility ──
-  function generateUpcomingSlots(days, times, weeksAhead) {
-    weeksAhead = weeksAhead || 4;
-    const DAY_NAMES = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-    const slots = [];
-    const today = new Date(); today.setHours(0,0,0,0);
-    const now = new Date();
-    for(let i = 0; i <= weeksAhead * 7; i++) {
-      const d = new Date(today);
-      d.setDate(today.getDate() + i);
-      const dayName = DAY_NAMES[d.getDay()];
-      if(!days.includes(dayName)) continue;
-      [...times].sort().forEach(t => {
-        const [h, m] = t.split(":").map(Number);
-        const dt = new Date(d);
-        dt.setHours(h, m || 0, 0, 0);
-        if(dt > now) slots.push(dt);
-      });
-    }
-    return slots;
-  }
-
-
-  async function loadAvailableSlots() {
-    const banner = $("availSlotsBanner");
-    const grid   = $("availSlotsGrid");
-    const note   = $("availSlotsNote");
-    if(!banner || !grid) return;
-
-    const mentorId = CURRENT.mentor_id;
-    const {data: avail} = await sb.from("mentor_availability").select("*").eq("mentor_id", mentorId);
-
-    if(!avail || !avail.length) {
-      banner.style.display = "block";
-      grid.innerHTML = '<span class="avail-slots-empty">No availability set yet. Use the Availability Manager on your dashboard to add days and times.</span>';
-      note.textContent = "";
-      return;
-    }
-
-    const days  = avail.map(r => r.day_of_week);
-    const times = [...new Set(avail.flatMap(r => r.time_slots || []))];
-    const slots = generateUpcomingSlots(days, times, 4);
-
-    banner.style.display = "block";
-
-    if(!slots.length) {
-      grid.innerHTML = '<span class="avail-slots-empty">No upcoming slots in the next 4 weeks.</span>';
-      note.textContent = "";
-      return;
-    }
-
-    // Group slots by date
-    const byDate = {};
-    slots.forEach(dt => {
-      const key = dt.toISOString().split("T")[0];
-      if(!byDate[key]) byDate[key] = { dt, times: [] };
-      const h = dt.getHours(), m = dt.getMinutes();
-      const ampm = h >= 12 ? "PM" : "AM";
-      const hour = h % 12 || 12;
-      byDate[key].times.push(`${hour}:${String(m).padStart(2,"0")} ${ampm}`);
+  // ── Tabs ──────────────────────────────────────────────────────
+  function switchTab(name, el){
+    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+    el.classList.add("active");
+    ["upcoming","completed","cancelled"].forEach(t => {
+      $(` tab-${t}`) ;
+      $("tab-" + t).style.display = t === name ? "block" : "none";
     });
-
-    const dateKeys = Object.keys(byDate).slice(0, 10);
-    const dayAbbrs  = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
-    const monthAbbrs = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-
-    grid.innerHTML = dateKeys.map(key => {
-      const entry = byDate[key];
-      const d = entry.dt;
-      const tStr = entry.times[0] + (entry.times.length > 1 ? ` +${entry.times.length - 1}` : "");
-      return `<div class="avail-slot-card">
-        <div class="asc-dow">${dayAbbrs[d.getDay()]}</div>
-        <div class="asc-num">${d.getDate()}</div>
-        <div class="asc-mon">${monthAbbrs[d.getMonth()]}</div>
-        <div class="asc-time">${tStr}</div>
-      </div>`;
-    }).join("");
-
-    const total = slots.length;
-    note.textContent = total + " available slot" + (total !== 1 ? "s" : "") + " across the next 4 weeks — these are the real dates your mentee will see.";
   }
 
-  function openRequest(id){
-    CURRENT=REQUESTS.find(r=>r.id===id);
-    document.querySelectorAll(".req-item").forEach(el=>{
-      el.classList.toggle("active", el.getAttribute("onclick")?.includes(id)||false);
-    });
-    $("sessionEmpty").style.display="none";
-    $("sessionPane").style.display="block";
-    loadAvailableSlots();
-    loadSessions();
+  // ── Auth ──────────────────────────────────────────────────────
+  async function init(){
+    try {
+      const {data:{session}} = await sb.auth.getSession();
+      if(!session){ window.location.href = "auth.html?mode=signin&returnTo=sessions.html"; return; }
+      USER = session.user;
+
+      const {data:mp} = await sb.from("mentors").select("user_id,full_name").eq("user_id", USER.id).maybeSingle();
+      IS_MENTOR = !!mp;
+
+      const dash = IS_MENTOR ? "mentor-dashboard.html" : "mentee-dashboard.html";
+      $("dashboardLink").href = dash;
+      $("whoChip").textContent = (mp?.full_name || USER.email) + (IS_MENTOR ? " · Mentor" : " · Mentee");
+      $("pageSubtitle").textContent = IS_MENTOR
+        ? "Sessions booked by your mentees"
+        : "Your upcoming and past sessions";
+
+      await loadSessions();
+
+      // Realtime - refresh when sessions change
+      sb.channel("sessions-page-" + USER.id)
+        .on("postgres_changes", { event: "*", schema: "public", table: "sessions" }, () => loadSessions())
+        .subscribe();
+
+    } catch(e){ console.error(e); }
   }
 
+  // ── Load sessions ─────────────────────────────────────────────
   async function loadSessions(){
-    const {data,error}=await sb.from("sessions").select("*").eq("request_id",CURRENT.id);
+    const field = IS_MENTOR ? "mentor_id" : "mentee_id";
+    const {data, error} = await sb.from("sessions")
+      .select("*")
+      .eq(field, USER.id)
+      .order("scheduled_for", {ascending: true});
+
     if(error){ console.error(error); return; }
-    if(!data||!data.length){
-      $("sessions").innerHTML=`<div class="mh-empty">No sessions scheduled yet.</div>`;
+    allSessions = data || [];
+
+    const upcoming  = allSessions.filter(s => s.status !== "completed" && s.status !== "cancelled");
+    const completed = allSessions.filter(s => s.status === "completed");
+    const cancelled = allSessions.filter(s => s.status === "cancelled");
+
+    $("upcomingCount").textContent  = upcoming.length;
+    $("completedCount").textContent = completed.length;
+    $("cancelledCount").textContent = cancelled.length;
+
+    // Get other party names
+    const ids = [...new Set(allSessions.map(s => IS_MENTOR ? s.mentee_id : s.mentor_id).filter(Boolean))];
+    const table = IS_MENTOR ? "mentees" : "mentors";
+    const {data: people} = await sb.from(table).select("user_id, full_name").in("user_id", ids);
+    const nameMap = {};
+    (people || []).forEach(p => nameMap[p.user_id] = p.full_name);
+
+    renderList("tab-upcoming",  upcoming,  nameMap, "No upcoming sessions.");
+    renderList("tab-completed", completed, nameMap, "No completed sessions yet.");
+    renderList("tab-cancelled", cancelled, nameMap, "No cancelled sessions.");
+  }
+
+  // ── Render list ───────────────────────────────────────────────
+  function renderList(containerId, sessions, nameMap, emptyMsg){
+    const el = $(containerId);
+    if(!sessions.length){
+      el.innerHTML = `<div class="empty-state">
+        <div class="es-icon">📅</div>
+        <h3>${emptyMsg}</h3>
+        <p>${containerId === "tab-upcoming" && !IS_MENTOR ? "Book a session from your dashboard after a mentor accepts your request." : ""}</p>
+      </div>`;
       return;
     }
-    $("sessions").innerHTML=data.map(s=>`
-      <div class="session-entry">
-        <b>${new Date(s.scheduled_for).toLocaleString()}</b>
-        <span>${s.duration_minutes} minutes · ${s.status||"proposed"}</span>
-        ${s.meeting_link?`<div style="margin-top:6px"><a class="mh-btn mh-btn-sm" href="${s.meeting_link}" target="_blank">Join meeting</a></div>`:""}
-      </div>`).join("");
-  }
 
-  // Set datetime-local min to now so past dates can't be selected
-  (function setDateMin(){
-    const el = document.getElementById("scheduledFor");
-    if(!el) return;
-    const now = new Date();
-    now.setSeconds(0,0);
-    el.min = now.toISOString().slice(0,16);
-  })();
+    el.innerHTML = "";
+    const list = document.createElement("div");
+    list.className = "sessions-list";
 
-  async function saveSession(){
-    if(!CURRENT){ alert("Select a request first"); return; }
-    const scheduledFor=$("scheduledFor").value;
-    if(!scheduledFor){ alert("Select date and time"); return; }
-    if(new Date(scheduledFor) < new Date()){ alert("Please choose a future date and time."); return; }
-    const {error}=await sb.from("sessions").insert({
-      request_id:CURRENT.id,mentor_id:CURRENT.mentor_id,mentee_id:CURRENT.mentee_id,
-      proposed_by:USER.id,scheduled_for:scheduledFor,
-      duration_minutes:Number($("duration").value),
-      meeting_link:$("meetingLink").value,
-      notes:$("sessionNotes").value,
-      status:$("status").value
+    sessions.forEach(s => {
+      const otherId   = IS_MENTOR ? s.mentee_id : s.mentor_id;
+      const otherName = nameMap[otherId] || (IS_MENTOR ? "Mentee" : "Mentor");
+      const initial   = otherName[0].toUpperCase();
+      const dt        = new Date(s.scheduled_for);
+      const dateStr   = dt.toLocaleDateString("en-GB", {weekday:"long", day:"numeric", month:"long", year:"numeric"});
+      const timeStr   = dt.toLocaleTimeString("en-GB", {hour:"2-digit", minute:"2-digit"});
+      const isPast    = dt < new Date();
+
+      const card = document.createElement("div");
+      card.className = "session-card";
+      card.id = "session-" + s.id;
+
+      const badgeClass = {
+        scheduled: "badge-scheduled",
+        completed: "badge-completed",
+        cancelled: "badge-cancelled",
+        proposed:  "badge-proposed",
+      }[s.status] || "badge-scheduled";
+
+      card.innerHTML = `
+        <div class="sc-header">
+          <div>
+            <div class="sc-date">${dateStr}</div>
+            <div class="sc-time">${timeStr}</div>
+          </div>
+          <span class="sc-badge ${badgeClass}">${s.status || "scheduled"}</span>
+        </div>
+
+        <div class="sc-person">
+          <div class="sc-avatar">${initial}</div>
+          <div>
+            <div class="sc-person-name">${otherName}</div>
+            <div class="sc-person-role">${IS_MENTOR ? "Mentee" : "Your mentor"}</div>
+          </div>
+        </div>
+
+        <div class="sc-info">
+          <div class="sc-info-item">⏱ <strong>${s.duration_minutes || 60} mins</strong></div>
+          ${s.meeting_link ? `<div class="sc-info-item">🔗 <strong>Meeting link set</strong></div>` : ""}
+          ${s.notes ? `<div class="sc-info-item">📝 <strong>Has notes</strong></div>` : ""}
+        </div>
+
+        ${IS_MENTOR && s.status !== "cancelled" && s.status !== "completed" ? `
+          <div class="meeting-link-row">
+            <input type="url" id="link-${s.id}" placeholder="Add meeting link (Zoom, Google Meet...)" value="${s.meeting_link || ""}"/>
+            <button class="btn-save-link" onclick="saveMeetingLink('${s.id}')">Save</button>
+          </div>` : ""}
+
+        <div class="sc-actions">
+          ${s.meeting_link ? `<a class="btn-join" href="${s.meeting_link}" target="_blank">🎥 Join meeting</a>` : ""}
+          ${IS_MENTOR && s.status === "scheduled" && isPast ? `<button class="btn-complete" onclick="markCompleted('${s.id}')">✅ Mark completed</button>` : ""}
+          ${IS_MENTOR && s.status !== "cancelled" && s.status !== "completed" ? `<button class="btn-cancel" onclick="cancelSession('${s.id}')">Cancel</button>` : ""}
+          ${!IS_MENTOR && s.status === "completed" ? `<a class="btn-review" href="reviews.html">⭐ Leave a review</a>` : ""}
+        </div>
+
+        ${IS_MENTOR && s.status === "completed" ? `
+          <div class="progress-section">
+            <label>Session notes</label>
+            <textarea id="notes-${s.id}" placeholder="What was covered in this session?">${s.notes || ""}</textarea>
+            <button class="mh-btn mh-btn-sm" style="margin-top:8px" onclick="saveNotes('${s.id}')">Save notes</button>
+          </div>` : ""}
+      `;
+
+      list.appendChild(card);
     });
-    if(error){ console.error(error); alert("Error saving session"); return; }
-    alert("Session saved ✓");
-    loadSessions();
+
+    el.appendChild(list);
   }
 
-  async function saveProgress(){
-    await sb.from("mentorship_progress").insert({
-      request_id:CURRENT.id,mentor_id:CURRENT.mentor_id,mentee_id:CURRENT.mentee_id,
-      progress_percent:Number($("progressPercent").value),notes:$("progressNotes").value
-    });
-    alert("Progress saved ✓");
-    $("progressPercent").value="";
-    $("progressNotes").value="";
+  // ── Actions ───────────────────────────────────────────────────
+  async function saveMeetingLink(sessionId){
+    const val = $("link-" + sessionId)?.value?.trim();
+    if(!val){ alert("Please enter a meeting link."); return; }
+    const {error} = await sb.from("sessions").update({meeting_link: val}).eq("id", sessionId);
+    if(error){ console.error(error); alert("Could not save link."); return; }
+    showToast("Meeting link saved!");
+    await loadSessions();
   }
 
-  $("saveBtn").onclick=saveSession;
-  $("saveProgressBtn").onclick=saveProgress;
-  $("signOutBtn").onclick=async()=>{ await sb.auth.signOut(); window.location.href="auth.html?mode=signin"; };
+  async function markCompleted(sessionId){
+    if(!confirm("Mark this session as completed?")) return;
+    const {error} = await sb.from("sessions").update({status:"completed"}).eq("id", sessionId);
+    if(error){ console.error(error); alert("Could not update session."); return; }
+    showToast("Session marked as completed!");
+    await loadSessions();
+  }
 
-  requireAuth().then(loadRequests);
+  async function cancelSession(sessionId){
+    if(!confirm("Cancel this session?")) return;
+    const {error} = await sb.from("sessions").update({status:"cancelled"}).eq("id", sessionId);
+    if(error){ console.error(error); alert("Could not cancel."); return; }
+    showToast("Session cancelled.");
+    await loadSessions();
+  }
+
+  async function saveNotes(sessionId){
+    const notes = $("notes-" + sessionId)?.value?.trim();
+    const {error} = await sb.from("sessions").update({notes}).eq("id", sessionId);
+    if(error){ console.error(error); return; }
+    showToast("Notes saved!");
+  }
+
+  // ── Toast ─────────────────────────────────────────────────────
+  function showToast(msg){
+    let t = document.getElementById("toast");
+    if(!t){ t = document.createElement("div"); t.id = "toast"; t.className = "mh-toast"; document.body.appendChild(t); }
+    t.textContent = msg; t.classList.add("show");
+    setTimeout(() => t.classList.remove("show"), 2600);
+  }
+
+  $("signOutBtn").onclick = async () => { await sb.auth.signOut(); window.location.href = "auth.html?mode=signin"; };
+
+  init();
 </script>
 
-<!-- ── Mobile right-side drawer ── -->
+<!-- Mobile drawer -->
 <div id="navOverlay" onclick="closeDrawer()" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);backdrop-filter:blur(3px);z-index:90;"></div>
 <div class="mh-mobile-drawer" id="mobileDrawer">
   <div class="drawer-head">
-    <div class="drawer-head-brand">
-      <img src="logo.png" alt="MentifyHub"/>
-      <strong>MentifyHub</strong>
-    </div>
-    <button class="mh-drawer-close" onclick="closeDrawer()" aria-label="Close menu">✕</button>
+    <div class="drawer-head-brand"><img src="logo.png" alt="MentifyHub"/><strong>MentifyHub</strong></div>
+    <button class="mh-drawer-close" onclick="closeDrawer()">✕</button>
   </div>
-  <div class="mh-drawer-user" id="drawerUserInfo">Loading…</div>
   <div class="mh-drawer-links">
-    <a href="#" id="drawerDashLink"   class="mh-drawer-link"><span class="icon">🏠</span> Dashboard</a>
-    <a href="mentor-directory.html"   class="mh-drawer-link"><span class="icon">🔍</span> Directory</a>
-    <a href="messages.html"           class="mh-drawer-link"><span class="icon">💬</span> Messages</a>
-    <a href="sessions.html"           class="mh-drawer-link active"><span class="icon">📅</span> Sessions</a>
-    <a href="reviews.html"            class="mh-drawer-link"><span class="icon">⭐</span> Reviews</a>
+    <a href="#" id="drawerDashLink" class="mh-drawer-link"><span class="icon">🏠</span> Dashboard</a>
+    <a href="mentor-directory.html" class="mh-drawer-link"><span class="icon">🔍</span> Directory</a>
+    <a href="messages.html" class="mh-drawer-link"><span class="icon">💬</span> Messages</a>
+    <a href="sessions.html" class="mh-drawer-link active"><span class="icon">📅</span> Sessions</a>
+    <a href="reviews.html" class="mh-drawer-link"><span class="icon">⭐</span> Reviews</a>
   </div>
   <div class="mh-drawer-footer">
-    <button class="mh-drawer-signout" onclick="drawerSignOut()">🚪 &nbsp;Sign out</button>
+    <button class="mh-drawer-signout" onclick="drawerSignOut()">🚪 Sign out</button>
   </div>
 </div>
-
 <script>
-  document.body.classList.add("has-side-nav");
-
-  function openDrawer(){
-    if(window.innerWidth > 768) return;
-    const d = document.getElementById('mobileDrawer');
-    const o = document.getElementById('navOverlay');
-    if(!d||!o) return;
-    d.classList.add('open');
-    o.style.display = 'block';
-    document.body.style.overflow = 'hidden';
-    const chip = document.getElementById('whoChip')||document.getElementById('envChip');
-    const info = document.getElementById('drawerUserInfo');
-    if(chip&&info) info.textContent = chip.textContent;
-  }
-
-  function closeDrawer(){
-    const d = document.getElementById('mobileDrawer');
-    const o = document.getElementById('navOverlay');
-    if(!d||!o) return;
-    d.classList.remove('open');
-    o.style.display = 'none';
-    document.body.style.overflow = '';
-  }
-
-  async function drawerSignOut(){
-    try{
-      const sb2 = window.supabase || window.sb || window._sb;
-      if(sb2) await sb2.auth.signOut();
-    }catch(e){}
-    window.location.href = 'auth.html?mode=signin';
-  }
+  function openDrawer(){ const d=$("mobileDrawer"),o=$("navOverlay"); if(d&&o){d.classList.add("open");o.style.display="block";document.body.style.overflow="hidden";} }
+  function closeDrawer(){ const d=$("mobileDrawer"),o=$("navOverlay"); if(d&&o){d.classList.remove("open");o.style.display="none";document.body.style.overflow="";} }
+  async function drawerSignOut(){ try{ await sb.auth.signOut(); }catch(e){} window.location.href="auth.html?mode=signin"; }
 </script>
 </body>
 </html>

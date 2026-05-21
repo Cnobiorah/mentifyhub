@@ -10,1036 +10,466 @@
   <script src="mh-utils.js"></script>
   <link rel="stylesheet" href="mh-theme.css"/>
   <style>
-    .layout {
-      display: grid;
-      grid-template-columns: 1fr 340px;
-      gap: 16px;
-      margin-top: 18px;
-      align-items: start;
-    }
-    .sticky-side { position: sticky; top: 92px; }
+    body { background: #f0f4fa; }
 
-    /* Stats row */
-    .stats-row {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-      margin-bottom: 18px;
-    }
+    /* ── Layout ── */
+    .dash-wrap { max-width: 1200px; margin: 0 auto; padding: 24px 24px 60px; }
+    .dash-grid { display: grid; grid-template-columns: 1fr 300px; gap: 20px; align-items: start; }
 
-    /* Request cards */
-    .req-card {
-      padding: 16px;
-      border: 1px solid var(--line);
-      border-radius: var(--radius-sm);
-      background: #fff;
-      transition: box-shadow .15s ease;
-    }
-    .req-card:hover { box-shadow: var(--shadow); }
-    .req-card + .req-card { margin-top: 10px; }
-
-    .req-top {
+    /* ── Hero banner ── */
+    .hero-banner {
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 45%, #1d4ed8 100%);
+      border-radius: 20px;
+      padding: 28px 32px;
+      margin-bottom: 20px;
       display: flex;
-      align-items: flex-start;
+      align-items: center;
       justify-content: space-between;
-      gap: 12px;
-    }
-    .req-who b    { display: block; font-size: 14px; font-weight: 700; }
-    .req-who small{ display: block; font-size: 12px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 500px; }
-    .req-msg  { margin-top: 10px; font-size: 13px; color: var(--text); line-height: 1.6; white-space: pre-wrap; }
-    .req-meta { margin-top: 8px; font-size: 12px; color: var(--muted); }
-    .req-actions { margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
-
-    /* Tip card */
-    .tip {
-      padding: 14px;
-      border-radius: var(--radius-sm);
-      border: 1px solid var(--line);
-      background: linear-gradient(180deg, #fff, var(--soft));
-      font-size: 13px;
-      color: var(--muted);
-      line-height: 1.55;
-    }
-    .tip b { display: block; color: var(--text); margin-bottom: 4px; font-size: 13px; }
-
-    /* Bell / notifications */
-    .bell-wrap { position: relative; }
-    .bell-btn {
-      width: 38px; height: 38px; border-radius: 12px;
-      border: 1px solid var(--line); background: #fff;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 17px; cursor: pointer; transition: box-shadow .15s ease;
       position: relative;
+      overflow: hidden;
     }
-    .bell-btn:hover { box-shadow: var(--shadow); }
-    .bell-badge {
-      position: absolute; top: -5px; right: -5px;
-      width: 18px; height: 18px; border-radius: 50%;
-      background: #ef4444; color: #fff;
-      font-size: 10px; font-weight: 800;
-      display: none; align-items: center; justify-content: center;
-      border: 2px solid #fff;
-    }
-    .notif-panel {
-      position: absolute; top: calc(100% + 10px); right: 0;
-      width: 340px; background: #fff;
-      border: 1px solid var(--line); border-radius: var(--radius);
-      box-shadow: var(--shadow-lg); z-index: 50;
-      display: none; overflow: hidden;
-    }
-    .notif-panel.open { display: block; animation: mh-modal-in .15s ease; }
-    .notif-head {
-      padding: 12px 16px; border-bottom: 1px solid var(--line);
-      display: flex; align-items: center; justify-content: space-between;
-      font-size: 13px; font-weight: 700;
-    }
-    .notif-list { max-height: 360px; overflow-y: auto; }
-    .notif-item {
-      display: flex; align-items: flex-start; gap: 10px;
-      padding: 12px 16px; border-bottom: 1px solid var(--line);
-      transition: background .1s ease; cursor: pointer;
-    }
-    .notif-item:last-child { border-bottom: none; }
-    .notif-item:hover { background: var(--soft); }
-    .notif-item.unread { background: rgba(29,78,216,.04); }
-    .notif-dot {
-      width: 8px; height: 8px; border-radius: 50%;
-      flex-shrink: 0; margin-top: 5px;
-    }
-    .notif-item.unread .notif-dot { background: var(--accent2); }
-    .notif-item:not(.unread) .notif-dot { background: var(--line); }
-    .notif-body b     { display: block; font-size: 13px; font-weight: 700; color: var(--text); }
-    .notif-body span  { display: block; font-size: 12px; color: var(--muted); margin-top: 2px; line-height: 1.4; }
-    .notif-body small { display: block; font-size: 11px; color: var(--subtle); margin-top: 4px; }
-    .notif-empty { padding: 24px; text-align: center; font-size: 13px; color: var(--muted); }
-    .notif-footer {
-      padding: 10px 16px; border-top: 1px solid var(--line);
-      background: var(--soft); text-align: center;
-    }
+    .hb-blob { position:absolute; border-radius:50%; background:rgba(255,255,255,.06); pointer-events:none; }
+    .hb-b1 { width:220px; height:220px; top:-80px; right:60px; }
+    .hb-b2 { width:140px; height:140px; bottom:-50px; right:240px; }
+    .hb-b3 { width:80px; height:80px; top:20px; right:260px; }
+    .hb-left h1 { font-size:22px; font-weight:900; color:#fff; letter-spacing:-.3px; margin-bottom:4px; }
+    .hb-left p  { font-size:13px; color:rgba(255,255,255,.6); }
+    .hb-avatar  { width:56px; height:56px; border-radius:16px; background:rgba(255,255,255,.15); border:2px solid rgba(255,255,255,.25); display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:900; color:#fff; flex-shrink:0; }
 
-    @media (max-width: 980px) {
-      .layout { grid-template-columns: 1fr; }
-      .sticky-side { position: static; }
-      .stats-row { grid-template-columns: repeat(2, 1fr); }
-      .notif-panel { width: 300px; right: -60px; }
-    }
-    @media (max-width: 768px) {
-      .mh-input, .mh-select, .mh-textarea { font-size: 16px !important; }
-      .mh-topbar { margin: 8px; padding: 10px 14px; }
-      .mh-hamburger { order: -1; flex-shrink: 0; }
-      .mh-brand { position: static !important; transform: none !important; }
-      .mh-topbar { position: relative; }
-      #hamburgerBtn { display: flex !important; }
-      .mh-nav.hide-mobile { display: none !important; }
-      .notif-panel { position: fixed !important; left: 8px !important; right: 8px !important; width: auto !important; top: 70px !important; }
-    }
-    @media (max-width: 600px) {
-      .stats-row { grid-template-columns: 1fr 1fr; }
-      .req-card { padding: 14px; }
-      .req-actions { flex-direction: column; gap: 6px; }
-      .req-actions button { width: 100%; justify-content: center; }
-    }
-    @media (max-width: 400px) {
-      .stats-row { grid-template-columns: 1fr; }
-    }
+    /* ── Stats ── */
+    .stats-grid { display:grid; grid-template-columns:repeat(6,1fr); gap:12px; margin-bottom:20px; }
+    .stat-box { background:#fff; border:1px solid #e2e8f0; border-radius:16px; padding:16px 12px; text-align:center; }
+    .stat-box .sv { font-size:24px; font-weight:900; color:#0f172a; line-height:1; margin-bottom:4px; }
+    .stat-box .sl { font-size:11px; font-weight:600; color:#94a3b8; text-transform:uppercase; letter-spacing:.5px; }
+    .stat-box.blue { background:#eff6ff; border-color:#bfdbfe; }
+    .stat-box.blue .sv { color:#2563eb; }
 
-    /* Hamburger - hidden on desktop, shown on mobile */
-    #hamburgerBtn { display: none !important; }
-    @media (max-width: 768px) {
-      #hamburgerBtn { display: flex !important; }
-      .mh-nav { display: none !important; }
-    }
+    /* ── Section title ── */
+    .sec-title { font-size:16px; font-weight:800; color:#0f172a; margin-bottom:14px; display:flex; align-items:center; justify-content:space-between; }
+    .sec-title span { font-size:12px; font-weight:600; color:#94a3b8; }
 
-    /* CRITICAL: Hide mobile drawer on desktop */
-    @media (min-width: 769px) {
-      .mh-hamburger,
-      #hamburgerBtn,
-      #mobileDrawer,
-      .mh-mobile-drawer,
-      #navOverlay { display: none !important; }
-      .mh-nav { display: flex !important; }
-    }
+    /* ── Request cards ── */
+    .req-card { background:#fff; border:1px solid #e2e8f0; border-radius:18px; padding:20px; margin-bottom:12px; transition:box-shadow .2s; }
+    .req-card:hover { box-shadow:0 4px 20px rgba(15,23,42,.08); }
+    .rc-top { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:10px; }
+    .rc-name { font-size:15px; font-weight:800; color:#0f172a; }
+    .rc-tags { font-size:12px; color:#64748b; margin-top:3px; }
+    .rc-email { font-size:12px; color:#94a3b8; margin-top:2px; }
+    .rc-badge { padding:4px 12px; border-radius:999px; font-size:12px; font-weight:700; flex-shrink:0; }
+    .badge-pending  { background:#fefce8; color:#ca8a04; border:1px solid #fde68a; }
+    .badge-accepted { background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; }
+    .badge-declined { background:#fef2f2; color:#ef4444; border:1px solid #fca5a5; }
+    .rc-msg { font-size:13px; color:#334155; line-height:1.65; margin:10px 0; white-space:pre-wrap; }
+    .rc-foot { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-top:12px; }
+    .rc-date { font-size:11px; color:#94a3b8; }
+    .rc-actions { display:flex; gap:8px; }
+    .btn-accept { padding:8px 18px; border-radius:10px; border:none; background:#16a34a; color:#fff; font:inherit; font-size:13px; font-weight:700; cursor:pointer; transition:background .15s; }
+    .btn-accept:hover { background:#15803d; }
+    .btn-decline { padding:8px 18px; border-radius:10px; border:1.5px solid #fca5a5; background:#fff; color:#ef4444; font:inherit; font-size:13px; font-weight:700; cursor:pointer; }
+    .btn-decline:hover { background:#fef2f2; }
+    .btn-msg-sm { padding:8px 16px; border-radius:10px; border:1.5px solid #e2e8f0; background:#fff; color:#475569; font:inherit; font-size:13px; font-weight:600; cursor:pointer; text-decoration:none; }
+    .btn-msg-sm:hover { border-color:#2563eb; color:#2563eb; }
 
-    /* ── Availability manager ── */
-    .avail-section { margin-top: 18px; }
-    .avail-section h3 { font-size: 15px; font-weight: 800; margin-bottom: 4px; }
-    .avail-section p  { font-size: 13px; color: var(--muted); margin-bottom: 14px; }
-    .day-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-bottom: 16px; }
-    .day-btn {
-      padding: 10px 6px; border-radius: 10px; border: 1.5px solid var(--line);
-      background: #fff; font: inherit; font-size: 12px; font-weight: 700;
-      color: var(--muted); cursor: pointer; text-align: center; transition: all .15s;
-    }
-    .day-btn.selected { border-color: var(--accent); background: #eff6ff; color: var(--accent); }
-    .day-btn:hover { border-color: var(--accent); }
-    .time-slots-wrap { margin-top: 12px; }
-    .time-slots-wrap label { font-size: 13px; font-weight: 700; display: block; margin-bottom: 8px; }
-    .time-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
-    .time-chip {
-      padding: 6px 14px; border-radius: 999px; border: 1.5px solid var(--line);
-      background: #fff; font: inherit; font-size: 12px; font-weight: 600;
-      color: var(--muted); cursor: pointer; transition: all .15s;
-    }
-    .time-chip.selected { border-color: var(--accent); background: #eff6ff; color: var(--accent); }
-    .avail-save-btn { margin-top: 14px; }
-    .avail-status { font-size: 12px; color: var(--green); font-weight: 600; margin-top: 8px; display: none; }
+    /* ── Sidebar cards ── */
+    .side-card { background:#fff; border:1px solid #e2e8f0; border-radius:20px; padding:20px; margin-bottom:16px; }
 
-    /* ── Generated slots preview ── */
-    .slots-preview {
-      margin-top: 16px;
-      border-top: 1px solid var(--line);
-      padding-top: 14px;
-      display: none;
-    }
-    .slots-preview-head {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 10px;
-    }
-    .slots-preview-head span { font-size: 13px; font-weight: 700; color: var(--text); }
-    .slots-preview-head small { font-size: 11px; color: var(--muted); }
+    /* Profile */
+    .profile-wrap { background:linear-gradient(145deg,#0f172a,#1e3a5f); border:none; border-radius:20px; padding:24px; margin-bottom:16px; }
+    .pw-av { width:52px; height:52px; border-radius:14px; background:rgba(255,255,255,.15); border:2px solid rgba(255,255,255,.2); display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:900; color:#fff; margin-bottom:12px; }
+    .pw-name { font-size:16px; font-weight:900; color:#fff; }
+    .pw-role { font-size:12px; color:rgba(255,255,255,.55); margin-top:2px; margin-bottom:14px; }
+    .pw-bar-label { display:flex; justify-content:space-between; font-size:11px; color:rgba(255,255,255,.45); margin-bottom:5px; }
+    .pw-bar-label strong { color:#fff; font-weight:700; }
+    .pw-bar { height:5px; background:rgba(255,255,255,.12); border-radius:999px; overflow:hidden; margin-bottom:16px; }
+    .pw-bar-fill { height:100%; background:linear-gradient(90deg,#60a5fa,#a78bfa); border-radius:999px; transition:width .7s ease; }
+    .pw-links { display:flex; flex-direction:column; gap:8px; }
+    .pw-link { display:block; padding:10px 14px; border-radius:12px; font-size:13px; font-weight:700; text-align:center; text-decoration:none; transition:all .15s; border:none; cursor:pointer; font-family:inherit; }
+    .pw-link-primary { background:#2563eb; color:#fff; }
+    .pw-link-primary:hover { background:#1d4ed8; }
+    .pw-link-ghost { background:rgba(255,255,255,.08); color:rgba(255,255,255,.8); border:1px solid rgba(255,255,255,.12); }
+    .pw-link-ghost:hover { background:rgba(255,255,255,.15); }
 
-    /* Mini date-card row (matches mentee booking style) */
-    .preview-day-row {
-      display: flex; gap: 7px;
-      overflow-x: auto; padding-bottom: 6px;
-      scrollbar-width: none;
-    }
-    .preview-day-row::-webkit-scrollbar { display: none; }
-    .preview-day-card {
-      flex-shrink: 0; width: 66px;
-      border: 1.5px solid var(--line); border-radius: 10px;
-      background: #fff; padding: 8px 4px; text-align: center;
-    }
-    .preview-day-card .pdc-dow  { font-size: 9px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 3px; }
-    .preview-day-card .pdc-num  { font-size: 18px; font-weight: 900; color: var(--text); line-height: 1; margin-bottom: 1px; }
-    .preview-day-card .pdc-mon  { font-size: 10px; font-weight: 600; color: var(--muted); margin-bottom: 5px; }
-    .preview-day-card .pdc-time { font-size: 10px; font-weight: 700; color: #16a34a; }
-    .slots-preview-note {
-      font-size: 11px; color: var(--muted); text-align: center;
-      margin-top: 8px; line-height: 1.5;
-    }
+    /* Sessions in sidebar */
+    .session-item { padding:12px 0; border-bottom:1px solid #f1f5f9; }
+    .session-item:last-child { border-bottom:none; }
+    .si-top { display:flex; align-items:flex-start; justify-content:space-between; }
+    .si-date { font-size:13px; font-weight:700; color:#0f172a; }
+    .si-cancel { font-size:11px; font-weight:700; color:#ef4444; background:none; border:none; cursor:pointer; padding:0; }
+    .si-meta { font-size:12px; color:#94a3b8; margin-top:2px; }
+    .si-badge { display:inline-block; margin-top:5px; padding:2px 8px; border-radius:999px; font-size:11px; font-weight:700; background:#eff6ff; color:#2563eb; }
+    .empty-msg { font-size:13px; color:#94a3b8; text-align:center; padding:20px 0; }
 
+    /* Bell */
+    .bell-wrap { position:relative; }
+    .bell-btn { width:36px; height:36px; border-radius:10px; border:1px solid #e2e8f0; background:#fff; display:flex; align-items:center; justify-content:center; font-size:16px; cursor:pointer; }
+    .bell-badge { position:absolute; top:-4px; right:-4px; width:17px; height:17px; border-radius:50%; background:#ef4444; color:#fff; font-size:9px; font-weight:800; display:none; align-items:center; justify-content:center; border:2px solid #fff; }
+    .notif-panel { position:absolute; top:calc(100%+10px); right:0; width:340px; background:#fff; border:1px solid #e2e8f0; border-radius:16px; box-shadow:0 8px 32px rgba(15,23,42,.12); z-index:200; display:none; overflow:hidden; }
+    .notif-panel.open { display:block; }
+    .notif-head { padding:14px 16px; border-bottom:1px solid #f1f5f9; display:flex; align-items:center; justify-content:space-between; font-size:13px; font-weight:700; }
+    .notif-list { max-height:340px; overflow-y:auto; }
+    .notif-item { display:flex; align-items:flex-start; gap:10px; padding:12px 16px; border-bottom:1px solid #f8faff; cursor:pointer; }
+    .notif-item:hover { background:#f8faff; }
+    .notif-item.unread { background:rgba(37,99,235,.03); }
+    .notif-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; margin-top:5px; }
+    .notif-item.unread .notif-dot { background:#2563eb; }
+    .notif-item:not(.unread) .notif-dot { background:#e2e8f0; }
+    .notif-body b    { display:block; font-size:13px; font-weight:700; color:#0f172a; }
+    .notif-body span { display:block; font-size:12px; color:#64748b; margin-top:2px; }
+    .notif-body small{ display:block; font-size:11px; color:#94a3b8; margin-top:3px; }
+    .notif-empty { padding:28px; text-align:center; font-size:13px; color:#94a3b8; }
+    .notif-footer { padding:10px 16px; border-top:1px solid #f1f5f9; background:#f8faff; text-align:center; }
+    .notif-footer button { background:none; border:none; font:inherit; font-size:12px; font-weight:600; color:#2563eb; cursor:pointer; }
+
+    /* Note */
+    .dash-note { background:#f8faff; border:1px solid #e2e8f0; border-radius:12px; padding:14px 16px; font-size:13px; color:#64748b; margin-bottom:12px; display:none; }
+
+    /* Responsive */
+    @media(max-width:1024px){ .stats-grid{grid-template-columns:repeat(3,1fr);} }
+    @media(max-width:900px){ .dash-grid{grid-template-columns:1fr;} }
+    @media(max-width:600px){ .stats-grid{grid-template-columns:repeat(2,1fr);} .hero-banner{flex-direction:column;align-items:flex-start;gap:12px;} }
+    #hamburgerBtn{display:none!important;}
+    @media(max-width:768px){#hamburgerBtn{display:flex!important;}.mh-nav{display:none!important;}}
+    @media(min-width:769px){.mh-mobile-drawer,#mobileDrawer,#navOverlay{display:none!important;}.mh-nav{display:flex!important;}}
   </style>
 </head>
 <body>
 <div class="mh-wrap">
 
-  <!-- Topbar -->
   <header class="mh-topbar">
     <a href="index.html" class="mh-brand">
       <img src="logo.png" alt="MentifyHub" class="mh-brand-logo"/>
-      <div class="mh-brand-text">
-        <strong>MentifyHub</strong>
-        <span>Mentor dashboard</span>
-      </div>
+      <div class="mh-brand-text"><strong>MentifyHub</strong><span>Mentor dashboard</span></div>
     </a>
     <nav class="mh-nav">
-      <span class="mh-chip" id="whoChip">Checking session…</span>
+      <span class="mh-chip" id="whoChip">Checking...</span>
       <a class="mh-btn" href="mentor-directory.html">Browse mentors</a>
       <a class="mh-btn" href="messages.html">Messages</a>
       <a class="mh-btn" href="sessions.html">Sessions</a>
       <a class="mh-btn" href="reviews.html">⭐ Reviews</a>
-      <!-- Notification bell (desktop) -->
       <div class="bell-wrap">
-        <button class="bell-btn" id="bellBtn" type="button" title="Notifications">
-          🔔
-          <span class="bell-badge" id="bellBadge"></span>
-        </button>
+        <button class="bell-btn" id="bellBtn">🔔<span class="bell-badge" id="bellBadge"></span></button>
         <div class="notif-panel" id="notifPanel">
           <div class="notif-head">
             <span>Notifications</span>
-            <button class="mh-btn mh-btn-sm mh-btn-ghost" id="markAllBtn" type="button">Mark all read</button>
+            <button id="markAllBtn" style="background:none;border:none;font:inherit;font-size:12px;font-weight:600;color:#2563eb;cursor:pointer">Mark all read</button>
           </div>
-          <div class="notif-list" id="notifList">
-            <div class="notif-empty">Loading…</div>
-          </div>
-          <div class="notif-footer">
-            <button class="mh-btn mh-btn-sm mh-btn-ghost" id="refreshNotifBtn" type="button">Refresh</button>
-          </div>
+          <div class="notif-list" id="notifList"><div class="notif-empty">Loading...</div></div>
+          <div class="notif-footer"><button id="refreshNotifBtn">Refresh</button></div>
         </div>
       </div>
-      <button class="mh-btn mh-btn-danger hide-mobile" id="signOutBtn" type="button">Sign out</button>
+      <button class="mh-btn mh-btn-danger hide-mobile" id="signOutBtn">Sign out</button>
     </nav>
-    <!-- Mobile: sign out only shown via CSS, bell moved to bottom nav -->
-      <button class="mh-menu-btn" id="menuBtn" onclick="openDrawer()" aria-label="Open menu">
-      <span></span><span></span><span></span>
-    </button>
+    <button class="mh-menu-btn" id="menuBtn" onclick="openDrawer()"><span></span><span></span><span></span></button>
   </header>
 
-  <div class="layout">
+  <div class="dash-wrap">
 
-    <!-- Main column -->
-    <div>
-      <div class="mh-card mh-card-body" style="margin-bottom:16px">
-        <h2 style="font-size:18px;font-weight:800;letter-spacing:-.2px">Incoming mentorship requests</h2>
-        <p style="color:var(--muted);font-size:13px;margin-top:6px">Review mentee requests and respond. Only you can see and update your requests.</p>
-
-        <div class="stats-row" style="margin-top:16px">
-          <div class="mh-stat">
-            <div class="mh-stat-val" id="statAll">—</div>
-            <div class="mh-stat-lbl">Total requests</div>
-          </div>
-          <div class="mh-stat">
-            <div class="mh-stat-val" id="statPending">—</div>
-            <div class="mh-stat-lbl">Pending</div>
-          </div>
-          <div class="mh-stat">
-            <div class="mh-stat-val" id="statAccepted">—</div>
-            <div class="mh-stat-lbl">Accepted</div>
-          </div>
-          <div class="mh-stat">
-            <div class="mh-stat-val" id="statProfile">—</div>
-            <div class="mh-stat-lbl">Profile complete</div>
-          </div>
-          <div class="mh-stat">
-            <div class="mh-stat-val" id="statBookings">—</div>
-            <div class="mh-stat-lbl">Sessions booked</div>
-          </div>
-          <div class="mh-stat">
-            <div class="mh-stat-val" id="statCompleted">—</div>
-            <div class="mh-stat-lbl">Sessions completed</div>
-          </div>
-        </div>
+    <!-- Hero -->
+    <div class="hero-banner">
+      <div class="hb-blob hb-b1"></div>
+      <div class="hb-blob hb-b2"></div>
+      <div class="hb-blob hb-b3"></div>
+      <div class="hb-left">
+        <h1 id="heroTitle">Welcome back 👋</h1>
+        <p id="heroSub">Here is what is happening with your mentees.</p>
       </div>
-
-      <div id="list">
-        <div class="mh-skeleton" style="height:90px;margin-bottom:10px"></div>
-        <div class="mh-skeleton" style="height:90px"></div>
-      </div>
-
-      <div id="note" style="display:none" class="tip" style="margin-top:12px"></div>
+      <div class="hb-avatar" id="heroAvatar">M</div>
     </div>
 
-    <!-- Side column -->
-    <aside class="mh-card mh-card-body sticky-side">
-      <h3 style="font-size:14px;font-weight:700;margin-bottom:10px">Mentor tips</h3>
-      <p style="color:var(--muted);font-size:13px;line-height:1.55;margin-bottom:14px">
-        Reply quickly and clearly. If you accept, message the mentee with next steps, agenda, and a meeting plan.
-      </p>
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-box"><div class="sv" id="statAll">—</div><div class="sl">Total</div></div>
+      <div class="stat-box"><div class="sv" id="statPending">—</div><div class="sl">Pending</div></div>
+      <div class="stat-box"><div class="sv" id="statAccepted">—</div><div class="sl">Accepted</div></div>
+      <div class="stat-box"><div class="sv" id="statProfile">—</div><div class="sl">Profile</div></div>
+      <div class="stat-box blue"><div class="sv" id="statBookings">—</div><div class="sl">Booked</div></div>
+      <div class="stat-box blue"><div class="sv" id="statCompleted">—</div><div class="sl">Completed</div></div>
+    </div>
 
-      <div style="display:flex;flex-direction:column;gap:10px">
-        <div class="tip">
-          <b>Suggested reply approach</b>
-          Accept only requests you can support well. If accepted, follow up with a message and propose a session.
-        </div>
-        <div class="tip">
-          <b>Capacity reminder</b>
-          Your available mentee slots can be managed from your mentor profile.
-        </div>
-        <div class="tip">
-          <b>Current progress</b>
-          <span id="statProgress">—</span> mentorship progress logged.
-        </div>
-      </div>
-
-
-
-      <!-- Upcoming Sessions -->
-      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line)">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-          <h3 style="font-size:14px;font-weight:700;margin:0">Upcoming sessions</h3>
-          <button class="mh-btn mh-btn-sm" id="refreshSessionsBtn" type="button">Refresh</button>
-        </div>
-        <div id="mentorSessionsList">
-          <div style="font-size:12px;color:var(--muted)">Loading…</div>
+    <div class="dash-grid">
+      <!-- Main -->
+      <div>
+        <div class="sec-title">Mentorship requests <span id="reqCount"></span></div>
+        <div class="dash-note" id="dashNote"></div>
+        <div id="reqList">
+          <div class="mh-skeleton" style="height:110px;margin-bottom:12px;border-radius:18px"></div>
+          <div class="mh-skeleton" style="height:110px;border-radius:18px"></div>
         </div>
       </div>
 
-      <!-- Availability Manager -->
-      <div style="margin-top:16px;display:flex;flex-direction:column;gap:8px">
-        <a href="availability.html" class="mh-btn mh-btn-primary mh-btn-full" style="text-align:center">📅 Manage my calendar</a>
-        <a class="mh-btn mh-btn-primary mh-btn-full" href="mentor-onboarding.html">Edit profile</a>
-        <a class="mh-btn mh-btn-full" href="sessions.html">View sessions</a>
-        <a class="mh-btn mh-btn-full" href="messages.html">Messages</a>
+      <!-- Sidebar -->
+      <div>
+        <!-- Profile card -->
+        <div class="profile-wrap">
+          <div class="pw-av" id="pwAvatar">M</div>
+          <div class="pw-name" id="pwName">Loading...</div>
+          <div class="pw-role" id="pwRole">Mentor</div>
+          <div class="pw-bar-label"><span>Profile completeness</span><strong id="pwPct">0%</strong></div>
+          <div class="pw-bar"><div class="pw-bar-fill" id="pwBarFill" style="width:0%"></div></div>
+          <div class="pw-links">
+            <a href="availability.html" class="pw-link pw-link-primary">📅 Manage my calendar</a>
+            <a href="mentor-onboarding.html" class="pw-link pw-link-ghost">Edit profile</a>
+            <a href="sessions.html" class="pw-link pw-link-ghost">View all sessions</a>
+            <a href="messages.html" class="pw-link pw-link-ghost">Messages</a>
+          </div>
+        </div>
+
+        <!-- Upcoming sessions -->
+        <div class="side-card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+            <div style="font-size:14px;font-weight:800;color:#0f172a">Upcoming sessions</div>
+            <button id="refreshSessionsBtn" style="font-size:12px;font-weight:600;color:#2563eb;background:none;border:none;cursor:pointer">Refresh</button>
+          </div>
+          <div id="mentorSessionsList"><div class="empty-msg">Loading...</div></div>
+        </div>
       </div>
-    </aside>
+    </div>
   </div>
 </div>
 
 <script>
-  const sb = window.mhSb;
+  const sb = window.mhSb || window.supabase.createClient(
+    "https://mscgaaaobxiuzqsukvjc.supabase.co",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y"
+  );
+  const TABLES = {mentors:"mentors",mentees:"mentees",requests:"mentorship_requests"};
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s??"").replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+  const fmtDate = iso => { try{ return new Date(iso).toLocaleString(undefined,{year:"numeric",month:"short",day:"2-digit",hour:"2-digit",minute:"2-digit"}); }catch(e){ return iso||""; }};
+  let NOTIFS=[], _user=null;
 
-  const TABLES = { mentors:"mentors", mentees:"mentees", requests:"mentorship_requests" };
-
-  const els = {
-    whoChip:     document.getElementById("whoChip"),
-    list:        document.getElementById("list"),
-    note:        document.getElementById("note"),
-    statAll:     document.getElementById("statAll"),
-    statPending: document.getElementById("statPending"),
-    statAccepted:document.getElementById("statAccepted"),
-    statProfile: document.getElementById("statProfile"),
-    statProgress:document.getElementById("statProgress"),
-    signOutBtn:  document.getElementById("signOutBtn")
-  };
-
-  function showNote(msg){ els.note.style.display="block"; els.note.textContent=msg; }
-  function hideNote()   { els.note.style.display="none";  els.note.textContent="";  }
-
-  function fmtDate(iso){
-    try{ return new Date(iso).toLocaleString(undefined,{year:"numeric",month:"short",day:"2-digit",hour:"2-digit",minute:"2-digit"}); }
-    catch(e){ return iso||""; }
-  }
-
-  function escapeHtml(str){
-    return String(str??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
-  }
-
-  function safeArr(v){
-    if(Array.isArray(v)) return v;
-    if(typeof v==="string") return v.split(",").map(s=>s.trim()).filter(Boolean);
-    return [];
-  }
-
-  // calcCompleteness delegates to shared mentorCompleteness from mh-utils.js
-  const calcCompleteness = (mentor) => window.mentorCompleteness(mentor);
-
-  // requireAuth is provided by auth-guard.js
+  function showNote(msg){ $("dashNote").style.display="block"; $("dashNote").textContent=msg; }
+  function hideNote(){ $("dashNote").style.display="none"; }
+  function fmtNotifTime(iso){ try{ const d=new Date(iso),now=new Date(),diff=Math.floor((now-d)/1000); if(diff<60)return"just now"; if(diff<3600)return Math.floor(diff/60)+"m ago"; if(diff<86400)return Math.floor(diff/3600)+"h ago"; return d.toLocaleDateString(undefined,{month:"short",day:"numeric"}); }catch{ return ""; }}
+  const calcCompleteness = m => window.mentorCompleteness(m);
 
   async function loadMentorDisplayName(user){
     try{
-      const { data, error } = await sb.from(TABLES.mentors).select("full_name,email,headline,current_title,experience,years_experience,languages,bio,field,best_for,mentoring_areas,tags,preferred_level,mentorship_style,preferred_session_type,session_duration,active_slots,pricing_type,communication,country,timezone,availability").eq("user_id",user.id).maybeSingle();
+      const {data,error} = await sb.from(TABLES.mentors).select("full_name,email,headline,current_title,experience,years_experience,languages,bio,field,best_for,mentoring_areas,tags,preferred_level,mentorship_style,preferred_session_type,session_duration,active_slots,pricing_type,communication,country,timezone,availability").eq("user_id",user.id).maybeSingle();
       if(error) throw error;
       const name = data?.full_name||user.user_metadata?.full_name||user.email||"Mentor";
-      const headline = data?.headline ? ` · ${data.headline}` : "";
-      els.whoChip.textContent = `${name}${headline}`;
+      const initials = name.split(" ").filter(Boolean).slice(0,2).map(w=>w[0]).join("").toUpperCase()||"M";
+      const headline = data?.headline||"Mentor";
       const pct = data ? calcCompleteness(data) : 0;
-      els.statProfile.textContent = `${pct}%`;
-    }catch(e){ console.error(e); els.whoChip.textContent=user.email||"Mentor"; els.statProfile.textContent="0%"; }
+      $("whoChip").textContent = name+" · "+headline;
+      $("heroTitle").textContent = "Welcome back, "+name.split(" ")[0]+" 👋";
+      $("heroAvatar").textContent = initials;
+      $("pwAvatar").textContent = initials;
+      $("pwName").textContent = name;
+      $("pwRole").textContent = headline;
+      $("pwPct").textContent = pct+"%";
+      $("statProfile").textContent = pct+"%";
+      $("pwBarFill").style.width = pct+"%";
+    }catch(e){ console.error(e); $("whoChip").textContent=user.email||"Mentor"; }
   }
 
   function updateStats(requests){
-    els.statAll.textContent     = String(requests.length);
-    els.statPending.textContent = String(requests.filter(r=>(r.status||"pending").toLowerCase()==="pending").length);
-    els.statAccepted.textContent= String(requests.filter(r=>(r.status||"").toLowerCase()==="accepted").length);
+    $("statAll").textContent = requests.length;
+    $("statPending").textContent = requests.filter(r=>(r.status||"pending")==="pending").length;
+    $("statAccepted").textContent = requests.filter(r=>r.status==="accepted").length;
+    $("reqCount").textContent = requests.length+" total";
   }
 
   async function loadRequests(user){
-    els.list.innerHTML = `<div class="mh-skeleton" style="height:90px;margin-bottom:10px"></div><div class="mh-skeleton" style="height:90px"></div>`;
+    $("reqList").innerHTML = '<div class="mh-skeleton" style="height:110px;margin-bottom:12px;border-radius:18px"></div><div class="mh-skeleton" style="height:110px;border-radius:18px"></div>';
     hideNote();
-
-    const { data:reqs, error } = await sb.from(TABLES.requests).select("id,mentee_id,mentor_id,message,status,created_at,updated_at").eq("mentor_id",user.id).order("created_at",{ascending:false});
-
-    if(error){ console.error(error); els.list.innerHTML=""; updateStats([]); showNote(`Could not load requests: ${error.message}`); return; }
-
+    const {data:reqs,error} = await sb.from(TABLES.requests).select("id,mentee_id,mentor_id,message,status,created_at,updated_at").eq("mentor_id",user.id).order("created_at",{ascending:false});
+    if(error){ $("reqList").innerHTML=""; updateStats([]); showNote("Could not load requests: "+error.message); return; }
     const requests = reqs||[];
     updateStats(requests);
+    if(!requests.length){ $("reqList").innerHTML=""; showNote("No mentorship requests yet. When a mentee requests you, it will appear here."); return; }
 
-    if(!requests.length){ els.list.innerHTML=""; showNote("No mentorship requests yet. When a mentee requests you, it will appear here."); return; }
+    const menteeIds = [...new Set(requests.map(r=>r.mentee_id).filter(Boolean))];
+    const {data:mentees} = await sb.from(TABLES.mentees).select("user_id,full_name,email,field,level").in("user_id",menteeIds);
+    const mMap = {}; (mentees||[]).forEach(m=>mMap[m.user_id]=m);
 
-    const menteeIds = Array.from(new Set(requests.map(r=>r.mentee_id).filter(Boolean)));
-    let menteeMap = new Map();
-    if(menteeIds.length){
-      const { data:mentees } = await sb.from(TABLES.mentees).select("user_id,full_name,email,field,level").in("user_id",menteeIds);
-      if(mentees) for(const m of mentees) menteeMap.set(m.user_id,m);
-    }
-
-    els.list.innerHTML = requests.map(r => {
-      const m = menteeMap.get(r.mentee_id);
-      const name = m?.full_name||"Mentee";
-      const metaBits = [m?.field,m?.level].filter(Boolean).map(escapeHtml);
-      const meta = metaBits.length ? ` · ${metaBits.join(" · ")}` : "";
+    $("reqList").innerHTML = "";
+    requests.forEach(r => {
+      const m = mMap[r.mentee_id]||{};
+      const name = m.full_name||"Mentee";
+      const tags = [m.field,m.level].filter(Boolean);
       const status = (r.status||"pending").toLowerCase();
-      const canAct = status==="pending";
-      return `
-        <div class="req-card" data-id="${escapeHtml(r.id)}">
-          <div class="req-top">
-            <div class="req-who">
-              <b>${escapeHtml(name)}${meta}</b>
-              <small>${escapeHtml(m?.email||"—")} · Requested ${escapeHtml(fmtDate(r.created_at))}</small>
-            </div>
-            <span class="mh-badge mh-badge-${status}">${escapeHtml(status)}</span>
+      const card = document.createElement("div");
+      card.className = "req-card";
+      card.innerHTML = `
+        <div class="rc-top">
+          <div>
+            <div class="rc-name">${esc(name)}</div>
+            ${tags.length?`<div class="rc-tags">${tags.map(esc).join(" · ")}</div>`:""}
+            <div class="rc-email">${esc(m.email||"—")}</div>
           </div>
-          <div class="req-msg">${escapeHtml(r.message||"")}</div>
-          <div class="req-meta">Updated: ${escapeHtml(fmtDate(r.updated_at||r.created_at))}</div>
-          <div class="req-actions">
-            ${canAct ? `
-              <button class="mh-btn mh-btn-green mh-btn-sm" data-act="accept">✓ Accept</button>
-              <button class="mh-btn mh-btn-danger mh-btn-sm" data-act="decline">✕ Decline</button>
-            ` : ""}
-            ${status==="accepted" ? `
-              <a class="mh-btn mh-btn-sm" href="messages.html?request=${encodeURIComponent(r.id)}">💬 Messages</a>
-              <a class="mh-btn mh-btn-sm" href="sessions.html?request=${encodeURIComponent(r.id)}">🗓 Schedule</a>
-            ` : ""}
+          <span class="rc-badge badge-${status}">${status}</span>
+        </div>
+        <div class="rc-msg">${esc(r.message||"")}</div>
+        <div class="rc-foot">
+          <span class="rc-date">Requested ${esc(fmtDate(r.created_at))}</span>
+          <div class="rc-actions">
+            ${status==="pending"?`<button class="btn-accept" data-id="${esc(r.id)}" data-act="accept">✓ Accept</button><button class="btn-decline" data-id="${esc(r.id)}" data-act="decline">✕ Decline</button>`:""}
+            ${status==="accepted"?`<a class="btn-msg-sm" href="messages.html?request=${esc(r.id)}">💬 Message</a>`:""}
           </div>
         </div>`;
-    }).join("");
+      $("reqList").appendChild(card);
+    });
 
-    els.list.querySelectorAll(".req-card").forEach(card => {
-      const id = card.getAttribute("data-id");
-      const requestRow = requests.find(r => r.id === id);
-      card.querySelectorAll("button[data-act]").forEach(btn => {
-        btn.addEventListener("click", async () => {
-          const nextStatus = btn.getAttribute("data-act")==="accept" ? "accepted" : "declined";
-          await updateRequestStatus(id, nextStatus, btn, user, requestRow);
-        });
+    $("reqList").querySelectorAll("button[data-act]").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const id  = btn.dataset.id;
+        const act = btn.dataset.act;
+        const req = requests.find(r=>r.id===id);
+        await updateRequestStatus(id, act==="accept"?"accepted":"declined", btn, user, req);
       });
     });
   }
 
   async function updateRequestStatus(id, status, btn, user, requestRow){
     try{
-      if(btn){ btn.disabled=true; btn.textContent=status==="accepted"?"Accepting…":"Declining…"; }
-      const { error } = await sb.from(TABLES.requests).update({status}).eq("id",id);
+      if(btn){ btn.disabled=true; btn.textContent=status==="accepted"?"Accepting...":"Declining..."; }
+      const {error} = await sb.from(TABLES.requests).update({status}).eq("id",id);
       if(error) throw error;
-
-      // Notify the mentee
       const menteeId = requestRow?.mentee_id;
       if(menteeId){
-        const mentorName = (await sb.from(TABLES.mentors).select("full_name").eq("user_id",user.id).maybeSingle())?.data?.full_name || "Your mentor";
-        const title   = status==="accepted" ? "Mentorship request accepted! 🎉" : "Mentorship request declined";
-        const message = status==="accepted"
-          ? `${mentorName} has accepted your mentorship request. You can now message them and schedule a session.`
-          : `${mentorName} has declined your mentorship request. You can browse other mentors in the directory.`;
-
-        // In-app notification
+        const {data:mn} = await sb.from(TABLES.mentors).select("full_name").eq("user_id",user.id).maybeSingle();
+        const mentorName = mn?.full_name||"Your mentor";
         await sb.from("notifications").insert({
-          user_id:    menteeId,
-          title,
-          message,
-          type:       status,
-          is_read:    false,
-          request_id: id
+          user_id:menteeId, title:status==="accepted"?"Request accepted! 🎉":"Request declined",
+          message:status==="accepted"?`${mentorName} accepted your mentorship request. You can now message them and book a session.`:`${mentorName} declined your request.`,
+          type:status, is_read:false, request_id:id
         });
-
-        // Email notification to mentee
         try{
-          const { data: menteeRow } = await sb.from(TABLES.mentees).select("email").eq("user_id", menteeId).maybeSingle();
-          if(menteeRow?.email){
-            await fetch("https://mscgaaaobxiuzqsukvjc.supabase.co/functions/v1/notify-mentee", {
-              method: "POST",
-              headers: {
-                "Content-Type":  "application/json",
-                "apikey":        window.MH_SUPABASE_ANON_KEY,
-                "Authorization": "Bearer " + window.MH_SUPABASE_ANON_KEY + ""
-              },
-              body: JSON.stringify({
-                mentee_email: menteeRow.email,
-                mentor_name:  mentorName,
-                status:       status,
-                request_id:   id
-              })
-            });
-          }
-        }catch(emailErr){ console.error("Email error:", emailErr); }
+          const {data:me} = await sb.from(TABLES.mentees).select("email").eq("user_id",menteeId).maybeSingle();
+          if(me?.email){ await fetch("https://mscgaaaobxiuzqsukvjc.supabase.co/functions/v1/notify-mentee",{method:"POST",headers:{"Content-Type":"application/json","apikey":window.MH_SUPABASE_ANON_KEY,"Authorization":"Bearer "+window.MH_SUPABASE_ANON_KEY},body:JSON.stringify({mentee_email:me.email,mentor_name:mentorName,status,request_id:id})}); }
+        }catch(e){ console.error("Email error:",e); }
       }
-
       await loadRequests(user);
-    }catch(error){ console.error(error); showNote(error.message||"Could not update request."); }
+    }catch(e){ console.error(e); showNote(e.message||"Could not update."); }
   }
 
   async function ensureMentorProfile(user){
-    const { data } = await sb.from(TABLES.mentors).select("user_id").eq("user_id",user.id).maybeSingle();
+    const {data} = await sb.from(TABLES.mentors).select("user_id").eq("user_id",user.id).maybeSingle();
     if(!data) window.location.href="mentor-onboarding.html";
   }
 
   async function loadProgress(user){
-    const { data } = await sb.from("mentorship_progress").select("progress_percent").eq("mentor_id",user.id).order("updated_at",{ascending:false}).limit(1);
-    els.statProgress.textContent = (data && data.length ? data[0].progress_percent : 0) + "%";
+    const {data} = await sb.from("mentorship_progress").select("progress_percent").eq("mentor_id",user.id).order("updated_at",{ascending:false}).limit(1);
+    const pct = (data&&data.length?data[0].progress_percent:0);
+    const el = document.getElementById("statProgress");
+    if(el) el.textContent = pct+"%";
   }
-
-  // ── Notifications ─────────────────────────────────────────────
-  const bellBtn        = document.getElementById("bellBtn");
-  const bellBadge      = document.getElementById("bellBadge");
-  const notifPanel     = document.getElementById("notifPanel");
-  const notifList      = document.getElementById("notifList");
-  const markAllBtn     = document.getElementById("markAllBtn");
-  const refreshNotifBtn= document.getElementById("refreshNotifBtn");
-
-  let NOTIFS = [];
-
-  function fmtNotifTime(iso){
-    try{
-      const d = new Date(iso);
-      const now = new Date();
-      const diff = Math.floor((now - d) / 1000);
-      if(diff < 60)   return "just now";
-      if(diff < 3600) return Math.floor(diff/60) + "m ago";
-      if(diff < 86400)return Math.floor(diff/3600) + "h ago";
-      return d.toLocaleDateString(undefined,{month:"short",day:"numeric"});
-    }catch{ return ""; }
-  }
-
-  async function loadNotifications(user){
-    const { data, error } = await sb
-      .from("notifications")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-      .limit(30);
-
-    if(error){ console.error(error); return; }
-    NOTIFS = data || [];
-    renderNotifications();
-    updateBadge();
-  }
-
-  function renderNotifications(){
-    if(!NOTIFS.length){
-      notifList.innerHTML = `<div class="notif-empty">No notifications yet.<br/>Requests will appear here.</div>`;
-      return;
-    }
-    notifList.innerHTML = NOTIFS.map(n => `
-      <div class="notif-item ${n.is_read ? "" : "unread"}" data-id="${n.id}" onclick="markRead('${n.id}')">
-        <div class="notif-dot"></div>
-        <div class="notif-body">
-          <b>${escapeHtml(n.title || "New notification")}</b>
-          <span>${escapeHtml(n.message || "")}</span>
-          <small>${fmtNotifTime(n.created_at)}</small>
-        </div>
-      </div>`).join("");
-  }
-
-  function updateBadge(){
-    const unread = NOTIFS.filter(n => !n.is_read).length;
-    if(unread > 0){
-      bellBadge.textContent = unread > 9 ? "9+" : String(unread);
-      bellBadge.style.display = "flex";
-    } else {
-      bellBadge.style.display = "none";
-    }
-    // Keep mobile bottom-nav bell in sync (no polling needed)
-    const mobileBadge = document.getElementById("bn-bell-badge");
-    if(mobileBadge) mobileBadge.style.display = unread > 0 ? "block" : "none";
-  }
-
-  async function markRead(id){
-    await sb.from("notifications").update({ is_read: true }).eq("id", id);
-    NOTIFS = NOTIFS.map(n => n.id === id ? { ...n, is_read: true } : n);
-    renderNotifications();
-    updateBadge();
-  }
-  window.markRead = markRead;
-
-  async function markAllRead(user){
-    await sb.from("notifications").update({ is_read: true }).eq("user_id", user.id).eq("is_read", false);
-    NOTIFS = NOTIFS.map(n => ({ ...n, is_read: true }));
-    renderNotifications();
-    updateBadge();
-  }
-
-  // Toggle panel
-  bellBtn.addEventListener("click", (e) => {
-    e.stopPropagation();
-    notifPanel.classList.toggle("open");
-  });
-  document.addEventListener("click", (e) => {
-    if(!bellBtn.contains(e.target) && !notifPanel.contains(e.target)){
-      notifPanel.classList.remove("open");
-    }
-  });
-
-  // Subscribe to real-time new notifications
-  function subscribeNotifications(user){
-    sb.channel("notifications-mentor-" + user.id)
-      .on("postgres_changes", {
-        event:  "INSERT",
-        schema: "public",
-        table:  "notifications",
-        filter: `user_id=eq.${user.id}`
-      }, (payload) => {
-        NOTIFS.unshift(payload.new);
-        renderNotifications();
-        updateBadge();
-        // Flash the bell
-        bellBtn.style.transform = "scale(1.2)";
-        setTimeout(() => bellBtn.style.transform = "", 300);
-      })
-      .subscribe();
-  }
-
-  els.signOutBtn.addEventListener("click", async () => {
-    if(!sb) return;
-    await sb.auth.signOut();
-    window.location.href="auth.html?mode=signin";
-  });
-
-  async function loadMentorSessions(user) {
-    const listEl = document.getElementById("mentorSessionsList");
-    if(!listEl) return;
-    const now = new Date().toISOString();
-    const {data: sessions, error} = await sb.from("sessions")
-      .select("scheduled_for, duration_minutes, status, mentee_id")
-      .eq("mentor_id", user.id)
-      .gte("scheduled_for", now)
-      .neq("status", "cancelled")
-      .order("scheduled_for", {ascending: true})
-      .limit(5);
-    if(error) { listEl.innerHTML = `<div style="font-size:12px;color:var(--muted)">Could not load sessions.</div>`; return; }
-    if(!sessions || !sessions.length) {
-      listEl.innerHTML = `<div style="font-size:12px;color:var(--muted)">No upcoming sessions yet.</div>`;
-      return;
-    }
-    // Fetch mentee names
-    const menteeIds = [...new Set(sessions.map(s => s.mentee_id).filter(Boolean))];
-    const {data: mentees} = await sb.from("mentees").select("user_id,full_name").in("user_id", menteeIds);
-    const menteeMap = {};
-    (mentees || []).forEach(m => { menteeMap[m.user_id] = m.full_name; });
-
-    listEl.innerHTML = sessions.map(s => {
-      const dt       = new Date(s.scheduled_for);
-      const dateStr  = dt.toLocaleDateString("en-GB", {weekday:"short", day:"numeric", month:"short", year:"numeric"});
-      const timeStr  = dt.toLocaleTimeString("en-GB", {hour:"2-digit", minute:"2-digit"});
-      const menteeName = menteeMap[s.mentee_id] || "Mentee";
-      return `<div class="session-card">
-        <div class="sc-date">${dateStr} · ${timeStr}</div>
-        <div class="sc-meta">with ${menteeName} · ${s.duration_minutes || 60} mins</div>
-        <span class="sc-badge">${s.status || "scheduled"}</span>
-      </div>`;
-    }).join("");
-  }
-
-  function subscribeSessionNotifications(user) {
-    sb.channel("sessions-mentor-" + user.id)
-      .on("postgres_changes", {
-        event:  "INSERT",
-        schema: "public",
-        table:  "sessions",
-        filter: `mentor_id=eq.${user.id}`
-      }, () => {
-        loadMentorSessions(user);
-      })
-      .subscribe();
-  }
-
 
   async function loadSessionStats(user){
-    try {
-      const now = new Date().toISOString();
-      const {count: total} = await sb.from("sessions")
-        .select("*", {count:"exact", head:true})
-        .eq("mentor_id", user.id);
-      const {count: completed} = await sb.from("sessions")
-        .select("*", {count:"exact", head:true})
-        .eq("mentor_id", user.id)
-        .eq("status", "completed");
-      const elB = document.getElementById("statBookings");
-      const elC = document.getElementById("statCompleted");
-      if(elB) elB.textContent = total     || 0;
-      if(elC) elC.textContent = completed || 0;
-    } catch(e){ console.error(e); }
+    try{
+      const {count:booked}    = await sb.from("sessions").select("*",{count:"exact",head:true}).eq("mentor_id",user.id);
+      const {count:completed} = await sb.from("sessions").select("*",{count:"exact",head:true}).eq("mentor_id",user.id).eq("status","completed");
+      $("statBookings").textContent  = booked    || 0;
+      $("statCompleted").textContent = completed || 0;
+    }catch(e){ console.error(e); }
   }
 
+  async function loadMentorSessions(user){
+    const el = $("mentorSessionsList"); if(!el) return;
+    const {data:sessions,error} = await sb.from("sessions").select("id,scheduled_for,duration_minutes,status,mentee_id").eq("mentor_id",user.id).gte("scheduled_for",new Date().toISOString()).neq("status","cancelled").order("scheduled_for",{ascending:true}).limit(5);
+    if(error||!sessions?.length){ el.innerHTML='<div class="empty-msg">No upcoming sessions yet.</div>'; return; }
+    const ids=[...new Set(sessions.map(s=>s.mentee_id).filter(Boolean))];
+    const {data:mentees} = await sb.from("mentees").select("user_id,full_name").in("user_id",ids);
+    const mMap={}; (mentees||[]).forEach(m=>mMap[m.user_id]=m.full_name);
+    el.innerHTML="";
+    sessions.forEach(s=>{
+      const dt=new Date(s.scheduled_for);
+      const item=document.createElement("div"); item.className="session-item";
+      item.innerHTML=`<div class="si-top"><div class="si-date">${dt.toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short"})} · ${dt.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"})}</div><button class="si-cancel" onclick="cancelSession('${s.id}')">Cancel</button></div><div class="si-meta">with ${esc(mMap[s.mentee_id]||"Mentee")} · ${s.duration_minutes||60} mins</div><span class="si-badge">${s.status||"scheduled"}</span>`;
+      el.appendChild(item);
+    });
+  }
+
+  async function cancelSession(id){
+    if(!confirm("Cancel this session?")) return;
+    const {error}=await sb.from("sessions").update({status:"cancelled"}).eq("id",id);
+    if(error){ return; }
+    if(_user){ loadMentorSessions(_user); loadSessionStats(_user); }
+  }
+  window.cancelSession=cancelSession;
+
+  // Notifications
+  async function loadNotifications(user){
+    const {data,error}=await sb.from("notifications").select("*").eq("user_id",user.id).order("created_at",{ascending:false}).limit(30);
+    if(error) return; NOTIFS=data||[]; renderNotifications(); updateBadge();
+  }
+  function renderNotifications(){
+    const el=$("notifList");
+    if(!NOTIFS.length){ el.innerHTML='<div class="notif-empty">No notifications yet.</div>'; return; }
+    el.innerHTML=NOTIFS.map(n=>`<div class="notif-item ${n.is_read?"":"unread"}" onclick="markRead('${n.id}')"><div class="notif-dot"></div><div class="notif-body"><b>${esc(n.title||"Notification")}</b><span>${esc(n.message||"")}</span><small>${fmtNotifTime(n.created_at)}</small></div></div>`).join("");
+  }
+  function updateBadge(){
+    const u=NOTIFS.filter(n=>!n.is_read).length; const b=$("bellBadge");
+    if(u>0){b.textContent=u>9?"9+":u;b.style.display="flex";}else{b.style.display="none";}
+  }
+  async function markRead(id){
+    await sb.from("notifications").update({is_read:true}).eq("id",id);
+    NOTIFS=NOTIFS.map(n=>n.id===id?{...n,is_read:true}:n); renderNotifications(); updateBadge();
+  }
+  window.markRead=markRead;
+  async function markAllRead(user){
+    await sb.from("notifications").update({is_read:true}).eq("user_id",user.id).eq("is_read",false);
+    NOTIFS=NOTIFS.map(n=>({...n,is_read:true})); renderNotifications(); updateBadge();
+  }
+  function subscribeNotifications(user){
+    sb.channel("notifs-mentor-"+user.id).on("postgres_changes",{event:"INSERT",schema:"public",table:"notifications",filter:`user_id=eq.${user.id}`},(p)=>{
+      NOTIFS.unshift(p.new); renderNotifications(); updateBadge();
+      $("bellBtn").style.transform="scale(1.25)"; setTimeout(()=>$("bellBtn").style.transform="",300);
+    }).subscribe();
+  }
+  function subscribeSessionNotifications(user){
+    sb.channel("sessions-mentor-"+user.id).on("postgres_changes",{event:"INSERT",schema:"public",table:"sessions",filter:`mentor_id=eq.${user.id}`},()=>loadMentorSessions(user)).subscribe();
+  }
+
+  $("bellBtn").addEventListener("click",e=>{e.stopPropagation();$("notifPanel").classList.toggle("open");});
+  document.addEventListener("click",e=>{if(!$("bellBtn").contains(e.target)&&!$("notifPanel").contains(e.target))$("notifPanel").classList.remove("open");});
+  $("signOutBtn").addEventListener("click",async()=>{await sb.auth.signOut();window.location.href="auth.html?mode=signin";});
+
   (async function init(){
-    const user = await requireAuth();
-    if(!user) return;
+    const user = await requireAuth(); if(!user) return; _user=user;
     await ensureMentorProfile(user);
     await loadMentorDisplayName(user);
     await loadRequests(user);
-    await loadSessionStats(user);
     await loadProgress(user);
-
-    // Realtime: refresh stats when session is booked
-    sb.channel("mentor-session-stats-" + user.id)
-      .on("postgres_changes", {
-        event: "INSERT", schema: "public", table: "sessions",
-        filter: `mentor_id=eq.${user.id}`
-      }, () => { loadSessionStats(user); loadNotifications(user); })
-      .on("postgres_changes", {
-        event: "UPDATE", schema: "public", table: "sessions",
-        filter: `mentor_id=eq.${user.id}`
-      }, () => { loadSessionStats(user); })
-      .subscribe();
-
+    await loadSessionStats(user);
     await loadNotifications(user);
     await loadMentorSessions(user);
-    subscribeNotifications(user);
     subscribeSessionNotifications(user);
-    markAllBtn.addEventListener("click", () => markAllRead(user));
-    refreshNotifBtn.addEventListener("click", () => loadNotifications(user));
-    document.getElementById("refreshSessionsBtn")?.addEventListener("click", () => loadMentorSessions(user));
-
-    // Onboarding prompt for incomplete mentor profiles
+    subscribeNotifications(user);
+    sb.channel("mentor-stats-"+user.id)
+      .on("postgres_changes",{event:"INSERT",schema:"public",table:"sessions",filter:`mentor_id=eq.${user.id}`},()=>{loadMentorSessions(user);loadSessionStats(user);loadNotifications(user);})
+      .on("postgres_changes",{event:"UPDATE",schema:"public",table:"sessions",filter:`mentor_id=eq.${user.id}`},()=>{loadMentorSessions(user);loadSessionStats(user);})
+      .subscribe();
+    document.getElementById("markAllBtn")?.addEventListener("click",()=>markAllRead(user));
+    document.getElementById("refreshNotifBtn")?.addEventListener("click",()=>loadNotifications(user));
+    document.getElementById("refreshSessionsBtn")?.addEventListener("click",()=>loadMentorSessions(user));
     try{
       const {data:m}=await sb.from(TABLES.mentors).select("*").eq("user_id",user.id).maybeSingle();
-      if(m){
-        const pct=window.mentorCompleteness(m);
-        if(pct<80){
-          const banner=document.createElement("div");
-          banner.style.cssText="padding:14px 18px;border-radius:14px;border:1px solid rgba(29,78,216,.20);background:rgba(29,78,216,.06);display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:16px;";
-          banner.innerHTML=`<div><b style="font-size:14px;font-weight:700;color:var(--accent)">Your profile is ${pct}% complete</b><p style="font-size:13px;color:var(--muted);margin-top:3px">Mentees are more likely to reach out when your profile is complete.</p></div><a class="mh-btn mh-btn-primary" href="mentor-onboarding.html">Finish profile →</a>`;
-          const list=document.getElementById("list");
-          if(list) list.parentElement.insertBefore(banner,list.parentElement.firstChild);
-        }
-      }
-    }catch(e){ console.error(e); }
+      if(m){ const pct=window.mentorCompleteness(m); $("pwPct").textContent=pct+"%"; $("pwBarFill").style.width=pct+"%"; $("statProfile").textContent=pct+"%"; }
+    }catch(e){}
   })();
 </script>
 
-<script>
-(function(){
-  var _sb = window.mhSb;
-  var selDays = new Set(), selTimes = new Set();
-
-  document.querySelectorAll(".day-btn").forEach(function(btn){
-    btn.addEventListener("click", function(){
-      btn.classList.toggle("selected");
-      selDays.has(btn.dataset.day) ? selDays.delete(btn.dataset.day) : selDays.add(btn.dataset.day);
-      renderSlotsPreview(); // live-update preview as mentor picks days/times
-    });
-  });
-
-  document.querySelectorAll(".time-chip").forEach(function(chip){
-    chip.addEventListener("click", function(){
-      chip.classList.toggle("selected");
-      selTimes.has(chip.dataset.time) ? selTimes.delete(chip.dataset.time) : selTimes.add(chip.dataset.time);
-      renderSlotsPreview(); // live-update preview as mentor picks days/times
-    });
-  });
-
-  // ── Core utility: convert day-name + time strings → real upcoming dates ──
-  function generateUpcomingSlots(days, times, weeksAhead) {
-    weeksAhead = weeksAhead || 4;
-    var DAY_INDEX = {Sunday:0,Monday:1,Tuesday:2,Wednesday:3,Thursday:4,Friday:5,Saturday:6};
-    var slots = [];
-    var today = new Date();
-    today.setHours(0,0,0,0);
-    var limit = weeksAhead * 7;
-
-    for(var i = 0; i <= limit; i++) {
-      var d = new Date(today);
-      d.setDate(today.getDate() + i);
-      var dayName = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][d.getDay()];
-      if(days.indexOf(dayName) === -1) continue;
-
-      var sortedTimes = times.slice().sort();
-      sortedTimes.forEach(function(t){
-        var parts = t.split(":").map(Number);
-        var dt = new Date(d);
-        dt.setHours(parts[0], parts[1] || 0, 0, 0);
-        if(dt > new Date()) { // must be in the future
-          slots.push(dt);
-        }
-      });
-    }
-    return slots;
-  }
-
-  // ── Format a Date for display: "Mon, May 26 • 7:00 PM" ──
-  function fmtSlot(dt) {
-    var dayStr  = dt.toLocaleDateString("en-GB", {weekday:"short", day:"numeric", month:"short"});
-    var h = dt.getHours(), m = dt.getMinutes();
-    var ampm = h >= 12 ? "PM" : "AM";
-    var hour = h % 12 || 12;
-    var min  = String(m).padStart(2,"0");
-    return { date: dayStr, time: hour + ":" + min + " " + ampm };
-  }
-
-  // ── Render the preview panel ──
-  function renderSlotsPreview() {
-    var preview = document.getElementById("slotsPreview");
-    var list    = document.getElementById("slotsList");
-    var count   = document.getElementById("slotsPreviewCount");
-    if(!preview || !list) return;
-
-    var days  = Array.from(selDays);
-    var times = Array.from(selTimes);
-
-    if(!days.length || !times.length) {
-      preview.style.display = "none";
-      return;
-    }
-
-    var slots = generateUpcomingSlots(days, times, 4);
-    preview.style.display = "block";
-
-    if(!slots.length) {
-      list.innerHTML = '<div class="slots-preview-note">No upcoming slots in the next 4 weeks.</div>';
-      count.textContent = "";
-      return;
-    }
-
-    var totalCount = slots.length;
-    var show = slots.slice(0, 12); // show up to 12 mini cards
-    count.textContent = totalCount + " slot" + (totalCount !== 1 ? "s" : "") + " · next 4 weeks";
-
-    // Group by date so each card shows all times for that day
-    var byDate = {};
-    show.forEach(function(dt) {
-      var key = dt.toISOString().split("T")[0];
-      if(!byDate[key]) byDate[key] = { dt: dt, times: [] };
-      var h = dt.getHours(), m = dt.getMinutes();
-      var ampm = h >= 12 ? "PM" : "AM";
-      var hour = h % 12 || 12;
-      byDate[key].times.push(hour + ":" + String(m).padStart(2,"0") + " " + ampm);
-    });
-
-    var dateKeys = Object.keys(byDate).slice(0, 8);
-    var dayNames = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
-    var monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-
-    var html = '<div class="preview-day-row">';
-    dateKeys.forEach(function(key) {
-      var entry = byDate[key];
-      var d = entry.dt;
-      var dow   = dayNames[d.getDay()];
-      var num   = d.getDate();
-      var mon   = monthNames[d.getMonth()];
-      var tStr  = entry.times[0] + (entry.times.length > 1 ? " +" + (entry.times.length - 1) : "");
-      html += '<div class="preview-day-card">'
-        + '<div class="pdc-dow">' + dow + '</div>'
-        + '<div class="pdc-num">' + num + '</div>'
-        + '<div class="pdc-mon">' + mon + '</div>'
-        + '<div class="pdc-time">' + tStr + '</div>'
-        + '</div>';
-    });
-    html += '</div>';
-
-    if(totalCount > 8) {
-      html += '<p class="slots-preview-note">+ more across the next 4 weeks</p>';
-    }
-    html += '<p class="slots-preview-note" style="margin-top:6px">This is exactly what mentees will see when booking.</p>';
-
-    list.innerHTML = html;
-  }
-
-  async function loadAvailability(userId){
-    try {
-      var res = await _sb.from("mentor_availability").select("*").eq("mentor_id", userId);
-      if(!res.data || !res.data.length) return;
-      res.data.forEach(function(row){
-        selDays.add(row.day_of_week);
-        (row.time_slots||[]).forEach(function(t){ selTimes.add(t); });
-      });
-      document.querySelectorAll(".day-btn").forEach(function(btn){
-        if(selDays.has(btn.dataset.day)) btn.classList.add("selected");
-      });
-      document.querySelectorAll(".time-chip").forEach(function(chip){
-        if(selTimes.has(chip.dataset.time)) chip.classList.add("selected");
-      });
-      renderSlotsPreview(); // show preview on page load if availability exists
-    } catch(e){ console.error(e); }
-  }
-
-  var saveBtn = document.getElementById("saveAvailBtn");
-  var availStatus = document.getElementById("availStatus");
-
-  function showAvailMsg(msg, isError) {
-    if(!availStatus) return;
-    availStatus.textContent = msg;
-    availStatus.style.color = isError ? "#dc2626" : "";
-    availStatus.style.display = "block";
-    setTimeout(function(){ availStatus.style.display = "none"; availStatus.textContent = ""; availStatus.style.color = ""; }, 3500);
-  }
-
-  if(saveBtn){
-    saveBtn.addEventListener("click", async function(){
-      saveBtn.textContent = "Saving..."; saveBtn.disabled = true;
-      try {
-        var s = await _sb.auth.getSession();
-        var uid = s.data && s.data.session && s.data.session.user.id;
-        if(!uid){
-          showAvailMsg("Not logged in. Please refresh and try again.", true);
-          saveBtn.textContent = "Save availability"; saveBtn.disabled = false;
-          return;
-        }
-
-        // Delete existing rows
-        var delRes = await _sb.from("mentor_availability").delete().eq("mentor_id", uid);
-        if(delRes.error) {
-          console.error("[MentifyHub] availability delete error:", delRes.error);
-          showAvailMsg("Error clearing old availability: " + delRes.error.message, true);
-          saveBtn.textContent = "Save availability"; saveBtn.disabled = false;
-          return;
-        }
-
-        var times = Array.from(selTimes);
-        var days  = Array.from(selDays);
-
-        if(!days.length || !times.length) {
-          showAvailMsg("Please select at least one day and one time slot.", true);
-          saveBtn.textContent = "Save availability"; saveBtn.disabled = false;
-          return;
-        }
-
-        var rows = days.map(function(d){ return {mentor_id: uid, day_of_week: d, time_slots: times}; });
-        console.log("[MentifyHub] saving availability rows:", rows);
-
-        var insRes = await _sb.from("mentor_availability").insert(rows);
-        if(insRes.error) {
-          console.error("[MentifyHub] availability insert error:", insRes.error);
-          showAvailMsg("Error saving: " + insRes.error.message, true);
-          saveBtn.textContent = "Save availability"; saveBtn.disabled = false;
-          return;
-        }
-
-        console.log("[MentifyHub] availability saved successfully");
-        showAvailMsg("✅ Availability saved! See your upcoming slots below.", false);
-        renderSlotsPreview(); // refresh preview after save
-      } catch(e){
-        console.error("[MentifyHub] availability save exception:", e);
-        showAvailMsg("Unexpected error: " + e.message, true);
-      }
-      saveBtn.textContent = "Save availability"; saveBtn.disabled = false;
-    });
-  }
-
-  (async function(){
-    try {
-      var s = await _sb.auth.getSession();
-      var uid = s.data && s.data.session && s.data.session.user.id;
-      if(uid) loadAvailability(uid);
-    } catch(e){}
-  })();
-})();
-</script>
-
-<!-- ── Mobile right-side drawer ── -->
+<!-- Mobile drawer -->
 <div id="navOverlay" onclick="closeDrawer()" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);backdrop-filter:blur(3px);z-index:90;"></div>
 <div class="mh-mobile-drawer" id="mobileDrawer">
-  <div class="drawer-head">
-    <div class="drawer-head-brand">
-      <img src="logo.png" alt="MentifyHub"/>
-      <strong>MentifyHub</strong>
-    </div>
-    <button class="mh-drawer-close" onclick="closeDrawer()" aria-label="Close menu">✕</button>
-  </div>
-  <div class="mh-drawer-user" id="drawerUserInfo">Loading…</div>
+  <div class="drawer-head"><div class="drawer-head-brand"><img src="logo.png" alt=""/><strong>MentifyHub</strong></div><button class="mh-drawer-close" onclick="closeDrawer()">✕</button></div>
+  <div class="mh-drawer-user" id="drawerUserInfo">Loading...</div>
   <div class="mh-drawer-links">
     <a href="mentor-dashboard.html" class="mh-drawer-link active"><span class="icon">🏠</span> Dashboard</a>
-    <a href="mentor-directory.html" class="mh-drawer-link"><span class="icon">🔍</span> Directory</a>
-    <a href="messages.html"         class="mh-drawer-link"><span class="icon">💬</span> Messages</a>
-    <a href="sessions.html"         class="mh-drawer-link"><span class="icon">📅</span> Sessions</a>
-    <a href="reviews.html"          class="mh-drawer-link"><span class="icon">⭐</span> Reviews</a>
-    <a href="mentor-onboarding.html" class="mh-drawer-link"><span class="icon">✏️</span> Edit profile</a>
+    <a href="mentor-directory.html" class="mh-drawer-link"><span class="icon">🔍</span> Browse mentors</a>
+    <a href="messages.html" class="mh-drawer-link"><span class="icon">💬</span> Messages</a>
+    <a href="sessions.html" class="mh-drawer-link"><span class="icon">📅</span> Sessions</a>
+    <a href="reviews.html" class="mh-drawer-link"><span class="icon">⭐</span> Reviews</a>
+    <a href="availability.html" class="mh-drawer-link"><span class="icon">📅</span> My calendar</a>
   </div>
-  <div class="mh-drawer-footer">
-    <button class="mh-drawer-signout" onclick="drawerSignOut()">🚪 &nbsp;Sign out</button>
-  </div>
+  <div class="mh-drawer-footer"><button class="mh-drawer-signout" onclick="drawerSignOut()">🚪 Sign out</button></div>
 </div>
-
 <script>
-  document.body.classList.add("has-side-nav");
-
-  function openDrawer(){
-    if(window.innerWidth > 768) return;
-    const d = document.getElementById('mobileDrawer');
-    const o = document.getElementById('navOverlay');
-    if(!d||!o) return;
-    d.classList.add('open');
-    o.style.display = 'block';
-    document.body.style.overflow = 'hidden';
-    const chip = document.getElementById('whoChip')||document.getElementById('envChip');
-    const info = document.getElementById('drawerUserInfo');
-    if(chip&&info) info.textContent = chip.textContent;
-  }
-
-  function closeDrawer(){
-    const d = document.getElementById('mobileDrawer');
-    const o = document.getElementById('navOverlay');
-    if(!d||!o) return;
-    d.classList.remove('open');
-    o.style.display = 'none';
-    document.body.style.overflow = '';
-  }
-
-  async function drawerSignOut(){
-    try{
-      const sb2 = window.supabase || window.sb || window._sb;
-      if(sb2) await sb2.auth.signOut();
-    }catch(e){}
-    window.location.href = 'auth.html?mode=signin';
-  }
+  function openDrawer(){ const d=$("mobileDrawer"),o=$("navOverlay"); if(d&&o){d.classList.add("open");o.style.display="block";document.body.style.overflow="hidden"; const chip=$("whoChip"); const info=$("drawerUserInfo"); if(chip&&info)info.textContent=chip.textContent;} }
+  function closeDrawer(){ const d=$("mobileDrawer"),o=$("navOverlay"); if(d&&o){d.classList.remove("open");o.style.display="none";document.body.style.overflow="";} }
+  async function drawerSignOut(){ try{await sb.auth.signOut();}catch(e){} window.location.href="auth.html?mode=signin"; }
 </script>
 </body>
 </html>

@@ -6,7 +6,26 @@
   <title>MentifyHub - Account</title>
   <link rel="stylesheet" href="mh-theme.css"/>
   <style>
-    body { display: flex; flex-direction: column; min-height: 100vh; align-items: center; justify-content: center; }
+    body { display: flex; flex-direction: column; min-height: 100vh; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+
+    /* Abstract mentorship background */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background:
+        radial-gradient(ellipse 60% 50% at 15% 40%, rgba(37,99,235,.06) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 60% at 85% 25%, rgba(124,58,237,.05) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 40% at 60% 85%, rgba(37,99,235,.04) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    body::after {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background-image: url("data:image/svg+xml,%3Csvg width='1440' height='900' viewBox='0 0 1440 900' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='180' cy='300' r='220' fill='rgba(37,99,235,0.04)'/%3E%3Ccircle cx='1280' cy='200' r='180' fill='rgba(124,58,237,0.04)'/%3E%3Ccircle cx='900' cy='700' r='160' fill='rgba(37,99,235,0.03)'/%3E%3Cline x1='200' y1='180' x2='480' y2='320' stroke='rgba(37,99,235,0.07)' stroke-width='1.5' stroke-dasharray='6 4'/%3E%3Cline x1='960' y1='120' x2='1260' y2='280' stroke='rgba(124,58,237,0.07)' stroke-width='1.5' stroke-dasharray='6 4'/%3E%3Cline x1='120' y1='550' x2='380' y2='670' stroke='rgba(37,99,235,0.05)' stroke-width='1' stroke-dasharray='4 6'/%3E%3Cline x1='1060' y1='550' x2='1340' y2='440' stroke='rgba(124,58,237,0.05)' stroke-width='1' stroke-dasharray='4 6'/%3E%3Ccircle cx='200' cy='180' r='5' fill='rgba(37,99,235,0.12)'/%3E%3Ccircle cx='480' cy='320' r='4' fill='rgba(37,99,235,0.10)'/%3E%3Ccircle cx='960' cy='120' r='5' fill='rgba(124,58,237,0.10)'/%3E%3Ccircle cx='1260' cy='280' r='4' fill='rgba(124,58,237,0.10)'/%3E%3Ccircle cx='120' cy='550' r='3' fill='rgba(37,99,235,0.08)'/%3E%3Ccircle cx='380' cy='670' r='3' fill='rgba(37,99,235,0.08)'/%3E%3Ccircle cx='1060' cy='550' r='3' fill='rgba(124,58,237,0.08)'/%3E%3Ccircle cx='1340' cy='440' r='3' fill='rgba(124,58,237,0.08)'/%3E%3Cpath d='M 0 650 Q 360 450 720 600 T 1440 530' stroke='rgba(37,99,235,0.04)' stroke-width='2' fill='none'/%3E%3Cpath d='M 0 200 Q 400 350 800 250 T 1440 300' stroke='rgba(124,58,237,0.04)' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+      background-size: cover;
+      pointer-events: none;
+    }
+    .mh-wrap-sm { position: relative; z-index: 1; }
 
     .auth-shell {
       width: 100%;

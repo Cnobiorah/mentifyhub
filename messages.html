@@ -9,271 +9,324 @@
   <script src="auth-guard.js"></script>
   <link rel="stylesheet" href="mh-theme.css"/>
   <style>
-    .layout {
+    body { background: #f0f4fa; }
+
+    .msg-layout {
       display: grid;
       grid-template-columns: 300px 1fr;
+      gap: 0;
+      height: calc(100vh - 80px);
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px 24px;
       gap: 16px;
-      margin-top: 18px;
-      height: calc(100vh - 130px);
-      min-height: 500px;
     }
 
-    /* Thread list */
-    .threads-panel { display: flex; flex-direction: column; overflow: hidden; }
-    .threads-panel h3 { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); padding: 14px 16px 10px; border-bottom: 1px solid var(--line); }
+    /* ── Thread list ── */
+    .threads-panel {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 20px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .tp-header {
+      padding: 18px 18px 14px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .tp-header h3 { font-size: 15px; font-weight: 800; color: #0f172a; }
+    .tp-header p  { font-size: 12px; color: #94a3b8; margin-top: 2px; }
     .thread-list { overflow-y: auto; flex: 1; }
 
     .thread-item {
       display: flex;
       align-items: center;
-      gap: 10px;
-      padding: 12px 16px;
+      gap: 12px;
+      padding: 14px 18px;
       cursor: pointer;
-      border-bottom: 1px solid var(--line);
-      transition: background .1s ease;
+      border-bottom: 1px solid #f8faff;
+      transition: background .1s;
+      position: relative;
     }
-    .thread-item:hover   { background: var(--soft); }
-    .thread-item.active  { background: rgba(29,78,216,.06); border-left: 3px solid var(--accent2); }
+    .thread-item:hover { background: #f8faff; }
+    .thread-item.active { background: #eff6ff; border-left: 3px solid #2563eb; }
 
-    .thread-item-info b    { display: block; font-size: 13px; font-weight: 700; }
-    .thread-item-info span { display: block; font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .ti-avatar {
+      width: 40px; height: 40px; border-radius: 12px;
+      background: linear-gradient(135deg,#2563eb,#7c3aed);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px; font-weight: 900; color: #fff; flex-shrink: 0;
+    }
+    .ti-info { flex: 1; min-width: 0; }
+    .ti-name { font-size: 13px; font-weight: 700; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ti-sub  { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+    .ti-badge { padding: 2px 8px; border-radius: 999px; font-size: 10px; font-weight: 700; flex-shrink: 0; }
+    .ti-badge.accepted { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+    .ti-badge.pending  { background: #fefce8; color: #ca8a04; border: 1px solid #fde68a; }
+    .ti-badge.declined { background: #fef2f2; color: #ef4444; border: 1px solid #fca5a5; }
 
-    /* Chat panel */
-    .chat-panel { display: flex; flex-direction: column; overflow: hidden; }
+    /* ── Chat panel ── */
+    .chat-panel {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 20px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
 
-    .chat-placeholder {
+    .chat-empty {
       flex: 1;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      color: var(--muted);
-      font-size: 14px;
+      color: #94a3b8;
+      gap: 12px;
     }
+    .chat-empty .ce-icon { font-size: 48px; }
+    .chat-empty h3 { font-size: 16px; font-weight: 800; color: #0f172a; }
+    .chat-empty p  { font-size: 13px; }
 
     .chat-ui { flex: 1; display: none; flex-direction: column; overflow: hidden; }
 
     .chat-head {
-      padding: 14px 18px;
-      border-bottom: 1px solid var(--line);
+      padding: 16px 20px;
+      border-bottom: 1px solid #f1f5f9;
+      display: flex;
+      align-items: center;
+      gap: 12px;
       flex-shrink: 0;
     }
-    .chat-head h2 { font-size: 15px; font-weight: 700; }
-    .chat-head p  { font-size: 12px; color: var(--muted); margin-top: 3px; }
+    .ch-avatar { width: 38px; height: 38px; border-radius: 12px; background: linear-gradient(135deg,#2563eb,#7c3aed); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 900; color: #fff; flex-shrink: 0; }
+    .ch-name { font-size: 15px; font-weight: 800; color: #0f172a; }
+    .ch-status { font-size: 12px; color: #94a3b8; margin-top: 2px; }
+    .ch-status.accepted { color: #16a34a; }
 
     .messages {
       flex: 1;
       overflow-y: auto;
-      padding: 16px;
+      padding: 20px;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 10px;
+      background: #f8faff;
     }
 
     .bubble {
-      max-width: 72%;
-      padding: 10px 14px;
-      border-radius: 14px;
-      font-size: 13px;
-      line-height: 1.5;
+      max-width: 68%;
+      padding: 11px 15px;
+      border-radius: 16px;
+      font-size: 14px;
+      line-height: 1.55;
       word-break: break-word;
     }
     .bubble.me {
       align-self: flex-end;
-      background: linear-gradient(160deg, var(--accent2), var(--accent));
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
       color: #fff;
-      border-radius: 14px 14px 4px 14px;
+      border-radius: 16px 16px 4px 16px;
     }
     .bubble.them {
       align-self: flex-start;
       background: #fff;
-      border: 1px solid var(--line);
-      color: var(--text);
-      border-radius: 14px 14px 14px 4px;
+      border: 1px solid #e2e8f0;
+      color: #0f172a;
+      border-radius: 16px 16px 16px 4px;
+      box-shadow: 0 1px 3px rgba(15,23,42,.06);
     }
-    .bubble small { display: block; margin-top: 5px; opacity: .68; font-size: 11px; }
+    .bubble small {
+      display: block;
+      margin-top: 6px;
+      font-size: 11px;
+      opacity: .65;
+    }
 
     .composer {
       display: flex;
       gap: 10px;
-      padding: 12px 16px;
-      border-top: 1px solid var(--line);
+      padding: 14px 18px;
+      border-top: 1px solid #f1f5f9;
       align-items: flex-end;
       flex-shrink: 0;
+      background: #fff;
     }
     .composer textarea {
       flex: 1;
-      min-height: 52px;
-      max-height: 140px;
+      min-height: 48px;
+      max-height: 130px;
       resize: vertical;
-      border: 1px solid var(--line);
-      border-radius: var(--radius-sm);
-      padding: 10px 12px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 12px 14px;
       font: inherit;
-      font-size: 13px;
+      font-size: 14px;
       outline: none;
-      transition: border-color .15s ease, box-shadow .15s ease;
+      transition: border-color .2s;
+      background: #f8faff;
     }
-    .composer textarea:focus { border-color: var(--accent3); box-shadow: 0 0 0 3px rgba(59,130,246,.12); }
+    .composer textarea:focus { border-color: #2563eb; background: #fff; }
+    .send-btn {
+      padding: 12px 20px;
+      border-radius: 14px;
+      border: none;
+      background: #2563eb;
+      color: #fff;
+      font: inherit;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background .15s;
+      flex-shrink: 0;
+    }
+    .send-btn:hover { background: #1d4ed8; }
+    .send-btn:disabled { background: #bfdbfe; cursor: not-allowed; }
 
-    @media (max-width: 900px) {
-      .layout { grid-template-columns: 1fr; height: auto; }
-      .chat-panel { min-height: 60vh; }
-      .thread-panel { display: block; }
-      .chat-panel { display: none; }
-      .chat-panel.mobile-active { display: flex; }
-      .thread-panel.mobile-hidden { display: none; }
-      .mobile-back-btn { display: flex !important; }
-    }
-    @media (max-width: 768px) {
-      .mh-input, .mh-textarea { font-size: 16px !important; }
-      .mh-topbar { margin: 8px; padding: 10px 14px; }
-    }
-    @media (max-width: 600px) {
-      .msg-bubble { max-width: 85%; }
-      .msg-input-row { gap: 8px; }
-      #messageBody { font-size: 16px; }
-    }
+    .no-msgs { text-align: center; padding: 40px; color: #94a3b8; font-size: 14px; }
 
-    /* Hamburger - hidden on desktop */
-    #hamburgerBtn { display: none !important; }
-    @media (max-width: 768px) {
-      #hamburgerBtn { display: flex !important; }
-      .mh-nav { display: none !important; }
+    @media(max-width:900px){
+      .msg-layout { grid-template-columns:1fr; padding:12px; }
+      .threads-panel { max-height:300px; }
     }
-    @media (min-width: 769px) {
-      .mh-mobile-drawer,
-      #mobileDrawer,
-      #navOverlay { display: none !important; }
-      .mh-nav { display: flex !important; }
-    }
+    #hamburgerBtn{display:none!important;}
+    @media(max-width:768px){#hamburgerBtn{display:flex!important;}.mh-nav{display:none!important;}}
+    @media(min-width:769px){.mh-mobile-drawer,#mobileDrawer,#navOverlay{display:none!important;}.mh-nav{display:flex!important;}}
   </style>
 </head>
 <body>
 <div class="mh-wrap">
-
-  <!-- Topbar -->
   <header class="mh-topbar">
     <a href="index.html" class="mh-brand">
       <img src="logo.png" alt="MentifyHub" class="mh-brand-logo"/>
-      <div class="mh-brand-text">
-        <strong>MentifyHub</strong>
-        <span>Messages</span>
-      </div>
+      <div class="mh-brand-text"><strong>MentifyHub</strong><span>Messages</span></div>
     </a>
     <nav class="mh-nav hide-mobile">
-      <span class="mh-chip" id="envChip">Connecting…</span>
-      <a class="mh-btn" href="#" id="dashboardLink">⬅ Dashboard</a>
+      <span class="mh-chip" id="envChip">Connecting...</span>
+      <a class="mh-btn" href="#" id="dashboardLink">← Dashboard</a>
       <a class="mh-btn" href="mentor-directory.html">Browse mentors</a>
       <a class="mh-btn mh-btn-primary" href="messages.html">Messages</a>
       <a class="mh-btn" href="sessions.html">Sessions</a>
       <a class="mh-btn" href="reviews.html">⭐ Reviews</a>
-      <button class="mh-btn mh-btn-danger hide-mobile" id="signOutBtn" type="button">Sign out</button>
+      <button class="mh-btn mh-btn-danger hide-mobile" id="signOutBtn">Sign out</button>
     </nav>
-      <button class="mh-menu-btn" id="menuBtn" onclick="openDrawer()" aria-label="Open menu">
-      <span></span><span></span><span></span>
-    </button>
+    <button class="mh-menu-btn" id="menuBtn" onclick="openDrawer()"><span></span><span></span><span></span></button>
   </header>
 
-  <div class="layout">
+  <div class="msg-layout">
     <!-- Thread list -->
-    <aside class="mh-card threads-panel">
-      <h3>Conversations</h3>
-      <div class="thread-list" id="threadList"></div>
-    </aside>
+    <div class="threads-panel">
+      <div class="tp-header">
+        <h3>Conversations</h3>
+        <p>Your mentorship chats</p>
+      </div>
+      <div class="thread-list" id="threadList">
+        <div style="padding:20px;text-align:center;color:#94a3b8;font-size:13px">Loading...</div>
+      </div>
+    </div>
 
     <!-- Chat -->
-    <main class="mh-card chat-panel">
-      <div class="chat-placeholder" id="chatPlaceholder">
-        Select a conversation to start messaging.
+    <div class="chat-panel">
+      <div class="chat-empty" id="chatEmpty">
+        <div class="ce-icon">💬</div>
+        <h3>Your messages</h3>
+        <p>Select a conversation to start messaging.</p>
       </div>
 
       <div class="chat-ui" id="chatUI">
         <div class="chat-head">
-          <h2 id="threadTitle">Conversation</h2>
-          <p id="threadMeta">Messages update live</p>
+          <div class="ch-avatar" id="chatAvatar">M</div>
+          <div>
+            <div class="ch-name" id="threadTitle">Conversation</div>
+            <div class="ch-status" id="threadMeta">Status</div>
+          </div>
         </div>
         <div class="messages" id="messageList"></div>
         <div class="composer">
-          <textarea id="messageBody" placeholder="Type your message… (Enter to send)"></textarea>
-          <button class="mh-btn mh-btn-primary" id="sendBtn" type="button">Send</button>
+          <textarea id="messageBody" placeholder="Type your message... (Enter to send)"></textarea>
+          <button class="send-btn" id="sendBtn">Send</button>
         </div>
       </div>
-    </main>
+    </div>
   </div>
 </div>
 
 <script>
   const $ = id => document.getElementById(id);
   const sb = window.mhSb;
+  const esc = s => String(s??"").replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const formatTime = iso => { try{ return new Date(iso).toLocaleString(); }catch{ return ""; } };
 
-  let USER=null,THREADS=[],CURRENT=null,ACTIVE_CHANNEL=null;
+  let USER=null, THREADS=[], CURRENT=null, ACTIVE_CHANNEL=null;
 
-  function esc(s){ return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
-  function formatTime(iso){ try{ return new Date(iso).toLocaleString(); }catch{ return ""; } }
-
-  function threadLabel(thread){
-    if(!thread) return "Conversation";
-    if(USER.id===thread.mentee_id) return thread.mentor_name||thread.mentor_id||"Mentor";
-    return thread.mentee_name||thread.mentee_id||"Mentee";
-  }
+  function threadLabel(t){ if(!t) return "Conversation"; if(USER.id===t.mentee_id) return t.mentor_name||"Mentor"; return t.mentee_name||"Mentee"; }
 
   async function guardAuth(){
     const {data:{session},error}=await sb.auth.getSession();
     if(error||!session){ window.location.href="auth.html?returnTo=messages.html"; return false; }
-    USER=session.user;
-    $("envChip").textContent="Live";
-    const {data:_mp} = await sb.from("mentors").select("user_id").eq("user_id",USER.id).maybeSingle();
-    const _dash = _mp ? "mentor-dashboard.html" : "mentee-dashboard.html";
-    if(document.getElementById("dashboardLink")) document.getElementById("dashboardLink").href=_dash;
-    if(document.getElementById("drawerDashLink")) document.getElementById("drawerDashLink").href=_dash;
+    USER=session.user; $("envChip").textContent="Live";
+    const {data:mp}=await sb.from("mentors").select("user_id").eq("user_id",USER.id).maybeSingle();
+    const dash=mp?"mentor-dashboard.html":"mentee-dashboard.html";
+    if($("dashboardLink")) $("dashboardLink").href=dash;
+    if($("drawerDashLink")) $("drawerDashLink").href=dash;
     return true;
   }
 
   async function enrichThreads(rows){
     const out=[];
     for(const row of rows){
-      let mentorName=row.mentor_id,menteeName=row.mentee_id;
-      const {data:mentor}=await sb.from("mentors").select("full_name").eq("user_id",row.mentor_id).maybeSingle();
-      const {data:mentee}=await sb.from("mentees").select("full_name").eq("user_id",row.mentee_id).maybeSingle();
-      if(mentor?.full_name) mentorName=mentor.full_name;
-      if(mentee?.full_name) menteeName=mentee.full_name;
-      out.push({...row,mentor_name:mentorName,mentee_name:menteeName});
+      let mn=row.mentor_id, tn=row.mentee_id;
+      const {data:m}=await sb.from("mentors").select("full_name").eq("user_id",row.mentor_id).maybeSingle();
+      const {data:t}=await sb.from("mentees").select("full_name").eq("user_id",row.mentee_id).maybeSingle();
+      if(m?.full_name) mn=m.full_name;
+      if(t?.full_name) tn=t.full_name;
+      out.push({...row,mentor_name:mn,mentee_name:tn});
     }
     return out;
   }
 
   async function loadThreads(){
     const {data,error}=await sb.from("mentorship_requests").select("*").or(`mentor_id.eq.${USER.id},mentee_id.eq.${USER.id}`).order("created_at",{ascending:false});
-    if(error){ console.error(error); $("threadList").innerHTML=`<div class="mh-empty">Could not load conversations.</div>`; return; }
+    if(error){ $("threadList").innerHTML='<div style="padding:16px;color:#94a3b8;font-size:13px">Could not load conversations.</div>'; return; }
     THREADS=await enrichThreads(data||[]);
     renderThreadList();
-
-    // Auto-open from URL param
     const reqId=new URLSearchParams(location.search).get("request");
     if(reqId){ const t=THREADS.find(t=>t.id===reqId); if(t) openThread(t.id); }
   }
 
   function renderThreadList(){
-    if(!THREADS.length){ $("threadList").innerHTML=`<div class="mh-empty" style="margin:14px">No conversations yet.</div>`; return; }
-    $("threadList").innerHTML=THREADS.map(t=>`
-      <div class="thread-item ${CURRENT&&CURRENT.id===t.id?"active":""}" onclick="openThread('${t.id}')">
-        <div class="mh-avatar" style="width:34px;height:34px;border-radius:10px;font-size:13px">${esc(threadLabel(t).charAt(0))}</div>
-        <div class="thread-item-info" style="min-width:0;flex:1">
-          <b>${esc(threadLabel(t))}</b>
-          <span>${USER.id===t.mentee_id?"Mentor conversation":"Mentee conversation"}</span>
+    if(!THREADS.length){ $("threadList").innerHTML='<div style="padding:20px;text-align:center;color:#94a3b8;font-size:13px">No conversations yet.</div>'; return; }
+    $("threadList").innerHTML="";
+    THREADS.forEach(t=>{
+      const label=threadLabel(t);
+      const initial=label[0].toUpperCase();
+      const status=(t.status||"pending").toLowerCase();
+      const div=document.createElement("div");
+      div.className="thread-item"+(CURRENT&&CURRENT.id===t.id?" active":"");
+      div.innerHTML=`
+        <div class="ti-avatar">${esc(initial)}</div>
+        <div class="ti-info">
+          <div class="ti-name">${esc(label)}</div>
+          <div class="ti-sub">${USER.id===t.mentee_id?"Mentor conversation":"Mentee conversation"}</div>
         </div>
-        <span class="mh-badge mh-badge-${(t.status||"pending").toLowerCase()}">${esc(t.status||"pending")}</span>
-      </div>`).join("");
+        <span class="ti-badge ${status}">${status}</span>`;
+      div.onclick=()=>openThread(t.id);
+      $("threadList").appendChild(div);
+    });
   }
 
   async function openThread(id){
     CURRENT=THREADS.find(t=>t.id===id)||null;
     renderThreadList();
     if(!CURRENT) return;
-    $("chatPlaceholder").style.display="none";
+    $("chatEmpty").style.display="none";
     const ui=$("chatUI"); ui.style.display="flex"; ui.style.flexDirection="column";
-    $("threadTitle").textContent=threadLabel(CURRENT);
-    $("threadMeta").textContent=`Request status: ${CURRENT.status||"pending"}`;
+    const label=threadLabel(CURRENT);
+    $("threadTitle").textContent=label;
+    $("chatAvatar").textContent=label[0].toUpperCase();
+    const status=(CURRENT.status||"pending").toLowerCase();
+    $("threadMeta").textContent="Request "+status;
+    $("threadMeta").className="ch-status"+(status==="accepted"?" accepted":"");
     await loadMessages();
     await markMessagesRead();
     subscribeToThread();
@@ -283,13 +336,13 @@
   async function loadMessages(){
     if(!CURRENT) return;
     const {data,error}=await sb.from("messages").select("*").eq("request_id",CURRENT.id).order("created_at",{ascending:true});
-    if(error){ console.error(error); $("messageList").innerHTML=`<div class="mh-empty">Could not load messages.</div>`; return; }
+    if(error){ $("messageList").innerHTML='<div class="no-msgs">Could not load messages.</div>'; return; }
     renderMessages(data||[]);
   }
 
   function renderMessages(messages){
     const box=$("messageList");
-    if(!messages.length){ box.innerHTML=`<div class="mh-empty">No messages yet. Say hello!</div>`; return; }
+    if(!messages.length){ box.innerHTML='<div class="no-msgs">No messages yet. Say hello! 👋</div>'; return; }
     box.innerHTML=messages.map(m=>{
       const mine=m.sender_id===USER.id;
       return `<div class="bubble ${mine?"me":"them"}">${esc(m.body)}<small>${esc(formatTime(m.created_at))}</small></div>`;
@@ -316,125 +369,50 @@
     if((CURRENT.status||"").toLowerCase()!=="accepted"){ alert("Messaging is only available for accepted requests."); return; }
     const body=$("messageBody").value.trim();
     if(!body) return;
-    const btn=$("sendBtn");
-    btn.disabled=true; btn.textContent="Sending…";
+    const btn=$("sendBtn"); btn.disabled=true; btn.textContent="Sending...";
     try{
       const {error}=await sb.from("messages").insert({request_id:CURRENT.id,sender_id:USER.id,mentor_id:CURRENT.mentor_id,mentee_id:CURRENT.mentee_id,body,is_read:false});
       if(error) throw error;
       $("messageBody").value="";
       await loadMessages();
-
-      // Notify the recipient
-      const recipientId = USER.id === CURRENT.mentor_id ? CURRENT.mentee_id : CURRENT.mentor_id;
-      const senderName  = USER.user_metadata?.full_name || USER.email || "Your contact";
-      const preview     = body.length > 100 ? body.slice(0, 100) + "…" : body;
-
-      // 1. In-app bell notification
+      const recipientId=USER.id===CURRENT.mentor_id?CURRENT.mentee_id:CURRENT.mentor_id;
+      const senderName=USER.user_metadata?.full_name||USER.email||"Your contact";
+      const preview=body.length>100?body.slice(0,100)+"…":body;
+      try{ await sb.from("notifications").insert({user_id:recipientId,title:`New message from ${senderName}`,message:preview,type:"message",is_read:false,request_id:CURRENT.id}); }catch(e){ console.error(e); }
       try{
-        await sb.from("notifications").insert({
-          user_id:    recipientId,
-          title:      `New message from ${senderName}`,
-          message:    preview,
-          type:       "message",
-          is_read:    false,
-          request_id: CURRENT.id
-        });
-      }catch(notifErr){ console.error("Notification error:", notifErr); }
-
-      // 2. Email notification
-      try{
-        // Get recipient email
-        const isRecipientMentor = recipientId === CURRENT.mentor_id;
-        const table = isRecipientMentor ? "mentors" : "mentees";
-        const { data: recipientRow } = await sb.from(table).select("email").eq("user_id", recipientId).maybeSingle();
-
-        if(recipientRow?.email){
-          await fetch("https://mscgaaaobxiuzqsukvjc.supabase.co/functions/v1/notify-message", {
-            method: "POST",
-            headers: {
-              "Content-Type":  "application/json",
-              "apikey":        window.MH_SUPABASE_ANON_KEY,
-              "Authorization": `Bearer ${window.MH_SUPABASE_ANON_KEY}`
-            },
-            body: JSON.stringify({
-              recipient_email: recipientRow.email,
-              sender_name:     senderName,
-              message_preview: preview,
-              request_id:      CURRENT.id
-            })
-          });
-        }
-      }catch(emailErr){ console.error("Email error:", emailErr); }
-
+        const isM=recipientId===CURRENT.mentor_id; const tbl=isM?"mentors":"mentees";
+        const {data:r}=await sb.from(tbl).select("email").eq("user_id",recipientId).maybeSingle();
+        if(r?.email){ await fetch("https://mscgaaaobxiuzqsukvjc.supabase.co/functions/v1/notify-message",{method:"POST",headers:{"Content-Type":"application/json","apikey":window.MH_SUPABASE_ANON_KEY,"Authorization":`Bearer ${window.MH_SUPABASE_ANON_KEY}`},body:JSON.stringify({recipient_email:r.email,sender_name:senderName,message_preview:preview,request_id:CURRENT.id})}); }
+      }catch(e){ console.error(e); }
     }catch(e){ console.error(e); alert(e.message||"Could not send message"); }
     finally{ btn.disabled=false; btn.textContent="Send"; }
   }
 
   $("sendBtn").addEventListener("click",sendMessage);
   $("messageBody").addEventListener("keydown",e=>{ if(e.key==="Enter"&&!e.shiftKey){ e.preventDefault(); sendMessage(); } });
+  $("signOutBtn").addEventListener("click",async()=>{ await sb.auth.signOut(); window.location.href="auth.html?mode=signin"; });
 
-  window.addEventListener("load",async()=>{
-    const ok=await guardAuth();
-    if(!ok) return;
-    await loadThreads();
-  });
+  window.addEventListener("load",async()=>{ const ok=await guardAuth(); if(!ok) return; await loadThreads(); });
 </script>
 
-<!-- ── Mobile right-side drawer ── -->
+<!-- Mobile drawer -->
 <div id="navOverlay" onclick="closeDrawer()" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);backdrop-filter:blur(3px);z-index:90;"></div>
 <div class="mh-mobile-drawer" id="mobileDrawer">
-  <div class="drawer-head">
-    <div class="drawer-head-brand">
-      <img src="logo.png" alt="MentifyHub"/>
-      <strong>MentifyHub</strong>
-    </div>
-    <button class="mh-drawer-close" onclick="closeDrawer()" aria-label="Close menu">✕</button>
-  </div>
-  <div class="mh-drawer-user" id="drawerUserInfo">Loading…</div>
+  <div class="drawer-head"><div class="drawer-head-brand"><img src="logo.png" alt=""/><strong>MentifyHub</strong></div><button class="mh-drawer-close" onclick="closeDrawer()">✕</button></div>
+  <div class="mh-drawer-user" id="drawerUserInfo">Loading...</div>
   <div class="mh-drawer-links">
-    <a href="#" id="drawerDashLink"   class="mh-drawer-link"><span class="icon">🏠</span> Dashboard</a>
-    <a href="mentor-directory.html"   class="mh-drawer-link"><span class="icon">🔍</span> Directory</a>
-    <a href="messages.html"           class="mh-drawer-link active"><span class="icon">💬</span> Messages</a>
-    <a href="sessions.html"           class="mh-drawer-link"><span class="icon">📅</span> Sessions</a>
-    <a href="reviews.html"            class="mh-drawer-link"><span class="icon">⭐</span> Reviews</a>
+    <a href="#" id="drawerDashLink" class="mh-drawer-link"><span class="icon">🏠</span> Dashboard</a>
+    <a href="mentor-directory.html" class="mh-drawer-link"><span class="icon">🔍</span> Directory</a>
+    <a href="messages.html" class="mh-drawer-link active"><span class="icon">💬</span> Messages</a>
+    <a href="sessions.html" class="mh-drawer-link"><span class="icon">📅</span> Sessions</a>
+    <a href="reviews.html" class="mh-drawer-link"><span class="icon">⭐</span> Reviews</a>
   </div>
-  <div class="mh-drawer-footer">
-    <button class="mh-drawer-signout" onclick="drawerSignOut()">🚪 &nbsp;Sign out</button>
-  </div>
+  <div class="mh-drawer-footer"><button class="mh-drawer-signout" onclick="drawerSignOut()">🚪 Sign out</button></div>
 </div>
-
 <script>
-  document.body.classList.add("has-side-nav");
-
-  function openDrawer(){
-    if(window.innerWidth > 768) return;
-    const d = document.getElementById('mobileDrawer');
-    const o = document.getElementById('navOverlay');
-    if(!d||!o) return;
-    d.classList.add('open');
-    o.style.display = 'block';
-    document.body.style.overflow = 'hidden';
-    const chip = document.getElementById('whoChip')||document.getElementById('envChip');
-    const info = document.getElementById('drawerUserInfo');
-    if(chip&&info) info.textContent = chip.textContent;
-  }
-
-  function closeDrawer(){
-    const d = document.getElementById('mobileDrawer');
-    const o = document.getElementById('navOverlay');
-    if(!d||!o) return;
-    d.classList.remove('open');
-    o.style.display = 'none';
-    document.body.style.overflow = '';
-  }
-
-  async function drawerSignOut(){
-    try{
-      const sb2 = window.supabase || window.sb || window._sb;
-      if(sb2) await sb2.auth.signOut();
-    }catch(e){}
-    window.location.href = 'auth.html?mode=signin';
-  }
+  function openDrawer(){ const d=$("mobileDrawer"),o=$("navOverlay"); if(d&&o){d.classList.add("open");o.style.display="block";document.body.style.overflow="hidden"; const c=$("envChip")||$("whoChip"); const i=$("drawerUserInfo"); if(c&&i)i.textContent=c.textContent;} }
+  function closeDrawer(){ const d=$("mobileDrawer"),o=$("navOverlay"); if(d&&o){d.classList.remove("open");o.style.display="none";document.body.style.overflow="";} }
+  async function drawerSignOut(){ try{if(sb) await sb.auth.signOut();}catch(e){} window.location.href="auth.html?mode=signin"; }
 </script>
 </body>
 </html>

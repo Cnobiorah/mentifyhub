@@ -3,229 +3,212 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>MentifyHub - Reviews & Ratings</title>
+  <title>MentifyHub - Reviews</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
   <script src="auth-guard.js"></script>
   <link rel="stylesheet" href="mh-theme.css"/>
   <style>
-    .layout {
-      display: grid;
-      grid-template-columns: 1fr 340px;
-      gap: 16px;
-      margin-top: 18px;
-      align-items: start;
-    }
+    body { background: #f0f4fa; }
+    .page-wrap { max-width: 1100px; margin: 0 auto; padding: 24px 24px 60px; }
 
-    /* Star rating */
-    .stars {
-      display: flex;
-      gap: 6px;
-      margin: 10px 0;
-    }
-    .star {
-      font-size: 28px;
-      cursor: pointer;
-      transition: transform .1s ease;
-      line-height: 1;
-      color: #d1d5db;
-    }
-    .star:hover, .star.active { color: #f59e0b; transform: scale(1.15); }
-
-    /* Session card to review */
-    .session-card {
-      padding: 16px;
-      border: 1px solid var(--line);
-      border-radius: var(--radius-sm);
-      background: #fff;
-      margin-top: 10px;
-      cursor: pointer;
-      transition: box-shadow .15s ease, border-color .15s ease;
-    }
-    .session-card:hover  { box-shadow: var(--shadow); border-color: #c8d6e8; }
-    .session-card.active { border-color: rgba(29,78,216,.30); background: rgba(29,78,216,.03); }
-    .session-card b      { display: block; font-size: 13px; font-weight: 700; }
-    .session-card span   { display: block; font-size: 12px; color: var(--muted); margin-top: 3px; }
-
-    /* Review card */
-    .review-item {
-      padding: 14px;
-      border: 1px solid var(--line);
-      border-radius: var(--radius-sm);
-      background: #fff;
-      margin-top: 10px;
-    }
-    .review-item .stars-display { font-size: 16px; color: #f59e0b; letter-spacing: 1px; }
-    .review-item b   { font-size: 13px; font-weight: 700; }
-    .review-item p   { font-size: 13px; color: var(--muted); margin-top: 6px; line-height: 1.55; }
-    .review-item small { font-size: 11px; color: var(--subtle); margin-top: 6px; display: block; }
-
-    /* Avg rating display */
-    .avg-rating {
+    /* ── Hero ── */
+    .reviews-hero {
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #1d4ed8 100%);
+      border-radius: 20px;
+      padding: 28px 32px;
+      margin-bottom: 24px;
       display: flex;
       align-items: center;
-      gap: 14px;
-      padding: 18px;
-      border-radius: var(--radius-sm);
-      background: linear-gradient(135deg, rgba(245,158,11,.08), rgba(245,158,11,.03));
-      border: 1px solid rgba(245,158,11,.20);
-      margin-bottom: 16px;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
     }
-    .avg-rating .big { font-size: 36px; font-weight: 800; color: var(--text); letter-spacing: -1px; }
-    .avg-rating .stars-row { font-size: 20px; color: #f59e0b; }
-    .avg-rating .count { font-size: 12px; color: var(--muted); margin-top: 3px; }
+    .rh-blob { position:absolute; border-radius:50%; background:rgba(255,255,255,.06); pointer-events:none; }
+    .rh-b1 { width:180px; height:180px; top:-60px; right:80px; }
+    .rh-b2 { width:100px; height:100px; bottom:-30px; right:240px; }
+    .rh-left h1 { font-size:22px; font-weight:900; color:#fff; letter-spacing:-.3px; margin-bottom:4px; }
+    .rh-left p  { font-size:13px; color:rgba(255,255,255,.6); }
+    .rh-avg { text-align:center; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.15); border-radius:16px; padding:16px 24px; flex-shrink:0; }
+    .rh-avg-num { font-size:36px; font-weight:900; color:#f59e0b; line-height:1; }
+    .rh-avg-stars { font-size:16px; color:#f59e0b; margin:4px 0; }
+    .rh-avg-lbl { font-size:12px; color:rgba(255,255,255,.6); font-weight:600; }
 
-    @media (max-width: 900px) {
-      .layout { grid-template-columns: 1fr; }
-    }
-    @media (max-width: 768px) {
-      .layout { grid-template-columns: 1fr !important; }
-      .session-card { padding: 14px; }
-      .star { font-size: 28px !important; }
-    }
-    @media (max-width: 480px) {
-      .star { font-size: 24px !important; }
-    }
+    /* ── Layout ── */
+    .reviews-layout { display:grid; grid-template-columns:1fr 340px; gap:20px; align-items:start; }
 
-    /* Hamburger - hidden on desktop */
-    #hamburgerBtn { display: none !important; }
-    @media (max-width: 768px) {
-      #hamburgerBtn { display: flex !important; }
-      .mh-nav { display: none !important; }
+    /* ── Sessions to review ── */
+    .section-card { background:#fff; border:1px solid #e2e8f0; border-radius:20px; padding:22px; margin-bottom:16px; }
+    .section-card h3 { font-size:15px; font-weight:800; color:#0f172a; margin-bottom:4px; }
+    .section-card p  { font-size:13px; color:#94a3b8; margin-bottom:16px; }
+
+    .session-item {
+      padding: 14px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 14px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: all .15s;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
-    @media (min-width: 769px) {
-      .mh-mobile-drawer,
-      #mobileDrawer,
-      #navOverlay { display: none !important; }
-      .mh-nav { display: flex !important; }
-    }
+    .session-item:hover { border-color: #2563eb; background: #f8faff; }
+    .session-item.active { border-color: #2563eb; background: #eff6ff; }
+    .session-item.reviewed { opacity: .6; pointer-events: none; }
+    .si-left b    { display:block; font-size:13px; font-weight:700; color:#0f172a; }
+    .si-left span { display:block; font-size:12px; color:#94a3b8; margin-top:2px; }
+    .si-badge { padding:3px 10px; border-radius:999px; font-size:11px; font-weight:700; flex-shrink:0; }
+    .si-badge.reviewed-badge { background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; }
+    .si-badge.pending-badge  { background:#fefce8; color:#ca8a04; border:1px solid #fde68a; }
+
+    /* ── Review form ── */
+    .review-form { display:none; }
+    .rf-session-label { font-size:13px; font-weight:700; color:#2563eb; background:#eff6ff; border-radius:10px; padding:10px 14px; margin-bottom:16px; }
+    .stars { display:flex; gap:8px; margin:10px 0 6px; }
+    .star { font-size:32px; cursor:pointer; color:#e2e8f0; transition:all .15s; line-height:1; }
+    .star:hover, .star.active { color:#f59e0b; transform:scale(1.1); }
+    .rating-label { font-size:13px; color:#94a3b8; margin-bottom:14px; font-weight:600; }
+    .review-textarea { width:100%; padding:12px 14px; border-radius:12px; border:1.5px solid #e2e8f0; font:inherit; font-size:14px; resize:vertical; min-height:100px; outline:none; transition:border-color .2s; }
+    .review-textarea:focus { border-color:#2563eb; }
+    .rf-actions { display:flex; gap:10px; margin-top:14px; }
+    .rf-submit { flex:1; padding:12px; border-radius:12px; border:none; background:#2563eb; color:#fff; font:inherit; font-size:14px; font-weight:700; cursor:pointer; transition:background .15s; }
+    .rf-submit:hover { background:#1d4ed8; }
+    .rf-cancel { padding:12px 20px; border-radius:12px; border:1.5px solid #e2e8f0; background:#fff; color:#475569; font:inherit; font-size:14px; font-weight:600; cursor:pointer; }
+    .rf-msg { margin-top:10px; font-size:13px; font-weight:600; display:none; padding:10px 14px; border-radius:10px; }
+    .rf-msg.success { background:#f0fdf4; color:#16a34a; }
+    .rf-msg.error   { background:#fef2f2; color:#ef4444; }
+
+    /* ── Reviews list ── */
+    .review-card { background:#fff; border:1px solid #e2e8f0; border-radius:16px; padding:18px; margin-bottom:10px; }
+    .rc-stars { font-size:16px; color:#f59e0b; letter-spacing:2px; margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; }
+    .rc-rating-badge { font-size:12px; font-weight:700; color:#0f172a; background:#fef3c7; border-radius:999px; padding:2px 10px; }
+    .rc-comment { font-size:13px; color:#334155; line-height:1.65; margin-bottom:10px; }
+    .rc-date { font-size:12px; color:#94a3b8; }
+
+    /* Empty */
+    .empty-msg { text-align:center; padding:32px 20px; color:#94a3b8; font-size:13px; }
+
+    /* Toast */
+    .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px); background:#0f172a; color:#fff; padding:12px 24px; border-radius:12px; font-size:13px; font-weight:600; opacity:0; transition:all .3s; pointer-events:none; z-index:999; }
+    .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+    @media(max-width:900px){ .reviews-layout{grid-template-columns:1fr;} .reviews-hero{flex-direction:column;gap:12px;} .rh-avg{width:100%;} }
+    #hamburgerBtn{display:none!important;}
+    @media(max-width:768px){#hamburgerBtn{display:flex!important;}.mh-nav{display:none!important;}}
+    @media(min-width:769px){.mh-mobile-drawer,#mobileDrawer,#navOverlay{display:none!important;}.mh-nav{display:flex!important;}}
   </style>
 </head>
 <body>
 <div class="mh-wrap">
-
-  <!-- Topbar -->
-  <header class="mh-topbar"><button class="mh-hamburger" id="hamburgerBtn" onclick="openDrawer()" aria-label="Menu" style="display:none;width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:transparent;cursor:pointer;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:0;flex-shrink:0;"><span style="display:block;width:18px;height:2px;background:var(--text,#0d1f13);border-radius:2px;"></span><span style="display:block;width:18px;height:2px;background:var(--text,#0d1f13);border-radius:2px;"></span><span style="display:block;width:18px;height:2px;background:var(--text,#0d1f13);border-radius:2px;"></span></button>
+  <header class="mh-topbar">
     <a href="index.html" class="mh-brand">
       <img src="logo.png" alt="MentifyHub" class="mh-brand-logo"/>
-      <div class="mh-brand-text">
-        <strong>MentifyHub</strong>
-        <span>Reviews &amp; ratings</span>
-      </div>
+      <div class="mh-brand-text"><strong>MentifyHub</strong><span>Reviews</span></div>
     </a>
     <nav class="mh-nav hide-mobile">
-      <span class="mh-chip" id="whoChip">Loading…</span>
-      <a class="mh-btn" href="#" id="dashboardLink">⬅ Dashboard</a>
+      <span class="mh-chip" id="whoChip">Loading...</span>
+      <a class="mh-btn" href="#" id="dashboardLink">← Dashboard</a>
       <a class="mh-btn" href="mentor-directory.html">Browse mentors</a>
       <a class="mh-btn" href="messages.html">Messages</a>
       <a class="mh-btn" href="sessions.html">Sessions</a>
       <a class="mh-btn mh-btn-primary" href="reviews.html">⭐ Reviews</a>
-      <button class="mh-btn mh-btn-danger hide-mobile" id="signOutBtn" type="button">Sign out</button>
+      <button class="mh-btn mh-btn-danger hide-mobile" id="signOutBtn">Sign out</button>
     </nav>
-      <button class="mh-menu-btn" id="menuBtn" onclick="openDrawer()" aria-label="Open menu">
-      <span></span><span></span><span></span>
-    </button>
+    <button class="mh-menu-btn" id="menuBtn" onclick="openDrawer()"><span></span><span></span><span></span></button>
   </header>
 
-  <div class="layout">
+  <div class="page-wrap">
 
-    <!-- Left: sessions to review + form -->
-    <div>
-      <div class="mh-card mh-card-body" style="margin-bottom:16px">
-        <h2 style="font-size:18px;font-weight:800;letter-spacing:-.2px">Rate your sessions</h2>
-        <p style="color:var(--muted);font-size:13px;margin-top:6px">Select a completed session below to leave a rating and review.</p>
+    <!-- Hero -->
+    <div class="reviews-hero">
+      <div class="rh-blob rh-b1"></div>
+      <div class="rh-blob rh-b2"></div>
+      <div class="rh-left">
+        <h1>Reviews & ratings</h1>
+        <p>Rate your sessions and see feedback from your mentees.</p>
       </div>
-
-      <!-- Sessions list -->
-      <div class="mh-card mh-card-body" style="margin-bottom:16px">
-        <div class="mh-section-head"><h3>Your sessions</h3></div>
-        <div id="sessionList">
-          <div class="mh-skeleton" style="height:60px;margin-top:10px"></div>
-          <div class="mh-skeleton" style="height:60px;margin-top:10px"></div>
-        </div>
-      </div>
-
-      <!-- Review form -->
-      <div class="mh-card mh-card-body" id="reviewForm" style="display:none">
-        <div class="mh-section-head">
-          <h3>Leave a review</h3>
-          <span class="mh-chip" id="reviewSessionLabel">—</span>
-        </div>
-
-        <label class="mh-label" style="margin-top:14px">Your rating</label>
-        <div class="stars" id="starRow">
-          <span class="star" data-val="1">★</span>
-          <span class="star" data-val="2">★</span>
-          <span class="star" data-val="3">★</span>
-          <span class="star" data-val="4">★</span>
-          <span class="star" data-val="5">★</span>
-        </div>
-        <div style="font-size:12px;color:var(--muted);margin-bottom:14px" id="ratingLabel">Click a star to rate</div>
-
-        <div class="mh-field">
-          <label class="mh-label">Comment (optional)</label>
-          <textarea class="mh-textarea" id="reviewComment" placeholder="Share what was helpful, what you learned, or any feedback for the mentor…"></textarea>
-        </div>
-
-        <div class="flex gap-8 mt-12">
-          <button class="mh-btn mh-btn-primary" id="submitReviewBtn" type="button">Submit review</button>
-          <button class="mh-btn" id="cancelReviewBtn" type="button">Cancel</button>
-        </div>
-
-        <div id="reviewMsg" style="margin-top:12px;font-size:13px;display:none"></div>
+      <div class="rh-avg" id="heroAvg" style="display:none">
+        <div class="rh-avg-num" id="heroAvgNum">—</div>
+        <div class="rh-avg-stars" id="heroAvgStars">★★★★★</div>
+        <div class="rh-avg-lbl" id="heroAvgLbl">— reviews</div>
       </div>
     </div>
 
-    <!-- Right: existing reviews -->
-    <aside>
-      <!-- My rating summary -->
-      <div class="mh-card mh-card-body" style="margin-bottom:16px">
-        <div class="mh-section-head"><h3>Mentor ratings</h3></div>
-        <div id="avgRating" style="margin-top:10px">
-          <div class="mh-skeleton" style="height:80px"></div>
+    <div class="reviews-layout">
+
+      <!-- Left -->
+      <div>
+        <!-- Sessions -->
+        <div class="section-card">
+          <h3>Your sessions</h3>
+          <p>Click a completed session to leave a review.</p>
+          <div id="sessionList">
+            <div class="mh-skeleton" style="height:60px;border-radius:14px;margin-bottom:8px"></div>
+            <div class="mh-skeleton" style="height:60px;border-radius:14px"></div>
+          </div>
+        </div>
+
+        <!-- Review form -->
+        <div class="section-card review-form" id="reviewForm">
+          <h3>Leave a review</h3>
+          <div class="rf-session-label" id="reviewSessionLabel">Select a session</div>
+
+          <label style="font-size:12px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px">Your rating</label>
+          <div class="stars" id="starRow">
+            <span class="star" data-val="1">★</span>
+            <span class="star" data-val="2">★</span>
+            <span class="star" data-val="3">★</span>
+            <span class="star" data-val="4">★</span>
+            <span class="star" data-val="5">★</span>
+          </div>
+          <div class="rating-label" id="ratingLabel">Click a star to rate</div>
+
+          <label style="font-size:12px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:8px">Comment (optional)</label>
+          <textarea class="review-textarea" id="reviewComment" placeholder="Share what was helpful, what you learned, or feedback for the mentor..."></textarea>
+
+          <div class="rf-actions">
+            <button class="rf-submit" id="submitReviewBtn">Submit review</button>
+            <button class="rf-cancel" id="cancelReviewBtn">Cancel</button>
+          </div>
+          <div class="rf-msg" id="reviewMsg"></div>
         </div>
       </div>
 
-      <!-- All reviews -->
-      <div class="mh-card mh-card-body">
-        <div class="mh-section-head"><h3>All reviews</h3></div>
-        <div id="reviewsList">
-          <div class="mh-skeleton" style="height:60px;margin-top:10px"></div>
-          <div class="mh-skeleton" style="height:60px;margin-top:10px"></div>
+      <!-- Right: reviews list -->
+      <div>
+        <div class="section-card">
+          <h3>All reviews</h3>
+          <p id="reviewsSubtitle">Reviews from your sessions</p>
+          <div id="reviewsList">
+            <div class="mh-skeleton" style="height:80px;border-radius:14px;margin-bottom:8px"></div>
+            <div class="mh-skeleton" style="height:80px;border-radius:14px"></div>
+          </div>
         </div>
       </div>
-    </aside>
+
+    </div>
   </div>
 </div>
 
-<div class="mh-toast" id="toast"></div>
+<div class="toast" id="toast"></div>
 
 <script>
   const sb = window.mhSb;
   const $ = id => document.getElementById(id);
+  const esc = s => String(s??"").replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const fmt = iso => { try{ return new Date(iso).toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric",hour:"2-digit",minute:"2-digit"}); }catch{ return "—"; } };
+  const starsHtml = n => "★".repeat(Math.round(n))+"☆".repeat(5-Math.round(n));
 
-  let USER = null, SESSIONS = [], SELECTED = null, RATING = 0, REVIEWED_IDS = new Set();
+  let USER=null, SESSIONS=[], SELECTED=null, RATING=0, REVIEWED_IDS=new Set();
 
-  function esc(s){ return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
-  function fmt(iso){ try{ return new Date(iso).toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric",hour:"2-digit",minute:"2-digit"}); }catch{ return "—"; } }
-  function starsHtml(n){ return "★".repeat(Math.round(n))+"☆".repeat(5-Math.round(n)); }
+  function showToast(msg){ const t=$("toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove("show"),2800); }
 
-  function toast(msg){
-    const t=$("toast"); t.textContent=msg; t.classList.add("show");
-    clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove("show"),2800);
-  }
-
-  // ── Star interaction
-  let hovered = 0;
+  // Star interaction
+  let hovered=0;
   document.querySelectorAll(".star").forEach(star=>{
-    star.addEventListener("mouseenter",()=>{
-      hovered=Number(star.dataset.val);
-      document.querySelectorAll(".star").forEach(s=>s.classList.toggle("active",Number(s.dataset.val)<=hovered));
-    });
-    star.addEventListener("mouseleave",()=>{
-      hovered=0;
-      document.querySelectorAll(".star").forEach(s=>s.classList.toggle("active",Number(s.dataset.val)<=RATING));
-    });
+    star.addEventListener("mouseenter",()=>{ hovered=Number(star.dataset.val); document.querySelectorAll(".star").forEach(s=>s.classList.toggle("active",Number(s.dataset.val)<=hovered)); });
+    star.addEventListener("mouseleave",()=>{ hovered=0; document.querySelectorAll(".star").forEach(s=>s.classList.toggle("active",Number(s.dataset.val)<=RATING)); });
     star.addEventListener("click",()=>{
       RATING=Number(star.dataset.val);
       document.querySelectorAll(".star").forEach(s=>s.classList.toggle("active",Number(s.dataset.val)<=RATING));
@@ -234,19 +217,15 @@
     });
   });
 
-  // ── Auth
   async function init(){
     const {data:{session}}=await sb.auth.getSession();
     if(!session){ window.location.href="auth.html"; return; }
     USER=session.user;
     $("whoChip").textContent=USER.email||"Signed in";
-
-    // Check if mentor or mentee
     const {data:mentor}=await sb.from("mentors").select("user_id").eq("user_id",USER.id).maybeSingle();
-    const _dash=mentor?"mentor-dashboard.html":"mentee-dashboard.html";
-    if(document.getElementById("dashboardLink")) document.getElementById("dashboardLink").href=_dash;
-    if(document.getElementById("drawerDashLink")) document.getElementById("drawerDashLink").href=_dash;
-
+    const dash=mentor?"mentor-dashboard.html":"mentee-dashboard.html";
+    if($("dashboardLink")) $("dashboardLink").href=dash;
+    if($("drawerDashLink")) $("drawerDashLink").href=dash;
     await loadReviewedSessions();
     await loadSessions();
     await loadReviews();
@@ -261,28 +240,22 @@
     const {data,error}=await sb.from("sessions").select("*").or(`mentee_id.eq.${USER.id},mentor_id.eq.${USER.id}`).order("scheduled_for",{ascending:false});
     if(error){ console.error(error); return; }
     SESSIONS=data||[];
-
-    if(!SESSIONS.length){
-      $("sessionList").innerHTML=`<div class="mh-empty" style="margin-top:10px"><strong>No sessions yet</strong>Sessions appear here after they are scheduled and completed.</div>`;
-      return;
-    }
-
-    $("sessionList").innerHTML=SESSIONS.map(s=>{
+    const list=$("sessionList");
+    if(!SESSIONS.length){ list.innerHTML='<div class="empty-msg">No sessions yet. Sessions appear here after they are scheduled.</div>'; return; }
+    list.innerHTML="";
+    SESSIONS.forEach(s=>{
       const reviewed=REVIEWED_IDS.has(s.id);
-      return `
-        <div class="session-card" style="${reviewed?"opacity:0.65;pointer-events:none":""}" onclick="selectSession('${s.id}')">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start">
-            <div>
-              <b>${fmt(s.scheduled_for)}</b>
-              <span>${s.duration_minutes||"—"} minutes · ${esc(s.status||"proposed")}</span>
-            </div>
-            ${reviewed
-              ? `<span class="mh-badge mh-badge-accepted">Reviewed ✓</span>`
-              : `<span class="mh-badge mh-badge-pending">Not reviewed</span>`}
-          </div>
-          ${s.notes?`<p style="font-size:12px;color:var(--muted);margin-top:6px">${esc(s.notes.slice(0,80))}${s.notes.length>80?"…":""}</p>`:""}
-        </div>`;
-    }).join("");
+      const item=document.createElement("div");
+      item.className="session-item"+(reviewed?" reviewed":"");
+      item.onclick=()=>selectSession(s.id);
+      item.innerHTML=`
+        <div class="si-left">
+          <b>${fmt(s.scheduled_for)}</b>
+          <span>${s.duration_minutes||"—"} mins · ${esc(s.status||"scheduled")}</span>
+        </div>
+        <span class="si-badge ${reviewed?"reviewed-badge":"pending-badge"}">${reviewed?"Reviewed ✓":"Rate"}</span>`;
+      list.appendChild(item);
+    });
   }
 
   function selectSession(id){
@@ -295,143 +268,80 @@
     $("reviewSessionLabel").textContent=fmt(SELECTED?.scheduled_for);
     $("reviewForm").style.display="block";
     $("reviewForm").scrollIntoView({behavior:"smooth",block:"start"});
-    document.querySelectorAll(".session-card").forEach(c=>c.classList.toggle("active",c.getAttribute("onclick")?.includes(id)||false));
+    document.querySelectorAll(".session-item").forEach(c=>c.classList.toggle("active",c.onclick?.toString().includes(id)||false));
   }
   window.selectSession=selectSession;
 
   async function submitReview(){
-    if(!SELECTED){ toast("Select a session first"); return; }
-    if(!RATING){ toast("Please select a star rating"); return; }
-    if(REVIEWED_IDS.has(SELECTED.id)){ toast("You already reviewed this session"); return; }
-
-    const btn=$("submitReviewBtn");
-    btn.disabled=true; btn.textContent="Submitting…";
-
+    if(!SELECTED){ showToast("Select a session first"); return; }
+    if(!RATING){ showToast("Please select a star rating"); return; }
+    if(REVIEWED_IDS.has(SELECTED.id)){ showToast("You already reviewed this session"); return; }
+    const btn=$("submitReviewBtn"); btn.disabled=true; btn.textContent="Submitting...";
     try{
-      const {error}=await sb.from("reviews").insert({
-        session_id:   SELECTED.id,
-        request_id:   SELECTED.request_id||null,
-        reviewer_id:  USER.id,
-        mentor_id:    SELECTED.mentor_id,
-        mentee_id:    SELECTED.mentee_id,
-        rating:       RATING,
-        comment:      $("reviewComment").value.trim()||null
-      });
+      const {error}=await sb.from("reviews").insert({session_id:SELECTED.id,request_id:SELECTED.request_id||null,reviewer_id:USER.id,mentor_id:SELECTED.mentor_id,mentee_id:SELECTED.mentee_id,rating:RATING,comment:$("reviewComment").value.trim()||null});
       if(error) throw error;
-
       REVIEWED_IDS.add(SELECTED.id);
-      $("reviewMsg").style.display="block";
-      $("reviewMsg").innerHTML=`<span style="color:var(--accepted-fg);font-weight:600">✓ Review submitted! Thank you for your feedback.</span>`;
-      toast("Review submitted ✓");
-      await loadSessions();
-      await loadReviews();
+      const msg=$("reviewMsg"); msg.style.display="block"; msg.className="rf-msg success"; msg.textContent="✓ Review submitted! Thank you.";
+      showToast("Review submitted ✓");
+      await loadSessions(); await loadReviews();
       setTimeout(()=>{ $("reviewForm").style.display="none"; SELECTED=null; },2000);
-    }catch(e){
-      console.error(e);
-      $("reviewMsg").style.display="block";
-      $("reviewMsg").innerHTML=`<span style="color:var(--declined-fg)">${esc(e.message||"Could not submit review")}</span>`;
-    }finally{ btn.disabled=false; btn.textContent="Submit review"; }
+    }catch(e){ console.error(e); const msg=$("reviewMsg"); msg.style.display="block"; msg.className="rf-msg error"; msg.textContent=e.message||"Could not submit review"; }
+    finally{ btn.disabled=false; btn.textContent="Submit review"; }
   }
 
   async function loadReviews(){
-    // Load reviews for mentors this user has interacted with
     const {data,error}=await sb.from("reviews").select("*").or(`mentee_id.eq.${USER.id},mentor_id.eq.${USER.id}`).order("created_at",{ascending:false}).limit(50);
     if(error){ console.error(error); return; }
     const reviews=data||[];
 
-    // Avg rating
+    // Update hero
     if(reviews.length){
       const avg=(reviews.reduce((s,r)=>s+r.rating,0)/reviews.length).toFixed(1);
-      $("avgRating").innerHTML=`
-        <div class="avg-rating">
-          <div class="big">${avg}</div>
-          <div>
-            <div class="stars-row">${starsHtml(Number(avg))}</div>
-            <div class="count">${reviews.length} review${reviews.length===1?"":"s"}</div>
-          </div>
-        </div>`;
-    } else {
-      $("avgRating").innerHTML=`<div class="mh-empty" style="text-align:center;padding:16px;font-size:13px;color:var(--muted)">No reviews yet</div>`;
+      $("heroAvg").style.display="block";
+      $("heroAvgNum").textContent=avg;
+      $("heroAvgStars").textContent=starsHtml(Number(avg));
+      $("heroAvgLbl").textContent=reviews.length+" review"+(reviews.length===1?"":"s");
+      $("reviewsSubtitle").textContent=reviews.length+" review"+(reviews.length===1?"":"s");
     }
 
-    // Reviews list
-    if(!reviews.length){
-      $("reviewsList").innerHTML=`<div class="mh-empty" style="margin-top:10px"><strong>No reviews yet</strong>Complete a session and leave a review.</div>`;
-      return;
-    }
-
-    $("reviewsList").innerHTML=reviews.map(r=>`
-      <div class="review-item">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
-          <span class="stars-display">${starsHtml(r.rating)}</span>
-          <span class="mh-badge">${r.rating}/5</span>
-        </div>
-        ${r.comment?`<p>${esc(r.comment)}</p>`:""}
-        <small>${fmt(r.created_at)}</small>
-      </div>`).join("");
+    const list=$("reviewsList");
+    if(!reviews.length){ list.innerHTML='<div class="empty-msg">No reviews yet. Complete a session and leave a review.</div>'; return; }
+    list.innerHTML="";
+    reviews.forEach(r=>{
+      const card=document.createElement("div"); card.className="review-card";
+      card.innerHTML=`
+        <div class="rc-stars">${starsHtml(r.rating)}<span class="rc-rating-badge">${r.rating}/5</span></div>
+        ${r.comment?`<div class="rc-comment">${esc(r.comment)}</div>`:""}
+        <div class="rc-date">${fmt(r.created_at)}</div>`;
+      list.appendChild(card);
+    });
   }
 
-  $("submitReviewBtn").addEventListener("click", submitReview);
-  $("cancelReviewBtn").addEventListener("click", ()=>{ $("reviewForm").style.display="none"; SELECTED=null; });
+  $("submitReviewBtn").addEventListener("click",submitReview);
+  $("cancelReviewBtn").addEventListener("click",()=>{ $("reviewForm").style.display="none"; SELECTED=null; });
+  $("signOutBtn").addEventListener("click",async()=>{ await sb.auth.signOut(); window.location.href="auth.html?mode=signin"; });
 
   init();
 </script>
 
-<!-- ── Mobile right-side drawer ── -->
+<!-- Mobile drawer -->
 <div id="navOverlay" onclick="closeDrawer()" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);backdrop-filter:blur(3px);z-index:90;"></div>
 <div class="mh-mobile-drawer" id="mobileDrawer">
-  <div class="drawer-head">
-    <div class="drawer-head-brand">
-      <img src="logo.png" alt="MentifyHub"/>
-      <strong>MentifyHub</strong>
-    </div>
-    <button class="mh-drawer-close" onclick="closeDrawer()" aria-label="Close menu">✕</button>
-  </div>
-  <div class="mh-drawer-user" id="drawerUserInfo">Loading…</div>
+  <div class="drawer-head"><div class="drawer-head-brand"><img src="logo.png" alt=""/><strong>MentifyHub</strong></div><button class="mh-drawer-close" onclick="closeDrawer()">✕</button></div>
+  <div class="mh-drawer-user" id="drawerUserInfo">Loading...</div>
   <div class="mh-drawer-links">
-    <a href="#" id="drawerDashLink"   class="mh-drawer-link"><span class="icon">🏠</span> Dashboard</a>
-    <a href="mentor-directory.html"   class="mh-drawer-link"><span class="icon">🔍</span> Directory</a>
-    <a href="messages.html"           class="mh-drawer-link"><span class="icon">💬</span> Messages</a>
-    <a href="sessions.html"           class="mh-drawer-link"><span class="icon">📅</span> Sessions</a>
-    <a href="reviews.html"            class="mh-drawer-link active"><span class="icon">⭐</span> Reviews</a>
+    <a href="#" id="drawerDashLink" class="mh-drawer-link"><span class="icon">🏠</span> Dashboard</a>
+    <a href="mentor-directory.html" class="mh-drawer-link"><span class="icon">🔍</span> Directory</a>
+    <a href="messages.html" class="mh-drawer-link"><span class="icon">💬</span> Messages</a>
+    <a href="sessions.html" class="mh-drawer-link"><span class="icon">📅</span> Sessions</a>
+    <a href="reviews.html" class="mh-drawer-link active"><span class="icon">⭐</span> Reviews</a>
   </div>
-  <div class="mh-drawer-footer">
-    <button class="mh-drawer-signout" onclick="drawerSignOut()">🚪 &nbsp;Sign out</button>
-  </div>
+  <div class="mh-drawer-footer"><button class="mh-drawer-signout" onclick="drawerSignOut()">🚪 Sign out</button></div>
 </div>
-
 <script>
-  document.body.classList.add("has-side-nav");
-
-  function openDrawer(){
-    if(window.innerWidth > 768) return;
-    const d = document.getElementById('mobileDrawer');
-    const o = document.getElementById('navOverlay');
-    if(!d||!o) return;
-    d.classList.add('open');
-    o.style.display = 'block';
-    document.body.style.overflow = 'hidden';
-    const chip = document.getElementById('whoChip')||document.getElementById('envChip');
-    const info = document.getElementById('drawerUserInfo');
-    if(chip&&info) info.textContent = chip.textContent;
-  }
-
-  function closeDrawer(){
-    const d = document.getElementById('mobileDrawer');
-    const o = document.getElementById('navOverlay');
-    if(!d||!o) return;
-    d.classList.remove('open');
-    o.style.display = 'none';
-    document.body.style.overflow = '';
-  }
-
-  async function drawerSignOut(){
-    try{
-      const sb2 = window.supabase || window.sb || window._sb;
-      if(sb2) await sb2.auth.signOut();
-    }catch(e){}
-    window.location.href = 'auth.html?mode=signin';
-  }
+  function openDrawer(){ const d=$("mobileDrawer"),o=$("navOverlay"); if(d&&o){d.classList.add("open");o.style.display="block";document.body.style.overflow="hidden"; const c=$("whoChip"); const i=$("drawerUserInfo"); if(c&&i)i.textContent=c.textContent;} }
+  function closeDrawer(){ const d=$("mobileDrawer"),o=$("navOverlay"); if(d&&o){d.classList.remove("open");o.style.display="none";document.body.style.overflow="";} }
+  async function drawerSignOut(){ try{if(sb) await sb.auth.signOut();}catch(e){} window.location.href="auth.html?mode=signin"; }
 </script>
 </body>
 </html>

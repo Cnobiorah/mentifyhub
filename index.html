@@ -3,471 +3,319 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>MentifyHub — Connect with expert mentors</title>
+  <title>MentifyHub - Find Your Right Mentor</title>
   <meta name="description" content="MentifyHub connects people with experienced mentors in sustainability, energy and green buildings."/>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..900;1,9..40,300..900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="mh-theme.css"/>
   <style>
-    *, *::before, *::after { box-sizing: border-box; }
-    body { background: #f4f7fb; margin: 0; font-family: 'DM Sans', sans-serif; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #fff; font-family: 'DM Sans', system-ui, -apple-system, sans-serif; font-size: 14px; }
 
-    /* ── NAVBAR ── */
-    .lp-nav {
-      position: sticky; top: 0; z-index: 100;
-      background: rgba(244,247,251,0.94);
-      backdrop-filter: blur(14px);
-      border-bottom: 1px solid #e2e8f0;
-      padding: 0 40px;
-    }
-    .lp-nav-inner {
-      max-width: 1200px; margin: 0 auto;
-      display: flex; align-items: center; justify-content: space-between;
-      height: 68px; gap: 16px;
-    }
-    .lp-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
-    .lp-brand img { width: 36px; height: 36px; border-radius: 10px; }
-    .lp-brand-name { font-size: 17px; font-weight: 800; color: #0f172a; letter-spacing: -0.3px; }
-    .lp-nav-actions { display: flex; align-items: center; gap: 10px; }
-    .btn-outline {
-      padding: 9px 20px; border-radius: 10px;
-      border: 1.5px solid #cbd5e1; background: #fff;
-      font-size: 14px; font-weight: 600; color: #0f172a;
-      cursor: pointer; text-decoration: none;
-      transition: border-color .15s, box-shadow .15s;
-    }
-    .btn-outline:hover { border-color: #0b3b89; box-shadow: 0 0 0 3px rgba(11,59,137,.08); }
-    .btn-solid {
-      padding: 9px 22px; border-radius: 10px;
-      background: #0b3b89; color: #fff;
-      font-size: 14px; font-weight: 700;
-      cursor: pointer; text-decoration: none;
-      transition: background .15s, transform .1s; border: none;
-    }
-    .btn-solid:hover { background: #0d47a8; transform: translateY(-1px); }
+    /* ── Navbar ── */
+    .navbar { display:flex; align-items:center; justify-content:space-between; padding:18px 48px; border-bottom:1px solid #f1f5f9; position:sticky; top:0; background:rgba(255,255,255,.95); backdrop-filter:blur(12px); z-index:100; }
+    .nav-actions { display:flex; align-items:center; gap:10px; }
+    .btn-login { padding:9px 22px; border-radius:8px; border:1.5px solid #e2e8f0; background:#fff; color:#0f172a; font-size:14px; font-weight:700; text-decoration:none; }
+    .btn-login:hover { border-color:#cbd5e1; }
+    .btn-start { padding:9px 22px; border-radius:8px; background:#0f172a; color:#fff; font-size:14px; font-weight:700; text-decoration:none; border:none; }
+    .btn-start:hover { background:#1e293b; }
 
-    /* ── HERO ── */
-    .hero-section {
-      max-width: 1200px; margin: 0 auto;
-      padding: 72px 40px 40px; text-align: center;
-    }
-    .role-tabs {
-      display: inline-flex; gap: 0;
-      border-bottom: 2px solid #e2e8f0; margin-bottom: 48px;
-    }
-    .role-tab {
-      padding: 10px 24px; font-size: 15px; font-weight: 600;
-      color: #94a3b8; cursor: pointer; text-decoration: none;
-      border-bottom: 2px solid transparent; margin-bottom: -2px;
-      transition: color .15s, border-color .15s;
-    }
-    .role-tab.active { color: #0b3b89; border-bottom-color: #0b3b89; }
-    .role-tab:hover:not(.active) { color: #475569; }
+    /* ── Role tabs ── */
+    .role-tabs { display:flex; align-items:center; justify-content:center; margin-top:36px; }
+    .role-tab { padding:8px 20px; font-size:15px; font-weight:600; color:#94a3b8; cursor:pointer; border-bottom:2px solid transparent; text-decoration:none; transition:all .15s; }
+    .role-tab.active { color:#2563eb; border-bottom-color:#2563eb; }
+    .role-tab:hover { color:#0f172a; }
 
-    /* Hero center */
-    .hero-mosaic {
-      display: flex; align-items: center; justify-content: center;
+    /* ── Hero ── */
+    .hero {
+      display:flex; align-items:center; justify-content:center;
+      min-height:calc(100vh - 130px); padding:0 0 48px;
+      position: relative; overflow: hidden;
     }
-    .mosaic-col { display: none; }
-    .hero-center-text { max-width: 640px; width: 100%; }
-    .hero-headline {
-      font-size: clamp(36px, 4.8vw, 60px); font-weight: 900;
-      line-height: 1.08; letter-spacing: -2px; color: #0f172a;
-      margin: 0 0 16px;
+    .hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse 60% 50% at 20% 50%, rgba(37,99,235,.06) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 60% at 80% 30%, rgba(124,58,237,.05) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 40% at 60% 80%, rgba(37,99,235,.04) 0%, transparent 60%);
+      pointer-events: none;
     }
-    .hero-sub {
-      font-size: 17px; color: #475569; line-height: 1.6;
-      margin: 0 auto 32px; max-width: 480px;
+    /* Abstract SVG shapes */
+    .hero-bg {
+      position: absolute; inset: 0; pointer-events: none; overflow: hidden;
     }
-    .hero-sub strong { color: #0b3b89; }
-    .hero-search-box {
-      display: flex; align-items: center; gap: 0;
-      background: #fff; border: 1.5px solid #e2e8f0;
-      border-radius: 14px; padding: 6px 6px 6px 18px;
-      max-width: 500px; margin: 0 auto;
-      box-shadow: 0 4px 24px rgba(15,23,42,.08);
-      transition: border-color .2s, box-shadow .2s;
-    }
-    .hero-search-box:focus-within { border-color: #0b3b89; box-shadow: 0 4px 24px rgba(11,59,137,.14); }
-    .search-icon { color: #0b3b89; margin-right: 8px; flex-shrink: 0; }
-    .hero-search-box input {
-      flex: 1; border: none; outline: none; font-size: 15px;
-      color: #0f172a; background: transparent; font-family: inherit;
-    }
-    .hero-search-box input::placeholder { color: #94a3b8; }
-    .hero-search-btn {
-      padding: 10px 22px; background: #0b3b89; color: #fff;
-      border: none; border-radius: 10px; font-size: 14px; font-weight: 700;
-      cursor: pointer; font-family: inherit; flex-shrink: 0;
-      transition: background .15s;
-    }
-    .hero-search-btn:hover { background: #0d47a8; }
-    .hero-proven {
-      font-size: 13px; color: #64748b; font-weight: 600;
-      margin-top: 32px; text-align: center;
-    }
+    .hero-center { position: relative; z-index: 1; }
+    .hero-h1 { font-size:clamp(34px,4vw,56px); font-weight:900; line-height:1.08; letter-spacing:-1.5px; color:#0f172a; margin-bottom:16px; }
+    .hero-h1 .blue { color:#2563eb; }
+    .hero-sub { font-size:16px; color:#64748b; line-height:1.6; max-width:44ch; margin-bottom:28px; }
+    .hero-sub strong { color:#0f172a; }
 
-    /* ── MENTORS SECTION ── */
-    .section-wrap { max-width: 1200px; margin: 0 auto; padding: 60px 40px; }
-    .section-head {
-      display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px;
-    }
-    .section-title { font-size: 26px; font-weight: 800; color: #0f172a; letter-spacing: -0.5px; }
-    .section-actions { display: flex; align-items: center; gap: 10px; }
-    .btn-explore {
-      padding: 9px 20px; border-radius: 10px;
-      border: 1.5px solid #e2e8f0; background: #fff;
-      font-size: 13px; font-weight: 600; color: #0f172a;
-      cursor: pointer; text-decoration: none; transition: border-color .15s;
-    }
-    .btn-explore:hover { border-color: #0b3b89; }
-    .slider-btn {
-      width: 38px; height: 38px; border-radius: 50%;
-      border: 1.5px solid #e2e8f0; background: #fff;
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer; font-size: 16px; color: #475569;
-      transition: border-color .15s, color .15s;
-    }
-    .slider-btn:hover { border-color: #0b3b89; color: #0b3b89; }
-    .mentors-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
-    .mentor-card {
-      background: #fff; border-radius: 18px; overflow: hidden;
-      border: 1px solid #e8edf5;
-      box-shadow: 0 2px 8px rgba(15,23,42,.05);
-      transition: transform .2s, box-shadow .2s;
-      cursor: pointer; text-decoration: none; display: block; color: inherit;
-    }
-    .mentor-card:hover { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(15,23,42,.10); }
-    .mc-photo-wrap { position: relative; }
-    .mc-photo {
-      width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block;
-    }
-    .mc-photo-placeholder {
-      width: 100%; aspect-ratio: 4/3;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 48px;
-    }
-    .mc-badge {
-      position: absolute; bottom: 10px; left: 10px; display: flex; align-items: center; gap: 6px;
-    }
-    .mc-top-rated {
-      position: absolute; top: 10px; left: 10px;
-      background: rgba(255,255,255,.95); border-radius: 999px;
-      padding: 4px 10px; font-size: 11px; font-weight: 700; color: #0f172a;
-    }
-    .mc-avail {
-      background: rgba(5,150,105,.9); color: #fff;
-      border-radius: 999px; padding: 4px 10px;
-      font-size: 11px; font-weight: 700;
-      display: flex; align-items: center; gap: 4px;
-    }
-    .mc-avail::before { content: '⚡'; font-size: 10px; }
-    .mc-advance {
-      background: rgba(234,179,8,.92); color: #0f172a;
-      border-radius: 999px; padding: 4px 10px;
-      font-size: 11px; font-weight: 700;
-      display: flex; align-items: center; gap: 4px;
-    }
-    .mc-advance::before { content: '🗓'; font-size: 10px; }
-    .mc-body { padding: 16px; }
-    .mc-name { font-size: 15px; font-weight: 800; color: #0f172a; margin-bottom: 4px; }
-    .mc-country { font-size: 11px; font-weight: 500; color: #94a3b8; margin-left: 4px; }
-    .mc-role { font-size: 12px; color: #475569; margin-bottom: 4px; display: flex; align-items: flex-start; gap: 6px; line-height: 1.4; }
-    .mc-sessions { font-size: 12px; color: #64748b; display: flex; align-items: center; gap: 5px; }
-    .mc-stats {
-      display: flex; gap: 0;
-      border-top: 1px solid #f1f5f9; margin-top: 12px; padding-top: 12px;
-    }
-    .mc-stat { flex: 1; text-align: center; }
-    .mc-stat-label { font-size: 10px; color: #94a3b8; margin-bottom: 2px; }
-    .mc-stat-val { font-size: 13px; font-weight: 800; color: #0f172a; }
-    .mc-skeleton {
-      background: #f1f5f9; border-radius: 18px; overflow: hidden;
-      border: 1px solid #e8edf5; animation: pulse 1.5s ease-in-out infinite;
-    }
-    .mc-skeleton-photo { width: 100%; aspect-ratio: 4/3; background: #e2e8f0; }
-    .mc-skeleton-body { padding: 16px; }
-    .mc-skeleton-line { height: 12px; background: #e2e8f0; border-radius: 6px; margin-bottom: 8px; }
-    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+    /* Search with button */
+    .search-wrap { display:flex; background:#fff; border:1.5px solid #e2e8f0; border-radius:14px; width:100%; max-width:500px; box-shadow:0 2px 16px rgba(15,23,42,.08); overflow:hidden; transition:border-color .2s; }
+    .search-wrap:focus-within { border-color:#2563eb; }
+    .search-inner { display:flex; align-items:center; gap:8px; flex:1; padding:14px 16px; }
+    .search-inner svg { width:18px; height:18px; stroke:#2563eb; flex-shrink:0; }
+    .search-inner input { flex:1; border:none; outline:none; font:inherit; font-size:15px; color:#0f172a; background:transparent; }
+    .search-inner input::placeholder { color:#94a3b8; }
+    .search-btn { padding:0 22px; background:#0f172a; color:#fff; font:inherit; font-size:14px; font-weight:700; border:none; cursor:pointer; transition:background .15s; white-space:nowrap; }
+    .search-btn:hover { background:#1e293b; }
 
-    /* ── STATS BANNER ── */
-    .stats-banner {
-      background: linear-gradient(135deg, #fce7f3 0%, #e0e7ff 40%, #dbeafe 100%);
-      padding: 80px 40px;
-    }
-    .stats-banner-inner { max-width: 1200px; margin: 0 auto; }
-    .stats-banner h2 {
-      font-size: clamp(26px, 3.5vw, 40px); font-weight: 900;
-      color: #0f172a; text-align: center; letter-spacing: -1px; margin-bottom: 48px;
-    }
-    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
-    .stat-card {
-      background: rgba(255,255,255,.72); backdrop-filter: blur(10px);
-      border-radius: 20px; padding: 32px 24px; text-align: center;
-      border: 1px solid rgba(255,255,255,.85);
-    }
-    .stat-card-label { font-size: 13px; color: #64748b; margin-bottom: 10px; }
-    .stat-card-num {
-      font-size: clamp(34px, 4.5vw, 52px); font-weight: 900;
-      color: #0b3b89; letter-spacing: -2px; line-height: 1; margin-bottom: 8px;
-    }
-    .stat-card-desc { font-size: 14px; font-weight: 600; color: #475569; }
-    .stat-loading { color: #94a3b8; font-style: italic; font-size: 13px; }
+    /* Social proof */
+    .social-proof { display:flex; align-items:center; gap:12px; margin-top:20px; }
+    .avatar-stack { display:flex; }
+    .av { width:30px; height:30px; border-radius:50%; border:2px solid #fff; margin-left:-8px; background:linear-gradient(135deg,#2563eb,#7c3aed); display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; color:#fff; overflow:hidden; }
+    .av:first-child { margin-left:0; }
+    .social-text { font-size:13px; color:#64748b; font-weight:600; }
+    .social-text strong { color:#0f172a; }
 
-    /* ── REVIEWS ── */
-    .reviews-section { background: #fff; padding: 80px 40px; }
-    .reviews-inner { max-width: 1200px; margin: 0 auto; }
-    .reviews-inner h2 {
-      font-size: clamp(26px, 3.5vw, 40px); font-weight: 900;
-      color: #0f172a; text-align: center; letter-spacing: -1px; margin-bottom: 32px;
+    /* ── Mentor Slideshow ── */
+    .slideshow-section { background:#f8faff; padding:60px 0 48px; border-top:1px solid #f1f5f9; }
+    .slideshow-header { display:flex; align-items:center; justify-content:space-between; padding:0 48px; margin-bottom:24px; }
+    .slideshow-header h2 { font-size:22px; font-weight:900; color:#0f172a; }
+    .slideshow-header p  { font-size:14px; color:#94a3b8; margin-top:2px; }
+    .slideshow-nav { display:flex; gap:8px; }
+    .slide-arrow { width:38px; height:38px; border-radius:50%; border:1.5px solid #e2e8f0; background:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:16px; transition:all .15s; color:#0f172a; }
+    .slide-arrow:hover { border-color:#2563eb; color:#2563eb; background:#eff6ff; }
+    .slide-arrow:disabled { opacity:.3; cursor:not-allowed; }
+    .slideshow-track-wrap { overflow:hidden; padding:0 48px; }
+    .slideshow-track { display:flex; gap:20px; transition:transform .4s cubic-bezier(.22,1,.36,1); }
+
+    /* Tall mentor card matching reference */
+    .mentor-slide-card {
+      flex-shrink:0; width:260px; background:#fff; border:1px solid #e2e8f0;
+      border-radius:18px; overflow:hidden;
+      cursor:pointer; transition:transform .2s, box-shadow .2s, border-color .2s;
     }
-    .review-filter-row {
-      display: flex; align-items: center; justify-content: center;
-      gap: 10px; flex-wrap: wrap; margin-bottom: 40px;
+    .mentor-slide-card:hover { transform:translateY(-4px); box-shadow:0 12px 32px rgba(15,23,42,.12); border-color:#bfdbfe; }
+
+    /* Photo area */
+    .msc-photo {
+      width:100%; height:240px; background:linear-gradient(155deg,#dbeafe,#93c5fd);
+      position:relative; overflow:hidden;
     }
-    .review-filter-btn {
-      padding: 8px 20px; border-radius: 999px;
-      border: 1.5px solid #e2e8f0; background: #fff;
-      font-size: 13px; font-weight: 600; color: #475569;
-      cursor: pointer; transition: all .15s; font-family: inherit;
+    .msc-photo img { width:100%; height:100%; object-fit:cover; display:block; }
+    .msc-photo-placeholder {
+      width:100%; height:100%; display:flex; flex-direction:column;
+      align-items:center; justify-content:center; gap:8px;
     }
-    .review-filter-btn.active { background: #0f172a; color: #fff; border-color: #0f172a; }
-    .review-filter-btn:hover:not(.active) { border-color: #0b3b89; color: #0b3b89; }
-    .reviews-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-    .review-card {
-      background: #f8fafc; border-radius: 18px; padding: 24px;
-      border: 1px solid #e8edf5; display: flex; flex-direction: column;
+    .msc-photo-placeholder .mpp-init {
+      font-size:52px; font-weight:900; color:#fff; opacity:.9; line-height:1;
     }
-    .review-mentor { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
-    .rev-avatar {
-      width: 52px; height: 52px; border-radius: 14px; flex-shrink: 0;
-      background: linear-gradient(135deg, #1d4ed8, #0b3b89);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 18px; font-weight: 800; color: #fff; overflow: hidden;
+    .msc-avail-badge {
+      position:absolute; bottom:10px; left:10px;
+      background:rgba(15,23,42,.82); color:#4ade80;
+      font-size:11px; font-weight:700; padding:4px 10px;
+      border-radius:999px; display:flex; align-items:center; gap:5px;
+      backdrop-filter:blur(4px);
     }
-    .rev-avatar img { width: 100%; height: 100%; object-fit: cover; }
-    .rev-mentor-name { font-size: 14px; font-weight: 800; color: #0f172a; }
-    .rev-country { font-size: 11px; font-weight: 500; color: #94a3b8; margin-left: 3px; }
-    .rev-detail { font-size: 11px; color: #64748b; margin-top: 3px; }
-    .rev-stars { font-size: 13px; color: #f59e0b; letter-spacing: 1px; margin-top: 3px; }
-    .review-text { font-size: 14px; color: #334155; line-height: 1.65; margin-bottom: 20px; flex: 1; }
-    .review-author { display: flex; align-items: center; gap: 10px; margin-top: auto; }
-    .rev-author-av {
-      width: 34px; height: 34px; border-radius: 50%; overflow: hidden; flex-shrink: 0;
-      background: linear-gradient(135deg, #3b82f6, #0b3b89);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 12px; font-weight: 700; color: #fff;
-    }
-    .rev-author-av img { width: 100%; height: 100%; object-fit: cover; }
-    .rev-author-name { font-size: 13px; font-weight: 700; color: #0f172a; }
-    .rev-author-role { font-size: 11px; color: #64748b; }
-    .reviews-empty {
-      grid-column: 1/-1; text-align: center; padding: 60px 20px;
-      color: #94a3b8; font-size: 15px;
-    }
-    .reviews-loading {
-      grid-column: 1/-1; text-align: center; padding: 40px;
-      color: #94a3b8; font-size: 14px;
-    }
+    .msc-avail-badge::before { content:'⚡'; font-size:11px; }
+
+    /* Info area */
+    .msc-info { padding:14px 16px 16px; }
+    .msc-name  { font-size:15px; font-weight:800; color:#0f172a; margin-bottom:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .msc-title { font-size:12px; color:#64748b; margin-bottom:10px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; line-height:1.45; min-height:2.9em; }
+    .msc-sessions { font-size:12px; color:#475569; margin-bottom:12px; }
+    .msc-sessions span { font-weight:700; color:#0f172a; }
+
+    /* Stats row */
+    .msc-stats { display:grid; grid-template-columns:1fr 1fr; gap:8px; padding-top:10px; border-top:1px solid #f1f5f9; }
+    .msc-stat-item { }
+    .msc-stat-label { font-size:10px; color:#94a3b8; font-weight:600; margin-bottom:2px; }
+    .msc-stat-value { font-size:14px; font-weight:900; color:#0f172a; }
+
+    /* ── Stats ── */
+    .stats-section { background:linear-gradient(135deg,#fce7f3 0%,#e0e7ff 50%,#dbeafe 100%); padding:80px 48px; text-align:center; }
+    .stats-section .sec-label { font-size:12px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:#7c3aed; margin-bottom:12px; }
+    .stats-section h2 { font-size:34px; font-weight:900; color:#0f172a; margin-bottom:12px; letter-spacing:-.5px; }
+    .stats-section .sec-sub { font-size:15px; color:#64748b; margin-bottom:48px; }
+    .stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; max-width:1000px; margin:0 auto; }
+    .stat-card { background:rgba(255,255,255,.75); backdrop-filter:blur(8px); border-radius:20px; padding:28px 20px; border:1px solid rgba(255,255,255,.7); }
+    .stat-label-top { font-size:12px; color:#64748b; margin-bottom:10px; font-weight:600; }
+    .stat-number { font-size:44px; font-weight:900; color:#2563eb; letter-spacing:-2px; line-height:1; margin-bottom:10px; }
+    .stat-label-bot { font-size:14px; color:#0f172a; font-weight:700; }
+
+    /* ── Reviews ── */
+    .reviews-section { padding:80px 48px; background:#fff; }
+    .reviews-section .sec-label { font-size:12px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:#2563eb; margin-bottom:12px; text-align:center; }
+    .reviews-section h2 { font-size:34px; font-weight:900; color:#0f172a; text-align:center; margin-bottom:8px; letter-spacing:-.5px; }
+    .reviews-section .sec-sub { font-size:15px; color:#64748b; text-align:center; margin-bottom:40px; }
+    .reviews-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; max-width:1100px; margin:0 auto; }
+    .review-card { background:#f8faff; border:1px solid #e8edf5; border-radius:20px; padding:24px; display:flex; flex-direction:column; gap:14px; transition:transform .2s, box-shadow .2s; }
+    .review-card:hover { transform:translateY(-3px); box-shadow:0 10px 28px rgba(15,23,42,.08); }
+    .review-stars { color:#f59e0b; font-size:15px; letter-spacing:2px; }
+    .review-text { font-size:14px; color:#334155; line-height:1.7; flex:1; }
+    .review-footer { display:flex; align-items:center; gap:12px; padding-top:12px; border-top:1px solid #e8edf5; }
+    .review-avatar { width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg,#2563eb,#7c3aed); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; color:#fff; flex-shrink:0; }
+    .review-meta .rm-name { font-size:13px; font-weight:700; color:#0f172a; }
+    .review-meta .rm-role { font-size:11px; color:#94a3b8; margin-top:2px; }
+    .reviews-empty { text-align:center; color:#94a3b8; font-size:14px; padding:40px; grid-column:1/-1; }
 
     /* ── CTA ── */
-    .cta-section { padding: 100px 40px; text-align: center; background: #f4f7fb; }
-    .cta-inner { max-width: 700px; margin: 0 auto; }
-    .cta-section h2 {
-      font-size: clamp(34px, 4.5vw, 58px); font-weight: 900;
-      color: #0f172a; letter-spacing: -2px; line-height: 1.08; margin-bottom: 16px;
-    }
-    .cta-section p { font-size: 16px; color: #64748b; margin-bottom: 40px; line-height: 1.6; }
-    .cta-email-row {
-      display: flex; align-items: center; gap: 0;
-      background: #fff; border: 1.5px solid #e2e8f0;
-      border-radius: 14px; padding: 6px 6px 6px 18px;
-      max-width: 480px; margin: 0 auto;
-      box-shadow: 0 4px 24px rgba(15,23,42,.08);
-    }
-    .cta-email-row input {
-      flex: 1; border: none; outline: none; font-size: 15px;
-      color: #0f172a; background: transparent; font-family: inherit;
-    }
-    .cta-email-row input::placeholder { color: #94a3b8; }
-    .btn-join {
-      padding: 11px 28px; border-radius: 10px;
-      background: linear-gradient(135deg, #1d4ed8, #ec4899);
-      color: #fff; font-size: 15px; font-weight: 700;
-      border: none; cursor: pointer; font-family: inherit;
-      white-space: nowrap; transition: opacity .15s;
-    }
-    .btn-join:hover { opacity: .88; }
+    .cta-section { background:#f8faff; padding:80px 48px; text-align:center; border-top:1px solid #f1f5f9; }
+    .cta-content { max-width:580px; margin:0 auto; }
+    .cta-section .sec-label { font-size:12px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:#2563eb; margin-bottom:12px; }
+    .cta-section h2 { font-size:36px; font-weight:900; color:#0f172a; line-height:1.12; letter-spacing:-1px; margin-bottom:14px; }
+    .cta-section p { font-size:15px; color:#64748b; line-height:1.7; margin-bottom:32px; }
+    .cta-form { display:flex; background:#fff; border:1.5px solid #e2e8f0; border-radius:14px; overflow:hidden; box-shadow:0 2px 16px rgba(15,23,42,.08); max-width:480px; margin:0 auto; }
+    .cta-form input { flex:1; border:none; outline:none; font:inherit; font-size:15px; color:#0f172a; padding:14px 20px; background:transparent; }
+    .cta-form input::placeholder { color:#94a3b8; }
+    .cta-form button { padding:14px 24px; background:#2563eb; color:#fff; font:inherit; font-size:14px; font-weight:700; border:none; cursor:pointer; white-space:nowrap; }
+    .cta-form button:hover { background:#1d4ed8; }
 
-    /* ── FOOTER ── */
-    .lp-footer { border-top: 1px solid #e2e8f0; padding: 24px 40px; background: #f4f7fb; }
-    .lp-footer-inner {
-      max-width: 1200px; margin: 0 auto;
-      display: flex; align-items: center; justify-content: space-between;
-      font-size: 13px; color: #94a3b8;
-    }
-    .lp-footer-links { display: flex; gap: 20px; }
-    .lp-footer-links a { color: #94a3b8; text-decoration: none; transition: color .15s; }
-    .lp-footer-links a:hover { color: #0b3b89; }
+    /* ── Footer ── */
+    .page-footer { border-top:1px solid #f1f5f9; padding:20px 48px; display:flex; align-items:center; justify-content:space-between; font-size:13px; color:#94a3b8; }
+    .page-footer a { color:#94a3b8; text-decoration:none; }
+    .page-footer a:hover { color:#0f172a; }
 
     /* Animations */
-    @keyframes fadeUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
-    .hero-section > * { animation: fadeUp .65s ease both; }
-    .role-tabs { animation-delay: .05s; }
-    .hero-mosaic { animation-delay: .15s; }
-    .hero-proven { animation-delay: .35s; }
-    .reveal { opacity:0; transform:translateY(28px); transition:opacity .6s ease,transform .6s ease; }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+    .hero-h1    { animation:fadeUp .6s ease .1s both; }
+    .hero-sub   { animation:fadeUp .6s ease .2s both; }
+    .search-wrap { animation:fadeUp .6s ease .3s both; }
+    .social-proof { animation:fadeUp .6s ease .4s both; }
+    .photo-card { opacity:0; transform:translateY(12px); }
+    .photo-card.in { animation:fadeUp .5s ease forwards; }
+    .reveal { opacity:0; transform:translateY(24px); transition:opacity .6s ease,transform .6s ease; }
     .reveal.in { opacity:1; transform:translateY(0); }
-    .rd1{transition-delay:.05s} .rd2{transition-delay:.15s} .rd3{transition-delay:.25s} .rd4{transition-delay:.35s}
 
-    /* Responsive */
-    @media (max-width: 960px) {
-      .mentors-grid { grid-template-columns: repeat(2, 1fr); }
-      .stats-grid { grid-template-columns: repeat(2, 1fr); }
-      .reviews-grid { grid-template-columns: repeat(2, 1fr); }
-      .mosaic-col { display: none; }
-    }
-    @media (max-width: 640px) {
-      .hero-section { padding: 44px 20px 32px; }
-      .section-wrap { padding: 44px 20px; }
-      .mentors-grid { grid-template-columns: 1fr; }
-      .stats-grid { grid-template-columns: 1fr 1fr; }
-      .reviews-grid { grid-column: 1fr; grid-template-columns: 1fr; }
-      .lp-nav { padding: 0 16px; }
-      .stats-banner, .reviews-section, .cta-section { padding: 56px 20px; }
-      .lp-footer { padding: 20px; }
-      .lp-footer-inner { flex-direction: column; gap: 12px; text-align: center; }
-      .lp-nav-actions .btn-outline { display: none; }
+    @media(max-width:1024px){ .stats-grid{grid-template-columns:repeat(2,1fr);} }
+    @media(max-width:768px){
+      .hero{grid-template-columns:1fr;min-height:auto;padding:40px 0;}
+      .photo-col{display:none;}
+      .navbar,.stats-section,.reviews-section,.cta-section,.page-footer,.slideshow-header,.slideshow-track-wrap{padding-left:20px;padding-right:20px;}
+      .reviews-grid{grid-template-columns:1fr;}
+      .stats-grid{grid-template-columns:1fr 1fr;}
     }
   </style>
 </head>
 <body>
 
-<!-- NAV -->
-<nav class="lp-nav">
-  <div class="lp-nav-inner">
-    <a href="index.html" class="lp-brand">
-      <img src="logo.png" alt="MentifyHub"/>
-      <span class="lp-brand-name">MentifyHub</span>
-    </a>
-    <div class="lp-nav-actions">
-      <a href="auth.html?mode=signin" class="btn-outline">Log in</a>
-      <a href="auth.html?mode=signup" class="btn-solid">Get started today</a>
-    </div>
+<!-- Navbar -->
+<nav class="navbar">
+  <a href="index.html" class="mh-brand">
+    <img src="logo.png" alt="MentifyHub" class="mh-brand-logo"/>
+    <div class="mh-brand-text"><strong>MentifyHub</strong></div>
+  </a>
+  <div class="nav-actions">
+    <a href="auth.html?mode=signin" class="btn-login">Log in</a>
+    <a href="auth.html?mode=signup" class="btn-start">Get started today</a>
   </div>
 </nav>
 
-<!-- HERO -->
-<section class="hero-section">
-  <div class="role-tabs">
-    <a href="#" class="role-tab active" id="tabMentee">Mentee</a>
-    <a href="auth.html?role=mentor" class="role-tab" id="tabMentor">Mentor</a>
+<!-- Role tabs -->
+<div class="role-tabs">
+  <a href="auth.html?role=mentee" class="role-tab active">Mentee</a>
+  <a href="auth.html?role=mentor" class="role-tab">Mentor</a>
+</div>
+
+<!-- Hero -->
+<div class="hero">
+  <!-- Abstract mentorship background -->
+  <div class="hero-bg">
+    <svg width="100%" height="100%" viewBox="0 0 1440 800" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+      <!-- Large soft circles representing connection/community -->
+      <circle cx="180" cy="300" r="220" fill="rgba(37,99,235,0.04)"/>
+      <circle cx="1280" cy="200" r="180" fill="rgba(124,58,237,0.04)"/>
+      <circle cx="900" cy="650" r="160" fill="rgba(37,99,235,0.03)"/>
+
+      <!-- Connection lines (mentorship bonds) -->
+      <line x1="200" y1="180" x2="480" y2="320" stroke="rgba(37,99,235,0.07)" stroke-width="1.5" stroke-dasharray="6 4"/>
+      <line x1="960" y1="120" x2="1260" y2="280" stroke="rgba(124,58,237,0.07)" stroke-width="1.5" stroke-dasharray="6 4"/>
+      <line x1="120" y1="500" x2="380" y2="620" stroke="rgba(37,99,235,0.05)" stroke-width="1" stroke-dasharray="4 6"/>
+      <line x1="1060" y1="500" x2="1340" y2="400" stroke="rgba(124,58,237,0.05)" stroke-width="1" stroke-dasharray="4 6"/>
+
+      <!-- Small node dots at connection points -->
+      <circle cx="200" cy="180" r="5" fill="rgba(37,99,235,0.12)"/>
+      <circle cx="480" cy="320" r="4" fill="rgba(37,99,235,0.10)"/>
+      <circle cx="960" cy="120" r="5" fill="rgba(124,58,237,0.10)"/>
+      <circle cx="1260" cy="280" r="4" fill="rgba(124,58,237,0.10)"/>
+      <circle cx="120" cy="500" r="3" fill="rgba(37,99,235,0.08)"/>
+      <circle cx="380" cy="620" r="3" fill="rgba(37,99,235,0.08)"/>
+      <circle cx="1060" cy="500" r="3" fill="rgba(124,58,237,0.08)"/>
+      <circle cx="1340" cy="400" r="3" fill="rgba(124,58,237,0.08)"/>
+
+      <!-- Soft arc shapes -->
+      <path d="M 0 600 Q 360 400 720 550 T 1440 480" stroke="rgba(37,99,235,0.04)" stroke-width="2" fill="none"/>
+      <path d="M 0 200 Q 400 350 800 250 T 1440 300" stroke="rgba(124,58,237,0.04)" stroke-width="1.5" fill="none"/>
+    </svg>
   </div>
-
-  <div class="hero-mosaic">
-    <div class="mosaic-col left" id="mosaicLeft"></div>
-
-    <div class="hero-center-text">
-      <h1 class="hero-headline">Reach your goals faster<br/>with expert mentors</h1>
-      <p class="hero-sub">Accelerate your professional growth with 1:1 expert guidance from <strong id="mentorCountHero">—</strong> mentors in our community.</p>
-      <div class="hero-search-box">
-        <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        <input id="heroSearch" type="text" placeholder="What do you want to get better at?" autocomplete="off"/>
-        <button class="hero-search-btn" onclick="goSearch()">Search</button>
+  <div class="hero-center">
+    <h1 class="hero-h1">Connect with your<br/><span class="blue">right mentor.</span></h1>
+    <p class="hero-sub">Find experienced professionals in sustainability, energy and green buildings. Learn from someone who has been where you want to go.</p>
+    <div class="search-wrap">
+      <div class="search-inner">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input id="heroSearch" placeholder="What do you want to get better at?" autocomplete="off"/>
       </div>
+      <button class="search-btn" onclick="doSearch()">Search</button>
     </div>
-
-    <div class="mosaic-col right" id="mosaicRight"></div>
-  </div>
-
-  <p class="hero-proven" id="provenLine">Proven success with professionals worldwide</p>
-</section>
-
-<!-- DISCOVER MENTORS -->
-<div class="section-wrap">
-  <div class="section-head reveal">
-    <h2 class="section-title">Discover the world's top mentors</h2>
-    <div class="section-actions">
-      <a href="auth.html?mode=signup&returnTo=mentor-directory.html" class="btn-explore">Explore all</a>
-      <button class="slider-btn" id="prevBtn" aria-label="Previous">&#8592;</button>
-      <button class="slider-btn" id="nextBtn" aria-label="Next">&#8594;</button>
+    <div class="social-proof">
+      <div class="avatar-stack" id="avatarStack">
+        <div class="av">M</div><div class="av">S</div><div class="av">A</div><div class="av">+</div>
+      </div>
+      <span class="social-text">Trusted by <strong id="mentorCountSub">10+</strong> mentors across the community</span>
     </div>
-  </div>
-  <div class="mentors-grid" id="mentorsGrid">
-    <!-- Skeleton loaders -->
-    <div class="mc-skeleton reveal rd1"><div class="mc-skeleton-photo"></div><div class="mc-skeleton-body"><div class="mc-skeleton-line" style="width:70%"></div><div class="mc-skeleton-line" style="width:90%"></div><div class="mc-skeleton-line" style="width:50%"></div></div></div>
-    <div class="mc-skeleton reveal rd2"><div class="mc-skeleton-photo"></div><div class="mc-skeleton-body"><div class="mc-skeleton-line" style="width:65%"></div><div class="mc-skeleton-line" style="width:85%"></div><div class="mc-skeleton-line" style="width:55%"></div></div></div>
-    <div class="mc-skeleton reveal rd3"><div class="mc-skeleton-photo"></div><div class="mc-skeleton-body"><div class="mc-skeleton-line" style="width:75%"></div><div class="mc-skeleton-line" style="width:80%"></div><div class="mc-skeleton-line" style="width:60%"></div></div></div>
-    <div class="mc-skeleton reveal rd4"><div class="mc-skeleton-photo"></div><div class="mc-skeleton-body"><div class="mc-skeleton-line" style="width:60%"></div><div class="mc-skeleton-line" style="width:88%"></div><div class="mc-skeleton-line" style="width:45%"></div></div></div>
   </div>
 </div>
 
-<!-- STATS BANNER — live from DB -->
-<section class="stats-banner">
-  <div class="stats-banner-inner">
-    <h2 class="reveal">A platform that delivers results</h2>
-    <div class="stats-grid">
-      <div class="stat-card reveal rd1">
-        <div class="stat-card-label">Active mentors</div>
-        <div class="stat-card-num" id="statMentorCount"><span class="stat-loading">…</span></div>
-        <div class="stat-card-desc">Expert Mentors</div>
-      </div>
-      <div class="stat-card reveal rd2">
-        <div class="stat-card-label">Sessions completed</div>
-        <div class="stat-card-num" id="statSessions"><span class="stat-loading">…</span></div>
-        <div class="stat-card-desc">Mentoring Sessions</div>
-      </div>
-      <div class="stat-card reveal rd3">
-        <div class="stat-card-label">Community reviews</div>
-        <div class="stat-card-num" id="statReviews"><span class="stat-loading">…</span></div>
-        <div class="stat-card-desc">Reviews Left</div>
-      </div>
-      <div class="stat-card reveal rd4">
-        <div class="stat-card-label">Average rating</div>
-        <div class="stat-card-num" id="statRating"><span class="stat-loading">…</span></div>
-        <div class="stat-card-desc">Out of 5 Stars</div>
-      </div>
+<!-- Mentor Slideshow -->
+<div class="slideshow-section reveal">
+  <div class="slideshow-header">
+    <div>
+      <h2>Meet our mentors</h2>
+      <p>Experienced professionals ready to guide you</p>
+    </div>
+    <div class="slideshow-nav">
+      <button class="slide-arrow" id="slidePrev" onclick="slide(-1)">&#8592;</button>
+      <button class="slide-arrow" id="slideNext" onclick="slide(1)">&#8594;</button>
     </div>
   </div>
-</section>
+  <div class="slideshow-track-wrap">
+    <div class="slideshow-track" id="slideshowTrack"></div>
+  </div>
+</div>
 
-<!-- LOVED BY COMMUNITY — live reviews -->
-<section class="reviews-section">
-  <div class="reviews-inner">
-    <h2 class="reveal">Loved by our community</h2>
-    <div class="review-filter-row reveal" id="filterRow">
-      <button class="review-filter-btn active" data-filter="All">All</button>
-      <!-- Field filters injected by JS -->
-    </div>
-    <div class="reviews-grid" id="reviewsGrid">
-      <div class="reviews-loading">Loading reviews…</div>
-    </div>
+<!-- Stats -->
+<div class="stats-section reveal">
+  <div class="sec-label">By the numbers</div>
+  <h2>A platform that delivers results</h2>
+  <p class="sec-sub">Real mentors. Real conversations. Real growth.</p>
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-label-top">Unique sectors</div><div class="stat-number" id="statSectors">—</div><div class="stat-label-bot">Green Sectors</div></div>
+    <div class="stat-card"><div class="stat-label-top">Sessions completed</div><div class="stat-number" id="statSessions">—</div><div class="stat-label-bot">Real Conversations</div></div>
+    <div class="stat-card"><div class="stat-label-top">Active mentors</div><div class="stat-number" id="statMentors">—</div><div class="stat-label-bot">Expert Mentors</div></div>
+    <div class="stat-card"><div class="stat-label-top">Community reviews</div><div class="stat-number" id="statReviews">—</div><div class="stat-label-bot">Verified Reviews</div></div>
   </div>
-</section>
+</div>
+
+<!-- Reviews -->
+<div class="reviews-section reveal">
+  <div class="sec-label">Testimonials</div>
+  <h2>Loved by our community</h2>
+  <p class="sec-sub">Hear from mentees who found their right mentor on MentifyHub.</p>
+  <div class="reviews-grid" id="reviewsGrid"><div class="reviews-empty">Loading reviews...</div></div>
+</div>
 
 <!-- CTA -->
-<section class="cta-section">
-  <div class="cta-inner reveal">
-    <h2>Get started for free in 1<br/>minute or less</h2>
-    <p>We want to help you build an epic career with expert mentors.<br/>From junior to leadership, we are here to grow with you on this journey.</p>
-    <div class="cta-email-row">
-      <input type="email" id="ctaEmail" placeholder="Enter your email"/>
-      <button class="btn-join" onclick="joinFree()">Join free now</button>
+<div class="cta-section reveal">
+  <div class="cta-content">
+    <div class="sec-label">Get started</div>
+    <h2>Get started for free in 1 minute or less</h2>
+    <p>We want to help you build your career in sustainability with expert mentors. From student to senior professional, we are here to grow with you.</p>
+    <div class="cta-form">
+      <input id="ctaEmail" type="email" placeholder="Enter your email"/>
+      <button onclick="joinNow()">Join free now</button>
     </div>
   </div>
-</section>
+</div>
 
-<!-- FOOTER -->
-<footer class="lp-footer">
-  <div class="lp-footer-inner">
-    <span>© <span id="yr"></span> MentifyHub. All rights reserved.</span>
-    <div class="lp-footer-links">
-      <a href="#" onclick="return false">Privacy</a>
-      <a href="#" onclick="return false">Terms</a>
-      <a href="#" onclick="return false">Contact</a>
-    </div>
+<!-- Footer -->
+<footer class="page-footer">
+  <span>© <span id="yr"></span> MentifyHub. All rights reserved.</span>
+  <div style="display:flex;gap:20px">
+    <a href="#" onclick="return false">Privacy</a>
+    <a href="#" onclick="return false">Terms</a>
+    <a href="#" onclick="return false">Contact</a>
   </div>
 </footer>
 
@@ -476,378 +324,214 @@ document.getElementById('yr').textContent = new Date().getFullYear();
 
 const SUPABASE_URL      = "https://mscgaaaobxiuzqsukvjc.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zY2dhYWFvYnhpdXpxc3VrdmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDU5NjIsImV4cCI6MjA4NDA4MTk2Mn0.5MWa3RUQmkpchRqn7q1CJz37amlnqIBE-s6HMQ455-Y";
-
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-const FIELD_EMOJI = {
-  "Green Buildings":"🏢","Energy & Renewables":"⚡","Sustainability / ESG":"♻️",
-  "Built Environment (General)":"🏗️","BIM / Digital Twins":"💻","Policy & Research":"📋"
-};
-const GRAD = [
-  "linear-gradient(145deg,#0b3b89,#1d4ed8)",
-  "linear-gradient(145deg,#1d4ed8,#3b82f6)",
-  "linear-gradient(145deg,#0b3b89,#0369a1)",
-  "linear-gradient(145deg,#1e3a5f,#2563eb)",
-  "linear-gradient(145deg,#0f2444,#1d4ed8)",
-  "linear-gradient(145deg,#0c1a3a,#2563eb)",
-];
+const GRADIENTS_L = ["linear-gradient(155deg,#dbeafe,#93c5fd)","linear-gradient(155deg,#e0e7ff,#a5b4fc)","linear-gradient(155deg,#ede9fe,#c4b5fd)","linear-gradient(155deg,#f0f9ff,#7dd3fc)"];
+const GRADIENTS_R = ["linear-gradient(155deg,#fce7f3,#f9a8d4)","linear-gradient(155deg,#d1fae5,#6ee7b7)","linear-gradient(155deg,#fef3c7,#fcd34d)","linear-gradient(155deg,#cffafe,#67e8f9)"];
+const FIELD_EMOJI = {"Green Buildings":"🏢","Energy & Renewables":"⚡","Sustainability / ESG":"♻️","Built Environment (General)":"🏗️","BIM / Digital Twins":"💻","Policy & Research":"📋"};
 
-// ── State ────────────────────────────────────
-let ALL_MENTORS   = [];
-let ALL_REVIEWS   = [];
-let MENTOR_MAP    = {};   // user_id → mentor row
-let MENTEE_MAP    = {};   // user_id → mentee row
-let cardPage      = 0;
-const PAGE_SIZE   = 4;
-let activeField   = "All";
+// ── Slideshow ─────────────────────────────────────────────────
+let slideIndex = 0;
+let allMentors = [];
+const CARD_W   = 280; // card width + gap
 
-// ── Helpers ──────────────────────────────────
-function fmt(n) {
-  if (n >= 1000) return (n/1000).toFixed(n>=10000?0:1).replace(/\.0$/,'') + 'K+';
-  return n + (n > 0 ? '+' : '');
-}
-function stars(r) { return '★'.repeat(Math.round(r||0)) + '☆'.repeat(5-Math.round(r||0)); }
-function initials(name) { return (name||'M').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(); }
+function buildSlideCard(m){
+  const initials = (m.full_name||"M").split(" ").filter(Boolean).slice(0,2).map(w=>w[0]).join("").toUpperCase()||"M";
+  const gradients = ["linear-gradient(155deg,#dbeafe,#93c5fd)","linear-gradient(155deg,#e0e7ff,#a5b4fc)","linear-gradient(155deg,#fce7f3,#f9a8d4)","linear-gradient(155deg,#fef3c7,#fcd34d)","linear-gradient(155deg,#cffafe,#67e8f9)","linear-gradient(155deg,#d1fae5,#6ee7b7)"];
+  const grad = gradients[Math.abs((m.full_name||"X").charCodeAt(0)) % gradients.length];
+  const card = document.createElement("div"); card.className = "mentor-slide-card";
+  card.onclick = () => window.location.href = "auth.html?mode=signup&returnTo=mentor-directory.html";
 
-// ── Fetch all data in parallel ────────────────
-async function loadAll() {
-  const [mentorsRes, reviewsRes, sessionsRes, menteesRes] = await Promise.all([
-    sb.from("mentors").select("*").order("updated_at",{ascending:false}).limit(500),
-    sb.from("reviews").select("*").order("created_at",{ascending:false}).limit(200),
-    sb.from("sessions").select("id,mentor_id,mentee_id,status,scheduled_for").limit(1000),
-    sb.from("mentees").select("user_id,full_name,email,field,level,profile_image").limit(500)
-  ]);
-
-  ALL_MENTORS = mentorsRes.data || [];
-  ALL_REVIEWS = reviewsRes.data || [];
-  const sessions = sessionsRes.data || [];
-  const mentees  = menteesRes.data || [];
-
-  // Build lookup maps
-  ALL_MENTORS.forEach(m => { MENTOR_MAP[m.user_id] = m; });
-  mentees.forEach(m     => { MENTEE_MAP[m.user_id]  = m; });
-
-  return { sessions, mentees };
-}
-
-// ── Render Stats ──────────────────────────────
-function renderStats(sessions) {
-  // Mentor count
-  document.getElementById('statMentorCount').textContent = fmt(ALL_MENTORS.length);
-
-  // Sessions count
-  const completedSessions = sessions.filter(s => s.status === 'completed' || s.scheduled_for < new Date().toISOString());
-  document.getElementById('statSessions').textContent = fmt(sessions.length);
-
-  // Reviews count
-  document.getElementById('statReviews').textContent = fmt(ALL_REVIEWS.length);
-
-  // Avg rating
-  if (ALL_REVIEWS.length) {
-    const avg = (ALL_REVIEWS.reduce((s,r)=>s+(r.rating||0),0) / ALL_REVIEWS.length).toFixed(1);
-    document.getElementById('statRating').textContent = avg;
+  // Photo area
+  const photo = document.createElement("div"); photo.className = "msc-photo"; photo.style.background = grad;
+  if(m.profile_image){
+    const img = document.createElement("img"); img.src = m.profile_image; img.alt = "";
+    img.onerror = () => { img.remove(); photo.insertBefore(makeMscPlaceholder(initials), photo.firstChild); };
+    photo.appendChild(img);
   } else {
-    document.getElementById('statRating').textContent = '—';
+    photo.appendChild(makeMscPlaceholder(initials));
   }
-}
+  const badge = document.createElement("div"); badge.className = "msc-avail-badge"; badge.textContent = "Available";
+  photo.appendChild(badge);
+  card.appendChild(photo);
 
-// ── Render Mentor Cards ───────────────────────
-function buildMentorCard(m, idx) {
-  const emoji = FIELD_EMOJI[m.field] || '🌱';
-  const grad  = GRAD[idx % GRAD.length];
-  const isAvail = !!(m.availability && m.availability !== 'none') || idx % 2 === 0;
-  const yrs   = m.years_experience ? m.years_experience + ' yrs' : '—';
-  const countryFlag = m.country ? ` <span class="mc-country">${m.country}</span>` : '';
-
-  // Count sessions and reviews for this mentor
-  const mentorReviews = ALL_REVIEWS.filter(r => r.mentor_id === m.user_id);
-  const sessCount = mentorReviews.length;
-  const avgRat = mentorReviews.length
-    ? (mentorReviews.reduce((s,r)=>s+(r.rating||0),0)/mentorReviews.length).toFixed(1)
-    : null;
-
-  const card = document.createElement('a');
-  card.className = 'mentor-card';
-  card.href = 'auth.html?mode=signup&returnTo=mentor-directory.html';
-
-  let photoHTML;
-  if (m.profile_image) {
-    photoHTML = `<img class="mc-photo" src="${m.profile_image}" alt="${m.full_name||'Mentor'}" loading="lazy" onerror="this.outerHTML='<div class=mc-photo-placeholder style=background:${grad.replace(/"/g,"'")}>${emoji}</div>'"/>`;
-  } else {
-    photoHTML = `<div class="mc-photo-placeholder" style="background:${grad}">${emoji}</div>`;
-  }
-
-  const topRated = sessCount >= 5 && avgRat >= 4.5;
-
-  card.innerHTML = `
-    <div class="mc-photo-wrap">
-      ${photoHTML}
-      ${topRated ? '<div class="mc-top-rated">⭐ Top rated</div>' : ''}
-      <div class="mc-badge">
-        <span class="${isAvail ? 'mc-avail' : 'mc-advance'}">${isAvail ? 'Available ASAP' : 'Advance'}</span>
-      </div>
-    </div>
-    <div class="mc-body">
-      <div class="mc-name">${m.full_name || 'Mentor'}${countryFlag}</div>
-      <div class="mc-role">🏢 ${m.headline || m.current_title || m.field || 'Expert Mentor'}</div>
-      <div class="mc-sessions">💬 ${sessCount} review${sessCount!==1?'s':''}${avgRat?` · ★ ${avgRat}`:''}</div>
-      <div class="mc-stats">
-        <div class="mc-stat">
-          <div class="mc-stat-label">Experience</div>
-          <div class="mc-stat-val">${yrs}</div>
-        </div>
-        <div class="mc-stat">
-          <div class="mc-stat-label">Field</div>
-          <div class="mc-stat-val" style="font-size:11px;font-weight:700;color:#475569">${(m.field||'—').split('/')[0].trim()}</div>
-        </div>
-      </div>
-    </div>
-  `;
+  // Info area
+  const info = document.createElement("div"); info.className = "msc-info";
+  info.innerHTML = `
+    <div class="msc-name">${esc(m.full_name||"Mentor")}</div>
+    <div class="msc-title">${esc([m.headline,m.field].filter(Boolean).join(" · ")||"Mentor")}</div>
+    <div class="msc-stats">
+      <div class="msc-stat-item"><div class="msc-stat-label">Experience</div><div class="msc-stat-value">${esc(m.experience||"—")}</div></div>
+      <div class="msc-stat-item"><div class="msc-stat-label">Sector</div><div class="msc-stat-value" style="font-size:11px">${esc(m.field||"—")}</div></div>
+    </div>`;
+  card.appendChild(info);
   return card;
 }
 
-function renderMentors() {
-  const grid = document.getElementById('mentorsGrid');
-  grid.innerHTML = '';
-  if (!ALL_MENTORS.length) {
-    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#94a3b8">No mentors found.</div>';
-    return;
-  }
-  const total = ALL_MENTORS.length;
-  const start = (cardPage * PAGE_SIZE) % total;
-  let slice = [];
-  for (let i = 0; i < PAGE_SIZE; i++) {
-    slice.push(ALL_MENTORS[(start + i) % total]);
-  }
-  slice.forEach((m, i) => {
-    const card = buildMentorCard(m, cardPage * PAGE_SIZE + i);
-    card.style.opacity = '0'; card.style.transform = 'translateY(16px)';
-    grid.appendChild(card);
-    setTimeout(() => {
-      card.style.transition = `opacity .4s ease ${i*0.08}s, transform .4s ease ${i*0.08}s`;
-      card.style.opacity = '1'; card.style.transform = 'translateY(0)';
-    }, 20);
-  });
+function makeMscPlaceholder(initials){
+  const d = document.createElement("div"); d.className = "msc-photo-placeholder";
+  d.innerHTML = `<span class="mpp-init">${initials}</span>`;
+  return d;
 }
 
-// ── Mosaic photos ─────────────────────────────
-function buildMosaicPhoto(m, size, faded) {
-  const emoji = FIELD_EMOJI[m.field] || '🌱';
-  const grad  = GRAD[Math.floor(Math.random()*GRAD.length)];
-  const div = document.createElement('div');
-  div.className = `mosaic-photo ${size}${faded?' mp-faded':''}`;
-  if (faded) div.style.opacity = '0.45';
-  if (m.profile_image) {
-    const img = document.createElement('img');
-    img.src = m.profile_image; img.alt = m.full_name || 'Mentor';
-    img.loading = 'lazy';
-    img.onerror = () => { div.style.background = grad; div.innerHTML = emoji; };
-    div.appendChild(img);
-  } else {
-    div.style.background = grad; div.textContent = emoji;
-  }
-  return div;
+function esc(s){ return String(s??"").replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+function renderSlideshow(mentors){
+  const track = document.getElementById("slideshowTrack");
+  track.innerHTML = "";
+  mentors.forEach(m => track.appendChild(buildSlideCard(m)));
+  updateArrows();
 }
 
-function renderMosaic() {
-  if (ALL_MENTORS.length < 6) return;
-  const left  = document.getElementById('mosaicLeft');
-  const right = document.getElementById('mosaicRight');
-  const shuffled = [...ALL_MENTORS].sort(() => Math.random()-.5);
-
-  left.innerHTML = ''; right.innerHTML = '';
-  const leftSet  = shuffled.slice(0, 6);
-  const rightSet = shuffled.slice(6, 12);
-
-  [
-    [leftSet[0],'mp-lg',false],[leftSet[1],'mp-sm',true],
-    [leftSet[2],'mp-sm',true],[leftSet[3],'mp-lg',false],
-    [leftSet[4],'mp-sm',true],[leftSet[5],'mp-sm',true]
-  ].forEach(([m,sz,f]) => left.appendChild(buildMosaicPhoto(m,sz,f)));
-
-  [
-    [rightSet[0],'mp-sm',true],[rightSet[1],'mp-sm',true],
-    [rightSet[2],'mp-lg',false],[rightSet[3],'mp-sm',true],
-    [rightSet[4],'mp-sm',true],[rightSet[5],'mp-lg',false]
-  ].forEach(([m,sz,f]) => {
-    if (m) right.appendChild(buildMosaicPhoto(m,sz,f));
-  });
+function slide(dir){
+  const track = document.getElementById("slideshowTrack");
+  const wrap  = document.querySelector(".slideshow-track-wrap");
+  const visible = Math.floor(wrap.offsetWidth / CARD_W);
+  const max = Math.max(0, allMentors.length - visible);
+  slideIndex = slideIndex + dir;
+  // Loop back to start when reaching end, loop to end when going before start
+  if(slideIndex > max) slideIndex = 0;
+  if(slideIndex < 0)   slideIndex = max;
+  track.style.transform = `translateX(-${slideIndex * CARD_W}px)`;
+  updateArrows();
 }
 
-// ── Render Reviews ────────────────────────────
-function renderReviews(field) {
-  const grid = document.getElementById('reviewsGrid');
-  grid.innerHTML = '';
-
-  let filtered = ALL_REVIEWS.filter(r => r.comment && r.comment.trim().length > 20 && r.rating >= 4);
-
-  if (field !== 'All') {
-    // Filter by mentor's field
-    filtered = filtered.filter(r => {
-      const mentor = MENTOR_MAP[r.mentor_id];
-      return mentor && (mentor.field === field || (mentor.tags||[]).includes(field));
-    });
-  }
-
-  if (!filtered.length) {
-    grid.innerHTML = '<div class="reviews-empty">No reviews yet for this category.</div>';
-    return;
-  }
-
-  // Show up to 6
-  filtered.slice(0, 6).forEach((r, i) => {
-    const mentor  = MENTOR_MAP[r.mentor_id]  || {};
-    const mentee  = MENTEE_MAP[r.mentee_id]  || {};
-    const mEmoji  = FIELD_EMOJI[mentor.field] || '🌱';
-    const grad    = GRAD[i % GRAD.length];
-
-    const card = document.createElement('div');
-    card.className = `review-card reveal rd${(i%3)+1}`;
-    if (i >= 3) card.style.transitionDelay = ((i-3)*0.1+0.05)+'s';
-
-    let mentorAvHTML;
-    if (mentor.profile_image) {
-      mentorAvHTML = `<img src="${mentor.profile_image}" alt="${mentor.full_name||'Mentor'}" loading="lazy" onerror="this.outerHTML='<span style=font-size:18px>${mEmoji}</span>'"/>`;
-    } else {
-      mentorAvHTML = mEmoji;
-    }
-
-    let menteeAvHTML;
-    if (mentee.profile_image) {
-      menteeAvHTML = `<img src="${mentee.profile_image}" alt="${mentee.full_name||'M'}" loading="lazy"/>`;
-    } else {
-      menteeAvHTML = initials(mentee.full_name || 'M');
-    }
-
-    const countryBadge = mentor.country ? ` <span class="rev-country">${mentor.country}</span>` : '';
-    const starStr = stars(r.rating);
-
-    card.innerHTML = `
-      <div class="review-mentor">
-        <div class="rev-avatar">${mentorAvHTML}</div>
-        <div>
-          <div class="rev-mentor-name">${mentor.full_name || 'Mentor'}${countryBadge}</div>
-          <div class="rev-detail">🏢 ${mentor.headline || mentor.current_title || mentor.field || 'Mentor'}</div>
-          <div class="rev-stars">${starStr}</div>
-        </div>
-      </div>
-      <p class="review-text">${r.comment}</p>
-      <div class="review-author">
-        <div class="rev-author-av">${menteeAvHTML}</div>
-        <div>
-          <div class="rev-author-name">${mentee.full_name || 'Community Member'}</div>
-          <div class="rev-author-role">${mentee.field || mentee.level || 'Mentee'}</div>
-        </div>
-      </div>
-    `;
-    grid.appendChild(card);
-  });
-
-  // Trigger reveal
-  requestAnimationFrame(() => {
-    grid.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
-  });
+function updateArrows(){
+  const wrap    = document.querySelector(".slideshow-track-wrap");
+  const visible = Math.floor((wrap?.offsetWidth||0) / CARD_W);
+  const max     = Math.max(0, allMentors.length - visible);
+  const prev    = document.getElementById("slidePrev");
+  const next    = document.getElementById("slideNext");
+  if(prev) prev.disabled = false;
+  if(next) next.disabled = false;
 }
 
-// ── Field filter buttons ──────────────────────
-function buildFieldFilters() {
-  const fields = [...new Set(ALL_MENTORS.map(m => m.field).filter(Boolean))];
-  const row = document.getElementById('filterRow');
+// Auto-slide every 3 seconds, pause on hover
+let autoSlideTimer = null;
+function startAutoSlide(){
+  autoSlideTimer = setInterval(() => slide(1), 5000);
+}
+function stopAutoSlide(){
+  clearInterval(autoSlideTimer);
+}
+document.querySelector(".slideshow-section")?.addEventListener("mouseenter", stopAutoSlide);
+document.querySelector(".slideshow-section")?.addEventListener("mouseleave", startAutoSlide);
 
-  fields.forEach(field => {
-    const btn = document.createElement('button');
-    btn.className = 'review-filter-btn';
-    btn.dataset.filter = field;
-    // Shorten label
-    const short = field.replace(' / ESG','').replace(' (General)','').replace(' & Renewables','');
-    btn.textContent = short;
-    row.appendChild(btn);
-  });
-
-  row.querySelectorAll('.review-filter-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      row.querySelectorAll('.review-filter-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      activeField = btn.dataset.filter;
-      renderReviews(activeField);
-    });
-  });
+function animateCount(el, target, duration){
+  if(!el) return;
+  const step = target / (duration / 16); let current = 0;
+  const timer = setInterval(() => {
+    current = Math.min(current + step, target);
+    el.textContent = Math.floor(current) + (target >= 10 ? "+" : "");
+    if(current >= target) clearInterval(timer);
+  }, 16);
 }
 
-// ── Pagination ────────────────────────────────
-document.getElementById('nextBtn').addEventListener('click', () => {
-  if (!ALL_MENTORS.length) return;
-  cardPage++;
-  renderMentors();
-});
-document.getElementById('prevBtn').addEventListener('click', () => {
-  if (!ALL_MENTORS.length) return;
-  cardPage = Math.max(0, cardPage - 1);
-  renderMentors();
-});
-
-// ── Search ────────────────────────────────────
-function goSearch() {
-  const q = document.getElementById('heroSearch').value.trim();
-  const url = q
-    ? `auth.html?mode=signup&returnTo=mentor-directory.html&q=${encodeURIComponent(q)}`
-    : 'auth.html?mode=signup&returnTo=mentor-directory.html';
-  window.location.href = url;
-}
-document.getElementById('heroSearch').addEventListener('keydown', e => {
-  if (e.key === 'Enter') goSearch();
-});
-
-// ── CTA ───────────────────────────────────────
-function joinFree() {
-  const email = document.getElementById('ctaEmail').value.trim();
-  window.location.href = email
-    ? `auth.html?mode=signup&email=${encodeURIComponent(email)}`
-    : 'auth.html?mode=signup';
-}
-
-// ── Role tab ──────────────────────────────────
-document.getElementById('tabMentee').addEventListener('click', e => {
-  e.preventDefault();
-  document.getElementById('tabMentee').classList.add('active');
-  document.getElementById('tabMentor').classList.remove('active');
-});
-
-// ── Scroll reveal ─────────────────────────────
-const revealObs = new IntersectionObserver(entries => {
-  entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('in'); revealObs.unobserve(e.target); } });
-}, { threshold: 0.08 });
-document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
-
-// ── Boot ──────────────────────────────────────
-(async function boot() {
+(async function boot(){
   try {
-    const { sessions } = await loadAll();
+    // Fetch mentors for slideshow + social proof
+    const {data: mentors} = await sb.from("mentors").select("user_id,full_name,field,headline,tags,profile_image,experience").limit(20);
+    allMentors = mentors || [];
 
-    // Hero count
-    document.getElementById('mentorCountHero').textContent = ALL_MENTORS.length + '+';
+    // Fetch real total mentor count (not capped at 20)
+    const {count: mentorCount} = await sb.from("mentors").select("*",{count:"exact",head:true});
 
-    // Update proven line
-    if (ALL_MENTORS.length) {
-      document.getElementById('provenLine').textContent =
-        `Trusted by ${ALL_MENTORS.length}+ mentors across the community`;
+    // Social proof — use real total count
+    const stack = document.getElementById("avatarStack");
+    const countSub = document.getElementById("mentorCountSub");
+    if(allMentors.length){
+      stack.innerHTML="";
+      allMentors.slice(0,3).forEach(m=>{
+        const av=document.createElement("div"); av.className="av";
+        if(m.profile_image){const img=document.createElement("img");img.src=m.profile_image;img.style.cssText="width:100%;height:100%;object-fit:cover;border-radius:50%";av.appendChild(img);}
+        else{av.textContent=(m.full_name||"M")[0].toUpperCase();}
+        stack.appendChild(av);
+      });
+      const plus=document.createElement("div");plus.className="av";plus.textContent="+";stack.appendChild(plus);
+      if(countSub) countSub.textContent = (mentorCount||allMentors.length)+"+";
     }
 
-    // Render all sections
-    renderMosaic();
-    renderMentors();
-    renderStats(sessions);
-    buildFieldFilters();
-    renderReviews('All');
+    // Slideshow
+    renderSlideshow(allMentors);
+    startAutoSlide();
 
-  } catch (err) {
-    console.error('Boot error:', err);
-    document.getElementById('mentorsGrid').innerHTML =
-      '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#94a3b8">Could not load mentors. Please refresh.</div>';
-    document.getElementById('reviewsGrid').innerHTML =
-      '<div class="reviews-empty">Could not load reviews.</div>';
+    // Count distinct sectors from mentors table
+    const {data: sectorRows} = await sb.from("mentors").select("field").not("field","is",null).neq("field","");
+    const sectorCount = new Set((sectorRows||[]).map(r=>r.field)).size;
+
+    // Fetch other counts
+    const {count: sessionCount} = await sb.from("sessions").select("*",{count:"exact",head:true});
+    const {count: reviewCount}  = await sb.from("reviews").select("*",{count:"exact",head:true});
+
+    // Animate stats on scroll
+    const statsObs = new IntersectionObserver(entries => {
+      if(entries[0].isIntersecting){
+        animateCount(document.getElementById("statSectors"),  sectorCount||0,  1200);
+        animateCount(document.getElementById("statSessions"), sessionCount||0, 1200);
+        animateCount(document.getElementById("statMentors"),  mentorCount||0,  1200);
+        animateCount(document.getElementById("statReviews"),  reviewCount||0,  1200);
+        statsObs.disconnect();
+      }
+    }, {threshold:.3});
+    const statsEl = document.querySelector(".stats-section");
+    if(statsEl) statsObs.observe(statsEl);
+
+    // Reviews — fetch reviewer name from mentees table via mentee_id
+    const {data: reviews} = await sb.from("reviews")
+      .select("rating,comment,created_at,mentee_id")
+      .not("comment","is",null).neq("comment","")
+      .order("created_at",{ascending:false}).limit(6);
+
+    const grid = document.getElementById("reviewsGrid");
+    if(reviews && reviews.length){
+      // Fetch mentee names for these reviews
+      const menteeIds = [...new Set(reviews.map(r=>r.mentee_id).filter(Boolean))];
+      let menteeMap = {};
+      if(menteeIds.length){
+        const {data: mentees} = await sb.from("mentees").select("user_id,full_name").in("user_id", menteeIds);
+        (mentees||[]).forEach(m => { menteeMap[m.user_id] = m.full_name; });
+      }
+
+      grid.innerHTML="";
+      reviews.forEach((r,i)=>{
+        const stars="★".repeat(Math.min(r.rating||5,5));
+        const name = menteeMap[r.mentee_id] || null;
+        const init = name ? name[0].toUpperCase() : String.fromCharCode(65+(i%26));
+        const displayName = name || "MentifyHub Member";
+        const card=document.createElement("div"); card.className="review-card";
+        card.innerHTML=`<div class="review-stars">${stars}</div><div class="review-text">"${esc(r.comment)}"</div><div class="review-footer"><div class="review-avatar">${init}</div><div class="review-meta"><div class="rm-name">${esc(displayName)}</div><div class="rm-role">Verified mentee</div></div></div>`;
+        grid.appendChild(card);
+      });
+    } else {
+      grid.innerHTML='<div class="reviews-empty">Be the first to leave a review after your session.</div>';
+    }
+  } catch(e){
+    console.warn(e);
   }
 })();
+
+// Search
+function doSearch(){
+  const q = document.getElementById("heroSearch").value.trim();
+  window.location.href = q ? "mentor-directory.html?q="+encodeURIComponent(q) : "mentor-directory.html";
+}
+document.getElementById("heroSearch").addEventListener("keydown", e => { if(e.key==="Enter") doSearch(); });
+
+// CTA
+function joinNow(){
+  const email = document.getElementById("ctaEmail").value.trim();
+  window.location.href = email ? `auth.html?mode=signup&email=${encodeURIComponent(email)}` : "auth.html?mode=signup";
+}
+document.getElementById("ctaEmail").addEventListener("keydown", e => { if(e.key==="Enter") joinNow(); });
+
+// Scroll reveal
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting) e.target.classList.add("in"); });
+}, {threshold:.1});
+document.querySelectorAll(".reveal").forEach(el => obs.observe(el));
+
+// Update arrows on resize
+window.addEventListener("resize", updateArrows);
 </script>
 </body>
 </html>

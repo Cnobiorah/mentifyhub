@@ -3,281 +3,362 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>MentifyHub - Mentor Directory</title>
+  <title>MentifyHub - Find a Mentor</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
   <script src="auth-guard.js"></script>
   <link rel="stylesheet" href="mh-theme.css"/>
   <style>
-    /* Filters */
-    .filters {
-      display: grid;
-      grid-template-columns: 2fr 1fr 1fr 1fr 1fr auto;
-      gap: 8px;
-      margin-top: 16px;
-      padding: 14px;
-      background: #fff;
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
+    body { background: #f0f4fa; }
+    .page-wrap { max-width: 1200px; margin: 0 auto; padding: 28px 24px 60px; }
+
+    /* ── Hero ── */
+    .dir-hero {
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #1d4ed8 100%);
+      border-radius: 20px;
+      padding: 32px 36px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
     }
+    .dh-blob { position:absolute; border-radius:50%; background:rgba(255,255,255,.06); pointer-events:none; }
+    .dh-b1 { width:200px; height:200px; top:-60px; right:100px; }
+    .dh-b2 { width:120px; height:120px; bottom:-40px; right:280px; }
+    .dh-left h1 { font-size:26px; font-weight:900; color:#fff; letter-spacing:-.5px; margin-bottom:6px; }
+    .dh-left p  { font-size:14px; color:rgba(255,255,255,.65); }
+    .dh-stat { text-align:center; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.15); border-radius:16px; padding:16px 24px; flex-shrink:0; }
+    .dh-stat-num { font-size:32px; font-weight:900; color:#fff; line-height:1; }
+    .dh-stat-lbl { font-size:12px; color:rgba(255,255,255,.6); margin-top:4px; font-weight:600; }
 
-    /* Section */
-    .dir-section { margin-top: 20px; }
-    .dir-section h2 { font-size: 15px; font-weight: 700; }
-    .dir-section p  { font-size: 13px; color: var(--muted); margin-top: 2px; }
-
-    /* Mentor cards grid */
-    .mentor-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; margin-top: 12px; }
-    .mentor-card {
-      padding: 16px;
-      border-radius: var(--radius);
-      border: 1px solid var(--line);
+    /* ── Filters ── */
+    .filters-bar {
       background: #fff;
-      box-shadow: var(--shadow);
+      border: 1px solid #e2e8f0;
+      border-radius: 18px;
+      padding: 16px 20px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      box-shadow: 0 1px 4px rgba(15,23,42,.05);
+    }
+    .filter-search {
+      flex: 1;
+      min-width: 200px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #f8faff;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 10px 14px;
+      transition: border-color .2s;
+    }
+    .filter-search:focus-within { border-color: #2563eb; }
+    .filter-search svg { width:16px; height:16px; stroke:#94a3b8; flex-shrink:0; }
+    .filter-search input { border:none; outline:none; font:inherit; font-size:14px; background:transparent; color:#0f172a; width:100%; }
+    .filter-search input::placeholder { color:#94a3b8; }
+    .filter-select {
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1.5px solid #e2e8f0;
+      background: #fff;
+      font: inherit;
+      font-size: 13px;
+      color: #475569;
+      outline: none;
+      cursor: pointer;
+      transition: border-color .2s;
+    }
+    .filter-select:focus { border-color: #2563eb; }
+    .filter-clear {
+      padding: 10px 16px;
+      border-radius: 12px;
+      border: 1.5px solid #e2e8f0;
+      background: #fff;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      color: #64748b;
+      cursor: pointer;
+      transition: all .15s;
+      white-space: nowrap;
+    }
+    .filter-clear:hover { border-color: #ef4444; color: #ef4444; }
+
+    /* ── Section header ── */
+    .sec-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+    .sec-head h2 { font-size:17px; font-weight:800; color:#0f172a; }
+    .sec-head p  { font-size:13px; color:#94a3b8; margin-top:2px; }
+    .sec-badge { background:#eff6ff; color:#2563eb; border:1px solid #bfdbfe; border-radius:999px; padding:4px 14px; font-size:12px; font-weight:700; }
+
+    /* ── Mentor grid ── */
+    .mentor-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:16px; margin-bottom:32px; }
+
+    /* ── Mentor card ── */
+    .mentor-card {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 20px;
+      padding: 20px;
       display: flex;
       flex-direction: column;
       gap: 0;
-      transition: box-shadow .15s ease, transform .1s ease;
+      transition: transform .2s, box-shadow .2s, border-color .2s;
+      cursor: pointer;
     }
-    .mentor-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); }
+    .mentor-card:hover { transform:translateY(-3px); box-shadow:0 8px 28px rgba(15,23,42,.1); border-color:#bfdbfe; }
 
-    .mentor-card-top { display: flex; align-items: center; gap: 10px; }
-    .mentor-card-name { font-size: 15px; font-weight: 700; }
-    .mentor-card-meta { font-size: 12px; color: var(--muted); margin-top: 3px; line-height: 1.4; }
-    .mentor-card-score {
-      margin-left: auto;
-      flex-shrink: 0;
-      background: rgba(29,78,216,.07);
-      color: var(--accent);
-      border: 1px solid rgba(29,78,216,.14);
-      border-radius: 999px;
-      padding: 4px 10px;
-      font-size: 12px;
-      font-weight: 700;
+    .mc-header { display:flex; align-items:flex-start; gap:12px; margin-bottom:12px; }
+    .mc-avatar {
+      width:48px; height:48px; border-radius:14px;
+      background:linear-gradient(135deg,#2563eb,#7c3aed);
+      display:flex; align-items:center; justify-content:center;
+      font-size:18px; font-weight:900; color:#fff; flex-shrink:0;
+      overflow:hidden;
     }
+    .mc-avatar img { width:100%; height:100%; object-fit:cover; border-radius:14px; }
+    .mc-info { flex:1; min-width:0; }
+    .mc-name { font-size:15px; font-weight:800; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .mc-title { font-size:12px; color:#64748b; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .mc-score { background:#eff6ff; color:#2563eb; border:1px solid #bfdbfe; border-radius:999px; padding:3px 10px; font-size:12px; font-weight:700; flex-shrink:0; }
 
-    .mentor-card-bio {
-      margin-top: 10px;
-      font-size: 12px;
-      color: var(--muted);
-      line-height: 1.5;
-    }
+    .mc-bio { font-size:13px; color:#64748b; line-height:1.6; margin-bottom:12px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
 
-    .mentor-card-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
-    .mentor-card-why  { font-size: 12px; color: var(--muted); margin-top: 8px; font-style: italic; }
-    .mentor-card-divider { height: 1px; background: var(--line); margin: 12px 0; }
-    .mentor-card-actions { display: flex; gap: 8px; }
+    .mc-tags { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:12px; }
+    .mc-tag  { padding:3px 10px; background:#f0f4fa; border-radius:999px; font-size:11px; font-weight:600; color:#475569; }
 
-    .mentor-avatar-img { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 1px solid var(--line); flex-shrink: 0; }
+    .mc-meta { display:flex; gap:12px; margin-bottom:14px; flex-wrap:wrap; }
+    .mc-meta-item { font-size:11px; color:#94a3b8; display:flex; align-items:center; gap:3px; font-weight:600; }
+    .mc-meta-item span { color:#475569; }
 
-    @media (max-width: 900px) {
-      .filters { grid-template-columns: 1fr 1fr; }
-      .mentor-grid { grid-template-columns: 1fr 1fr; }
-    }
-    @media (max-width: 768px) {
-      .mh-input, .mh-select { font-size: 16px !important; }
-      .mh-topbar { margin: 8px; padding: 10px 14px; }
-      .mh-hamburger { order: -1; flex-shrink: 0; }
-      
-      .mh-topbar { position: relative; }
-      #hamburgerBtn { display: flex !important; }
-      .mh-nav.hide-mobile { display: none !important; }
-    }
-    @media (max-width: 600px) {
-      .filters { grid-template-columns: 1fr; }
-      .mentor-grid { grid-template-columns: 1fr; }
-      .mentor-card { padding: 16px; }
-    }
+    .mc-why { font-size:11px; color:#2563eb; background:#eff6ff; border-radius:8px; padding:5px 10px; margin-bottom:12px; font-style:italic; }
 
-    /* Hamburger - hidden on desktop */
-    #hamburgerBtn { display: none !important; }
-    @media (max-width: 768px) {
-      #hamburgerBtn { display: flex !important; }
-      .mh-nav { display: none !important; }
+    .mc-actions { display:flex; gap:8px; margin-top:auto; }
+    .mc-btn-req {
+      flex:1; padding:10px; border-radius:11px; border:none;
+      background:#2563eb; color:#fff; font:inherit; font-size:13px; font-weight:700;
+      cursor:pointer; transition:background .15s;
     }
-    @media (min-width: 769px) {
-      .mh-mobile-drawer,
-      #mobileDrawer,
-      #navOverlay { display: none !important; }
-      .mh-nav { display: flex !important; }
+    .mc-btn-req:hover { background:#1d4ed8; }
+    .mc-btn-req:disabled { background:#bfdbfe; cursor:not-allowed; }
+    .mc-btn-view {
+      padding:10px 16px; border-radius:11px; border:1.5px solid #e2e8f0;
+      background:#fff; color:#475569; font:inherit; font-size:13px; font-weight:600;
+      cursor:pointer; text-decoration:none; transition:all .15s;
+      display:flex; align-items:center; justify-content:center;
     }
+    .mc-btn-view:hover { border-color:#2563eb; color:#2563eb; }
+
+    /* ── Empty ── */
+    .dir-empty { text-align:center; padding:60px 20px; color:#94a3b8; }
+    .dir-empty .de-icon { font-size:48px; margin-bottom:12px; }
+    .dir-empty h3 { font-size:16px; font-weight:800; color:#0f172a; margin-bottom:6px; }
+
+    /* ── Request modal ── */
+    .modal-backdrop { display:none; position:fixed; inset:0; background:rgba(15,23,42,.5); backdrop-filter:blur(4px); z-index:300; align-items:center; justify-content:center; }
+    .modal-backdrop.open { display:flex; }
+    .modal-box { background:#fff; border-radius:22px; padding:28px; width:100%; max-width:500px; margin:16px; box-shadow:0 20px 60px rgba(15,23,42,.2); }
+    .modal-mentor { display:flex; align-items:center; gap:12px; margin-bottom:20px; padding:14px; background:#f8faff; border-radius:14px; border:1px solid #e2e8f0; }
+    .modal-mentor-av { width:44px; height:44px; border-radius:12px; background:linear-gradient(135deg,#2563eb,#7c3aed); display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:900; color:#fff; overflow:hidden; flex-shrink:0; }
+    .modal-mentor-av img { width:100%; height:100%; object-fit:cover; border-radius:12px; }
+    .modal-mentor-name { font-size:15px; font-weight:800; color:#0f172a; }
+    .modal-mentor-role { font-size:12px; color:#94a3b8; margin-top:2px; }
+    .modal-label { font-size:12px; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:.5px; display:block; margin-bottom:8px; }
+    .modal-textarea { width:100%; padding:12px 14px; border-radius:12px; border:1.5px solid #e2e8f0; font:inherit; font-size:14px; resize:vertical; min-height:120px; outline:none; }
+    .modal-textarea:focus { border-color:#2563eb; }
+    .modal-actions { display:flex; gap:10px; margin-top:16px; }
+    .modal-send { flex:1; padding:12px; border-radius:12px; border:none; background:#2563eb; color:#fff; font:inherit; font-size:14px; font-weight:700; cursor:pointer; }
+    .modal-send:hover { background:#1d4ed8; }
+    .modal-cancel { padding:12px 20px; border-radius:12px; border:1.5px solid #e2e8f0; background:#fff; color:#475569; font:inherit; font-size:14px; font-weight:600; cursor:pointer; }
+
+    /* Toast */
+    .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px); background:#0f172a; color:#fff; padding:12px 24px; border-radius:12px; font-size:13px; font-weight:600; opacity:0; transition:all .3s; pointer-events:none; z-index:999; }
+    .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+    @media(max-width:768px){ .dir-hero{flex-direction:column;gap:16px;} .dh-stat{width:100%;} .filters-bar{flex-direction:column;} .filter-search,.filter-select,.filter-clear{width:100%;} }
+    #hamburgerBtn{display:none!important;}
+    @media(max-width:768px){#hamburgerBtn{display:flex!important;}.mh-nav{display:none!important;}}
+    @media(min-width:769px){.mh-mobile-drawer,#mobileDrawer,#navOverlay{display:none!important;}.mh-nav{display:flex!important;}}
   </style>
 </head>
 <body>
 <div class="mh-wrap">
-
-  <!-- Topbar -->
   <header class="mh-topbar">
     <a href="index.html" class="mh-brand">
       <img src="logo.png" alt="MentifyHub" class="mh-brand-logo"/>
-      <div class="mh-brand-text">
-        <strong>MentifyHub</strong>
-        <span>Mentor directory</span>
-      </div>
+      <div class="mh-brand-text"><strong>MentifyHub</strong><span>Mentor directory</span></div>
     </a>
     <nav class="mh-nav hide-mobile">
-      <span class="mh-chip" id="whoChip">Loading…</span>
-      <a class="mh-btn" href="#" id="dashboardLink">⬅ Dashboard</a>
+      <span class="mh-chip" id="whoChip">Loading...</span>
+      <a class="mh-btn" href="#" id="dashboardLink">← Dashboard</a>
       <a class="mh-btn mh-btn-primary" href="mentor-directory.html">Browse mentors</a>
       <a class="mh-btn" href="messages.html">Messages</a>
       <a class="mh-btn" href="sessions.html">Sessions</a>
       <a class="mh-btn" href="reviews.html">⭐ Reviews</a>
       <button class="mh-btn mh-btn-danger hide-mobile" id="signOutBtn">Sign out</button>
     </nav>
-      <button class="mh-menu-btn" id="menuBtn" onclick="openDrawer()" aria-label="Open menu">
-      <span></span><span></span><span></span>
-    </button>
+    <button class="mh-menu-btn" id="menuBtn" onclick="openDrawer()"><span></span><span></span><span></span></button>
   </header>
 
-  <!-- Heading -->
-  <div style="margin-top:22px">
-    <h1 style="font-size:24px;font-weight:800;letter-spacing:-.3px">Find your mentor</h1>
-    <p style="color:var(--muted);font-size:14px;margin-top:6px">We show mentors who are a good fit for you based on your profile.</p>
-  </div>
+  <div class="page-wrap">
 
-  <!-- Filters -->
-  <div class="filters" aria-label="Filters">
-    <input class="mh-input" id="q" placeholder="Search name, field, tags, bio…"/>
-    <select class="mh-select" id="field"><option value="">All fields</option></select>
-    <select class="mh-select" id="timezone"><option value="">All timezones</option></select>
-    <select class="mh-select" id="availability"><option value="">Availability</option></select>
-    <select class="mh-select" id="communication"><option value="">Communication</option></select>
-    <button class="mh-btn" id="clearBtn">Clear</button>
-  </div>
-
-  <!-- Top matches section -->
-  <div class="dir-section" id="topSection">
-    <div class="flex justify-between items-center" style="flex-wrap:wrap;gap:10px">
-      <div>
-        <h2>Mentors for you</h2>
-        <p id="topHint">Based on your profile.</p>
+    <!-- Hero -->
+    <div class="dir-hero">
+      <div class="dh-blob dh-b1"></div>
+      <div class="dh-blob dh-b2"></div>
+      <div class="dh-left">
+        <h1>Find your right mentor</h1>
+        <p>Browse experienced professionals in sustainability, energy and green buildings.</p>
       </div>
-      <span class="mh-chip" id="countHint">—</span>
+      <div class="dh-stat">
+        <div class="dh-stat-num" id="totalCount">—</div>
+        <div class="dh-stat-lbl">Mentors available</div>
+      </div>
     </div>
-    <div class="mentor-grid" id="topGrid"></div>
-    <div class="mh-empty" id="topEmpty" style="display:none;margin-top:12px">No mentors yet. When mentors publish profiles, they'll appear here.</div>
-  </div>
 
-  <!-- All mentors section -->
-  <div class="dir-section">
-    <h2>All mentors</h2>
-    <p>Browse everyone - use filters to narrow down.</p>
-    <div class="mentor-grid" id="allGrid"></div>
-    <div class="mh-empty" id="allEmpty" style="display:none;margin-top:12px">No mentors match your filters.</div>
+    <!-- Filters -->
+    <div class="filters-bar">
+      <div class="filter-search">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input id="q" placeholder="Search name, field, tags..." autocomplete="off"/>
+      </div>
+      <select class="filter-select" id="field"><option value="">All fields</option></select>
+      <select class="filter-select" id="timezone"><option value="">All timezones</option></select>
+      <select class="filter-select" id="availability"><option value="">Availability</option></select>
+      <select class="filter-select" id="communication"><option value="">Communication</option></select>
+      <button class="filter-clear" id="clearBtn">✕ Clear</button>
+    </div>
+
+    <!-- Top matches -->
+    <div id="topSection">
+      <div class="sec-head">
+        <div>
+          <h2>Top matches for you</h2>
+          <p id="topHint">Based on your profile</p>
+        </div>
+        <span class="sec-badge" id="countHint">— mentors</span>
+      </div>
+      <div class="mentor-grid" id="topGrid"></div>
+      <div class="dir-empty" id="topEmpty" style="display:none">
+        <div class="de-icon">🔍</div>
+        <h3>No mentors yet</h3>
+        <p>When mentors publish profiles they will appear here.</p>
+      </div>
+    </div>
+
+    <!-- All mentors -->
+    <div id="allSection">
+      <div class="sec-head" style="margin-top:8px">
+        <div>
+          <h2>All mentors</h2>
+          <p>Use filters to narrow down</p>
+        </div>
+      </div>
+      <div class="mentor-grid" id="allGrid"></div>
+      <div class="dir-empty" id="allEmpty" style="display:none">
+        <div class="de-icon">🔍</div>
+        <h3>No mentors match your filters</h3>
+        <p>Try adjusting or clearing the filters above.</p>
+      </div>
+    </div>
+
   </div>
 </div>
 
 <!-- Request Modal -->
-<div class="mh-modal-backdrop" id="backdrop" role="dialog" aria-modal="true">
-  <div class="mh-modal">
-    <div class="mh-card-header">
-      <strong id="modalTitle">Request mentorship</strong>
-      <button class="mh-btn mh-btn-sm" id="closeModalBtn" type="button">✕</button>
+<div class="modal-backdrop" id="backdrop">
+  <div class="modal-box">
+    <div class="modal-mentor">
+      <div class="modal-mentor-av" id="modalAv">M</div>
+      <div>
+        <div class="modal-mentor-name" id="modalName">Mentor</div>
+        <div class="modal-mentor-role" id="modalRole"></div>
+      </div>
     </div>
-    <div style="padding:18px">
-      <label class="mh-label" for="message">Message to mentor</label>
-      <textarea class="mh-textarea" id="message" placeholder="Introduce yourself, your goal, and what you need help with…" style="min-height:140px"></textarea>
-      <div style="font-size:12px;color:var(--muted);margin-top:8px" id="modalMeta"></div>
-    </div>
-    <div class="mh-card-footer">
-      <button class="mh-btn" id="cancelBtn" type="button">Cancel</button>
-      <button class="mh-btn mh-btn-primary" id="sendBtn" type="button">Send request</button>
+    <label class="modal-label">Your message</label>
+    <textarea class="modal-textarea" id="message" placeholder="Introduce yourself and tell the mentor what you need help with..."></textarea>
+    <div class="modal-actions">
+      <button class="modal-cancel" id="cancelBtn">Cancel</button>
+      <button class="modal-send" id="sendBtn">Send request</button>
     </div>
   </div>
 </div>
 
-<div class="mh-toast" id="toast"></div>
+<div class="toast" id="toast"></div>
 
 <script>
-  const TABLES = { mentees:"mentees", mentors:"mentors", requests:"mentorship_requests" };
-
+  const TABLES = {mentees:"mentees", mentors:"mentors", requests:"mentorship_requests"};
   const sb = window.mhSb;
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s??"").replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  const safeStr = v => (v==null)?"":String(v);
+  const safeArr = v => { if(Array.isArray(v)) return v.filter(Boolean).map(x=>String(x).trim()).filter(Boolean); if(typeof v==="string") return v.split(",").map(s=>s.trim()).filter(Boolean); return []; };
+  const uniq = arr => [...new Set(arr.filter(Boolean))].sort((a,b)=>String(a).localeCompare(String(b)));
+  const normalize = s => safeStr(s).trim().toLowerCase();
 
-  function $(id){ return document.getElementById(id); }
+  let USER=null, MENTEE=null, MENTORS=[], REQUESTED=new Set(), CURRENT=null, SCORED=[];
 
-  const els = {
-    whoChip:$("whoChip"), signOutBtn:$("signOutBtn"),
-    q:$("q"), field:$("field"), timezone:$("timezone"),
-    availability:$("availability"), communication:$("communication"),
-    clearBtn:$("clearBtn"), countHint:$("countHint"), topHint:$("topHint"),
-    topGrid:$("topGrid"), allGrid:$("allGrid"), topEmpty:$("topEmpty"), allEmpty:$("allEmpty"),
-    backdrop:$("backdrop"), closeModalBtn:$("closeModalBtn"), cancelBtn:$("cancelBtn"),
-    sendBtn:$("sendBtn"), modalTitle:$("modalTitle"), modalMeta:$("modalMeta"),
-    message:$("message"), toast:$("toast")
-  };
+  function showToast(msg){ const t=$("toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove("show"),2600); }
 
-  let USER=null,MENTEE=null,MENTORS=[],REQUESTED=new Set(),CURRENT=null,SCORED=[];
-
-  function toast(msg){
-    const t=els.toast; t.textContent=msg; t.classList.add("show");
-    clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove("show"),2600);
-  }
-
-  function safeStr(v){ return (v==null)?"":String(v); }
-  function safeArr(v){ if(Array.isArray(v)) return v.filter(Boolean).map(x=>String(x).trim()).filter(Boolean); if(typeof v==="string") return v.split(",").map(s=>s.trim()).filter(Boolean); return []; }
-  function uniq(arr){ return [...new Set(arr.filter(Boolean))].sort((a,b)=>String(a).localeCompare(String(b))); }
-  function normalize(s){ return safeStr(s).trim().toLowerCase(); }
-  function escapeHtml(str){ return String(str??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m])); }
-
-  function overlap(a,b){
-    const A=new Set(safeArr(a).map(normalize)),B=new Set(safeArr(b).map(normalize));
-    let c=0; for(const x of A) if(B.has(x)) c++; return c;
-  }
+  function overlap(a,b){ const A=new Set(safeArr(a).map(normalize)),B=new Set(safeArr(b).map(normalize)); let c=0; for(const x of A) if(B.has(x)) c++; return c; }
 
   function computeScore(mentee,mentor){
     let score=0; const why=[];
-    const menteeTags=safeArr(mentee?.tags),mentorTags=safeArr(mentor?.tags);
-    const tagHits=overlap(menteeTags,mentorTags);
-    if(menteeTags.length&&mentorTags.length){ const ts=Math.min(60,Math.round(tagHits/Math.max(1,Math.min(menteeTags.length,mentorTags.length))*60)); score+=ts; if(tagHits>0) why.push(`${tagHits} shared tag${tagHits>1?"s":""}`); }
+    const tagHits=overlap(mentee?.tags,mentor?.tags);
+    if(tagHits>0){ const ts=Math.min(60,Math.round(tagHits/Math.max(1,Math.min(safeArr(mentee.tags).length,safeArr(mentor.tags).length))*60)); score+=ts; why.push(`${tagHits} shared tag${tagHits>1?"s":""}`); }
     if(mentee?.field&&mentor?.field&&normalize(mentee.field)===normalize(mentor.field)){ score+=15; why.push("same field"); }
     const pref=normalize(mentor?.preferred_level);
-    if(pref&&normalize(mentee?.level)&&(pref.includes(normalize(mentee.level))||pref===normalize(mentee.level))){ score+=10; why.push("fits preferred level"); }
+    if(pref&&normalize(mentee?.level)&&(pref.includes(normalize(mentee.level))||pref===normalize(mentee.level))){ score+=10; why.push("fits your level"); }
     if(mentee?.timezone&&mentor?.timezone&&normalize(mentee.timezone)===normalize(mentor.timezone)){ score+=5; why.push("same timezone"); }
     if(mentee?.availability&&mentor?.availability&&normalize(mentee.availability)===normalize(mentor.availability)){ score+=5; why.push("matching availability"); }
     if(mentee?.communication&&mentor?.communication&&normalize(mentee.communication)===normalize(mentor.communication)){ score+=5; why.push("preferred communication"); }
-    return { score:Math.max(0,Math.min(100,Math.round(score))), why };
+    return {score:Math.max(0,Math.min(100,Math.round(score))),why};
   }
-
-  function mentorTitle(m){ return [m.headline,m.field,m.experience].filter(Boolean).join(" · "); }
 
   function renderCard(m){
     const {score,why}=m._match||{score:null,why:[]};
     const name=m.full_name||"Mentor";
-    const tags=safeArr(m.tags).slice(0,8);
+    const initials=name.split(" ").filter(Boolean).slice(0,2).map(w=>w[0]).join("").toUpperCase()||"M";
     const already=REQUESTED.has(m.user_id);
-    const metaLine=[m.field,m.country,m.timezone].filter(Boolean).join(" · ");
-    const whyText=why.length?`Why matched: ${why.slice(0,3).join(", ")}`:"";
-    const el=document.createElement("div");
-    el.className="mentor-card";
-    el.innerHTML=`
-      <div class="mentor-card-top">
-        <img src="${m.profile_image||"logo.png"}" class="mentor-avatar-img" alt="${escapeHtml(name)}"/>
-        <div style="min-width:0;flex:1">
-          <div class="mentor-card-name">${escapeHtml(name)}</div>
-          <div class="mentor-card-meta">${escapeHtml(mentorTitle(m)||metaLine||"Mentor")}</div>
+    const tags=safeArr(m.tags).slice(0,4);
+    const title=[m.headline,m.field,m.experience].filter(Boolean).join(" · ");
+    const meta=[m.availability,m.communication,m.timezone].filter(Boolean);
+
+    const card=document.createElement("div");
+    card.className="mentor-card";
+    card.innerHTML=`
+      <div class="mc-header">
+        <div class="mc-avatar" id="mcav-${esc(m.user_id)}">${initials}</div>
+        <div class="mc-info">
+          <div class="mc-name">${esc(name)}</div>
+          <div class="mc-title">${esc(title||"Mentor")}</div>
         </div>
-        ${score!=null?`<div class="mentor-card-score">${score}%</div>`:""}
+        ${score!=null&&score>0?`<span class="mc-score">${score}%</span>`:""}
       </div>
-      ${m.bio?`<div class="mentor-card-bio">${escapeHtml(safeStr(m.bio).slice(0,160))}${safeStr(m.bio).length>160?"…":""}</div>`:""}
-      <div class="mentor-card-tags">
-        ${tags.map(t=>`<span class="mh-tag">${escapeHtml(t)}</span>`).join("")}
-      </div>
-      ${whyText?`<div class="mentor-card-why">${escapeHtml(whyText)}</div>`:""}
-      <div class="mentor-card-divider"></div>
-      <div class="mentor-card-actions">
-        <button class="mh-btn mh-btn-primary mh-btn-sm req-btn" ${already?"disabled":""}>
-          ${already?"Requested":"Request"}
-        </button>
-        <button class="mh-btn mh-btn-sm profile-btn">View profile</button>
+      ${m.bio?`<div class="mc-bio">${esc(safeStr(m.bio).slice(0,140))}${safeStr(m.bio).length>140?"…":""}</div>`:""}
+      ${tags.length?`<div class="mc-tags">${tags.map(t=>`<span class="mc-tag">${esc(t)}</span>`).join("")}</div>`:""}
+      ${meta.length?`<div class="mc-meta">${meta.map(v=>`<div class="mc-meta-item"><span>${esc(v)}</span></div>`).join("")}</div>`:""}
+      ${why.length?`<div class="mc-why">✓ ${esc(why.slice(0,2).join(" · "))}</div>`:""}
+      <div class="mc-actions">
+        <button class="mc-btn-req" ${already?"disabled":""}>${already?"Requested ✓":"Request"}</button>
+        <a class="mc-btn-view" href="mentor-profile.html?id=${esc(m.user_id)}">View</a>
       </div>`;
-    el.querySelector(".req-btn")?.addEventListener("click",()=>{ if(!already) openModal(m); });
-    el.querySelector(".profile-btn")?.addEventListener("click",()=>{ window.location.href=`mentor-profile.html?id=${m.user_id}`; });
-    return el;
+
+    if(m.profile_image){
+      const img=document.createElement("img"); img.src=m.profile_image; img.alt="";
+      img.onload=()=>{ const av=document.getElementById("mcav-"+m.user_id); if(av){av.textContent="";av.appendChild(img);} };
+    }
+    card.querySelector(".mc-btn-req")?.addEventListener("click",()=>{ if(!already) openModal(m); });
+    return card;
   }
 
   function render(){
-    const q=normalize(els.q.value),field=els.field.value,tz=els.timezone.value,av=els.availability.value,comm=els.communication.value;
+    const q=normalize($("q").value), field=$("field").value, tz=$("timezone").value, av=$("availability").value, comm=$("communication").value;
     const filtered=SCORED.filter(m=>{
       if(q){ const blob=JSON.stringify(m).toLowerCase(); if(!blob.includes(q)) return false; }
       if(field&&safeStr(m.field)!==field) return false;
@@ -287,178 +368,112 @@
       return true;
     });
     const top=SCORED.slice(0,6);
-    els.topGrid.innerHTML=""; els.allGrid.innerHTML="";
-    if(!top.length){ els.topEmpty.style.display="block"; }
-    else{ els.topEmpty.style.display="none"; top.forEach(m=>els.topGrid.appendChild(renderCard(m))); }
-    if(!filtered.length){ els.allEmpty.style.display="block"; }
-    else{ els.allEmpty.style.display="none"; filtered.forEach(m=>els.allGrid.appendChild(renderCard(m))); }
-    els.countHint.textContent=`${filtered.length} mentor${filtered.length===1?"":"s"} shown`;
+    $("topGrid").innerHTML=""; $("allGrid").innerHTML="";
+    if(!top.length){ $("topEmpty").style.display="block"; } else { $("topEmpty").style.display="none"; top.forEach(m=>$("topGrid").appendChild(renderCard(m))); }
+    if(!filtered.length){ $("allEmpty").style.display="block"; } else { $("allEmpty").style.display="none"; filtered.forEach(m=>$("allGrid").appendChild(renderCard(m))); }
+    $("countHint").textContent=filtered.length+" mentor"+(filtered.length===1?"":"s");
+    $("totalCount").textContent=MENTORS.length;
   }
 
   function fillFilters(){
     function fill(sel,arr){ while(sel.options.length>1) sel.remove(1); arr.forEach(v=>{ const o=document.createElement("option"); o.value=safeStr(v); o.textContent=safeStr(v); sel.appendChild(o); }); }
-    fill(els.field,uniq(SCORED.map(m=>m.field)));
-    fill(els.timezone,uniq(SCORED.map(m=>m.timezone)));
-    fill(els.availability,uniq(SCORED.map(m=>m.availability)));
-    fill(els.communication,uniq(SCORED.map(m=>m.communication)));
+    fill($("field"),uniq(SCORED.map(m=>m.field)));
+    fill($("timezone"),uniq(SCORED.map(m=>m.timezone)));
+    fill($("availability"),uniq(SCORED.map(m=>m.availability)));
+    fill($("communication"),uniq(SCORED.map(m=>m.communication)));
   }
 
   function openModal(mentor){
     CURRENT=mentor;
-    els.modalTitle.textContent=`Request mentorship - ${mentor.full_name||"Mentor"}`;
-    els.modalMeta.textContent=[mentorTitle(mentor),[mentor.availability,mentor.communication,mentor.timezone].filter(Boolean).join(" · ")].filter(Boolean).join(" - ");
-    els.message.value=defaultMessage(mentor);
-    els.backdrop.classList.add("open");
-    els.message.focus();
+    const name=mentor.full_name||"Mentor";
+    const initials=name.split(" ").filter(Boolean).slice(0,2).map(w=>w[0]).join("").toUpperCase()||"M";
+    $("modalName").textContent=name;
+    $("modalRole").textContent=[mentor.headline,mentor.field].filter(Boolean).join(" · ");
+    const av=$("modalAv"); av.textContent=initials;
+    if(mentor.profile_image){ const img=document.createElement("img"); img.src=mentor.profile_image; img.style.cssText="width:100%;height:100%;object-fit:cover;border-radius:12px"; img.onload=()=>{av.textContent="";av.appendChild(img);}; }
+    const goal=MENTEE?.goal||"my growth goals"; const field=MENTEE?.field||"my field";
+    $("message").value=`Hi ${name},\n\nI'm a mentee on MentifyHub and I'd love to request mentorship. My main goal is: ${goal}.\n\nI'm focused on ${field} and I'd appreciate your guidance.\n\nThank you!`;
+    $("backdrop").classList.add("open");
+    $("message").focus();
   }
 
-  function closeModal(){ CURRENT=null; els.backdrop.classList.remove("open"); }
-
-  function defaultMessage(mentor){
-    const name=mentor.full_name||"there";
-    const goal=MENTEE?.goal||"my growth goals";
-    const field=MENTEE?.field||"my field";
-    return `Hi ${name},\n\nI'm a mentee on MentifyHub and I'd love to request mentorship. My main goal is: ${goal}.\n\nI'm focused on ${field} and I'd appreciate your guidance.\n\nThank you!`;
-  }
+  function closeModal(){ CURRENT=null; $("backdrop").classList.remove("open"); }
 
   async function sendRequest(){
-    if(!sb){ alert("Add Supabase keys first."); return; }
     if(!USER||!CURRENT) return;
-    const msg=safeStr(els.message.value).trim();
-    if(msg.length<10){ toast("Please write at least 10 characters."); return; }
-    els.sendBtn.disabled=true; els.sendBtn.textContent="Sending…";
+    const msg=safeStr($("message").value).trim();
+    if(msg.length<10){ showToast("Please write at least 10 characters."); return; }
+    const btn=$("sendBtn"); btn.disabled=true; btn.textContent="Sending...";
     try{
       const payload={mentee_id:USER.id,mentor_id:CURRENT.user_id,message:msg,status:"pending"};
       const {data:insertedRequest,error}=await sb.from(TABLES.requests).insert(payload).select().single();
       if(error) throw error;
-      const request_id=insertedRequest?.id;
-
-      // In-app notification for mentor
-      await sb.from("notifications").insert({
-        user_id:    CURRENT.user_id,
-        title:      "New mentorship request",
-        message:    `${USER?.email || "A mentee"} has sent you a mentorship request.`,
-        type:       "request",
-        is_read:    false,
-        request_id: request_id||null
-      });
-
+      await sb.from("notifications").insert({user_id:CURRENT.user_id,title:"New mentorship request",message:`${MENTEE?.full_name||USER.email||"A mentee"} sent you a mentorship request.`,type:"request",is_read:false,request_id:insertedRequest?.id||null});
       const {data:mentor}=await sb.from("mentors").select("email,full_name").eq("user_id",CURRENT.user_id).single();
       if(mentor?.email){
-        try{
-          await fetch("https://mscgaaaobxiuzqsukvjc.supabase.co/functions/v1/notify-mentor",{
-            method:"POST",
-            headers:{"Content-Type":"application/json","apikey":window.MH_SUPABASE_ANON_KEY,"Authorization":`Bearer ${window.MH_SUPABASE_ANON_KEY}`},
-            body:JSON.stringify({mentor_email:mentor.email,mentee_name:USER?.email,request_id,message_preview:msg.slice(0,300)})
-          });
-        }catch(err){ console.error("Email error:",err); }
+        try{ await fetch("https://mscgaaaobxiuzqsukvjc.supabase.co/functions/v1/notify-mentor",{method:"POST",headers:{"Content-Type":"application/json","apikey":window.MH_SUPABASE_ANON_KEY,"Authorization":`Bearer ${window.MH_SUPABASE_ANON_KEY}`},body:JSON.stringify({mentor_email:mentor.email,mentee_name:USER.email,request_id:insertedRequest?.id,message_preview:msg.slice(0,300)})}); }catch(e){ console.error(e); }
       }
       REQUESTED.add(CURRENT.user_id);
-      toast("Request sent! ✓");
-      closeModal();
-      render();
-    }catch(e){ console.error(e); alert(e?.message||"Could not send request."); }
-    finally{ els.sendBtn.disabled=false; els.sendBtn.textContent="Send request"; }
+      showToast("Request sent!");
+      closeModal(); render();
+    }catch(e){ console.error(e); showToast(e?.message||"Could not send request."); }
+    btn.disabled=false; btn.textContent="Send request";
   }
 
-  els.signOutBtn.addEventListener("click",async()=>{ if(sb) await sb.auth.signOut(); window.location.href="index.html"; });
-  els.clearBtn.addEventListener("click",()=>{ els.q.value=""; els.field.value=""; els.timezone.value=""; els.availability.value=""; els.communication.value=""; render(); });
-  ["input","change"].forEach(evt=>{ els.q.addEventListener(evt,render); els.field.addEventListener(evt,render); els.timezone.addEventListener(evt,render); els.availability.addEventListener(evt,render); els.communication.addEventListener(evt,render); });
-  els.closeModalBtn.addEventListener("click",closeModal);
-  els.cancelBtn.addEventListener("click",closeModal);
-  els.backdrop.addEventListener("click",e=>{ if(e.target===els.backdrop) closeModal(); });
-  els.sendBtn.addEventListener("click",sendRequest);
-  document.addEventListener("keydown",e=>{ if(e.key==="Escape") closeModal(); });
+  $("signOutBtn").addEventListener("click",async()=>{ if(sb) await sb.auth.signOut(); window.location.href="index.html"; });
+  $("clearBtn").addEventListener("click",()=>{ $("q").value=""; $("field").value=""; $("timezone").value=""; $("availability").value=""; $("communication").value=""; render(); });
+  ["input","change"].forEach(evt=>{ ["q","field","timezone","availability","communication"].forEach(id=>$(id).addEventListener(evt,render)); });
+  $("cancelBtn").addEventListener("click",closeModal);
+  $("backdrop").addEventListener("click",e=>{if(e.target===$("backdrop"))closeModal();});
+  $("sendBtn").addEventListener("click",sendRequest);
+  document.addEventListener("keydown",e=>{if(e.key==="Escape")closeModal();});
 
   async function loadData(){
-    if(!sb){ alert("Add your Supabase keys first."); return; }
     const {data:{session}}=await sb.auth.getSession();
     if(!session){ window.location.href=`auth.html?mode=signin&returnTo=${encodeURIComponent("mentor-directory.html")}`; return; }
     USER=session.user;
     const {data:mentee}=await sb.from(TABLES.mentees).select("*").eq("user_id",USER.id).maybeSingle();
     MENTEE=mentee||null;
-    const nm=USER.user_metadata?.full_name||MENTEE?.full_name||USER.email||"Signed in";
-    const {data:mentorProfile}=await sb.from("mentors").select("user_id").eq("user_id",USER.id).maybeSingle();
-    els.whoChip.textContent=mentorProfile?`${nm} · Mentor`:`${nm} · Mentee`;
-    const _dash=mentorProfile?"mentor-dashboard.html":"mentee-dashboard.html";
-    if($("dashboardLink")) $("dashboardLink").href=_dash;
-    if(document.getElementById("drawerDashLink")) document.getElementById("drawerDashLink").href=_dash;
-    const {data:mentors,error:moErr}=await sb.from(TABLES.mentors).select("*").order("updated_at",{ascending:false}).limit(500);
-    if(moErr) console.error(moErr);
+    const nm=USER.user_metadata?.full_name||MENTEE?.full_name||USER.email||"User";
+    const {data:mp}=await sb.from("mentors").select("user_id").eq("user_id",USER.id).maybeSingle();
+    $("whoChip").textContent=mp?nm+" · Mentor":nm+" · Mentee";
+    const dash=mp?"mentor-dashboard.html":"mentee-dashboard.html";
+    $("dashboardLink").href=dash;
+    if(document.getElementById("drawerDashLink")) document.getElementById("drawerDashLink").href=dash;
+    const {data:mentors}=await sb.from(TABLES.mentors).select("*").order("updated_at",{ascending:false}).limit(500);
     MENTORS=mentors||[];
-    if(!MENTORS.length) toast("No mentors found. Try adjusting your filters.");
-    const {data:reqs}=await sb.from(TABLES.requests).select("mentor_id,status").eq("mentee_id",USER.id);
+    $("totalCount").textContent=MENTORS.length;
+    const {data:reqs}=await sb.from(TABLES.requests).select("mentor_id").eq("mentee_id",USER.id);
     REQUESTED=new Set((reqs||[]).map(r=>r.mentor_id));
-    if(MENTEE){
-      SCORED=MENTORS.map(m=>({...m,_match:computeScore(MENTEE,m)})).sort((a,b)=>(b._match.score-a._match.score)||safeStr(a.full_name).localeCompare(safeStr(b.full_name)));
-      const focus=[MENTEE.field,safeArr(MENTEE.tags)[0]].filter(Boolean).join(" · ");
-      els.topHint.textContent=focus?`Based on: ${focus}`:"Based on your profile.";
-    }else{
-      SCORED=MENTORS.map(m=>({...m,_match:null}));
-      els.topHint.textContent="These mentors match your profile.";
-    }
+    if(MENTEE){ SCORED=MENTORS.map(m=>({...m,_match:computeScore(MENTEE,m)})).sort((a,b)=>(b._match.score-a._match.score)||safeStr(a.full_name).localeCompare(safeStr(b.full_name))); const focus=[MENTEE.field,safeArr(MENTEE.tags)[0]].filter(Boolean).join(" · "); $("topHint").textContent=focus?`Based on: ${focus}`:"Based on your profile"; }
+    else { SCORED=MENTORS.map(m=>({...m,_match:null})); }
     fillFilters();
+    // Pre-fill search from URL param (e.g. from landing page)
+    const urlQ = new URLSearchParams(location.search).get("q");
+    if(urlQ){ $("q").value = urlQ; }
     render();
   }
-
   loadData();
 </script>
 
-<!-- ── Mobile right-side drawer ── -->
+<!-- Mobile drawer -->
 <div id="navOverlay" onclick="closeDrawer()" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);backdrop-filter:blur(3px);z-index:90;"></div>
 <div class="mh-mobile-drawer" id="mobileDrawer">
-  <div class="drawer-head">
-    <div class="drawer-head-brand">
-      <img src="logo.png" alt="MentifyHub"/>
-      <strong>MentifyHub</strong>
-    </div>
-    <button class="mh-drawer-close" onclick="closeDrawer()" aria-label="Close menu">✕</button>
-  </div>
-  <div class="mh-drawer-user" id="drawerUserInfo">Loading…</div>
+  <div class="drawer-head"><div class="drawer-head-brand"><img src="logo.png" alt=""/><strong>MentifyHub</strong></div><button class="mh-drawer-close" onclick="closeDrawer()">✕</button></div>
+  <div class="mh-drawer-user" id="drawerUserInfo">Loading...</div>
   <div class="mh-drawer-links">
-    <a href="#" id="drawerDashLink"   class="mh-drawer-link"><span class="icon">🏠</span> Dashboard</a>
-    <a href="mentor-directory.html"   class="mh-drawer-link active"><span class="icon">🔍</span> Directory</a>
-    <a href="messages.html"           class="mh-drawer-link"><span class="icon">💬</span> Messages</a>
-    <a href="sessions.html"           class="mh-drawer-link"><span class="icon">📅</span> Sessions</a>
-    <a href="reviews.html"            class="mh-drawer-link"><span class="icon">⭐</span> Reviews</a>
+    <a href="#" id="drawerDashLink" class="mh-drawer-link"><span class="icon">🏠</span> Dashboard</a>
+    <a href="mentor-directory.html" class="mh-drawer-link active"><span class="icon">🔍</span> Directory</a>
+    <a href="messages.html" class="mh-drawer-link"><span class="icon">💬</span> Messages</a>
+    <a href="sessions.html" class="mh-drawer-link"><span class="icon">📅</span> Sessions</a>
+    <a href="reviews.html" class="mh-drawer-link"><span class="icon">⭐</span> Reviews</a>
   </div>
-  <div class="mh-drawer-footer">
-    <button class="mh-drawer-signout" onclick="drawerSignOut()">🚪 &nbsp;Sign out</button>
-  </div>
+  <div class="mh-drawer-footer"><button class="mh-drawer-signout" onclick="drawerSignOut()">🚪 Sign out</button></div>
 </div>
-
 <script>
-  document.body.classList.add("has-side-nav");
-
-  function openDrawer(){
-    if(window.innerWidth > 768) return;
-    const d = document.getElementById('mobileDrawer');
-    const o = document.getElementById('navOverlay');
-    if(!d||!o) return;
-    d.classList.add('open');
-    o.style.display = 'block';
-    document.body.style.overflow = 'hidden';
-    const chip = document.getElementById('whoChip')||document.getElementById('envChip');
-    const info = document.getElementById('drawerUserInfo');
-    if(chip&&info) info.textContent = chip.textContent;
-  }
-
-  function closeDrawer(){
-    const d = document.getElementById('mobileDrawer');
-    const o = document.getElementById('navOverlay');
-    if(!d||!o) return;
-    d.classList.remove('open');
-    o.style.display = 'none';
-    document.body.style.overflow = '';
-  }
-
-  async function drawerSignOut(){
-    try{
-      const sb2 = window.supabase || window.sb || window._sb;
-      if(sb2) await sb2.auth.signOut();
-    }catch(e){}
-    window.location.href = 'auth.html?mode=signin';
-  }
+  function openDrawer(){ const d=$("mobileDrawer"),o=$("navOverlay"); if(d&&o){d.classList.add("open");o.style.display="block";document.body.style.overflow="hidden"; const chip=$("whoChip"); const info=$("drawerUserInfo"); if(chip&&info)info.textContent=chip.textContent;} }
+  function closeDrawer(){ const d=$("mobileDrawer"),o=$("navOverlay"); if(d&&o){d.classList.remove("open");o.style.display="none";document.body.style.overflow="";} }
+  async function drawerSignOut(){ try{if(sb) await sb.auth.signOut();}catch(e){} window.location.href="auth.html?mode=signin"; }
 </script>
 </body>
 </html>

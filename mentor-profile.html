@@ -555,8 +555,10 @@
     $("tzSide").textContent    = data.timezone      || "-";
 
     // Stats
-    const {count: sc} = await sb.from("sessions").select("*",{count:"exact",head:true}).eq("mentor_id", id);
-    const {count: rc} = await sb.from("reviews").select("*",{count:"exact",head:true}).eq("mentor_id", id);
+    // Use data.user_id to ensure we match correctly against sessions.mentor_id
+    const mentorUserId = data.user_id || id;
+    const {count: sc} = await sb.from("sessions").select("*",{count:"exact",head:true}).eq("mentor_id", mentorUserId).eq("status","completed");
+    const {count: rc} = await sb.from("reviews").select("*",{count:"exact",head:true}).eq("mentor_id", mentorUserId);
     $("statSessions").textContent = sc || 0;
     $("statReviews").textContent  = rc || 0;
     $("reviewCount").textContent  = rc || 0;

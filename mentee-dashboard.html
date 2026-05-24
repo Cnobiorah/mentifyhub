@@ -209,6 +209,7 @@
             <div class="pc-bar-label" style="margin-top:8px"><span>Progress</span><strong id="pcProgress">0%</strong></div>
             <div class="pc-bar"><div class="pc-bar-fill" id="pcProgressFill" style="width:0%;background:linear-gradient(90deg,#34d399,#10b981)"></div></div>
           </div>
+          <div class="pc-bar-label" style="margin-top:8px"><span>Sessions completed</span><strong id="pcSessions">0</strong></div>
           <div class="pc-btns">
             <a href="mentee-onboarding.html" class="pc-btn pc-btn-ghost">Edit profile</a>
             <button class="pc-btn pc-btn-pri" id="signOutBtn2">Sign out</button>
@@ -608,6 +609,15 @@
   $("markAllReadBtn").addEventListener("click",async()=>{ await sb.from("notifications").update({is_read:true}).eq("user_id",currentUser.id).eq("is_read",false); NOTIFS=NOTIFS.map(n=>({...n,is_read:true})); renderNotifications(); updateBadge(); });
   $("refreshNotifBtn").addEventListener("click",loadNotifications);
 
+
+  async function loadMenteeSessions(){
+    try{
+      const {count} = await sb.from("sessions").select("*",{count:"exact",head:true}).eq("mentee_id",currentUser.id).eq("status","completed");
+      const el = document.getElementById("pcSessions");
+      if(el) el.textContent = count || 0;
+    }catch(e){ console.error(e); }
+  }
+
   // ── Init ──
   (async function init(){
     const ok = await guardAuth(); if(!ok) return;
@@ -619,6 +629,7 @@
     await loadRequests();
     await loadBookingSection();
     await loadMentorshipProgress();
+    await loadMenteeSessions();
     await loadSessions();
     await loadNotifications();
   })();
